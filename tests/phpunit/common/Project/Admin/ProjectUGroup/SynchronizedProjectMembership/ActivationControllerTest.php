@@ -27,8 +27,9 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Project;
 use Tuleap\Layout\BaseLayout;
+use Tuleap\Project\Admin\Routing\ProjectAdministratorChecker;
 use Tuleap\Project\UGroups\SynchronizedProjectMembershipDao;
-use Tuleap\Request\NotFoundException;
+use Tuleap\Request\ProjectRetriever;
 
 final class ActivationControllerTest extends TestCase
 {
@@ -37,9 +38,13 @@ final class ActivationControllerTest extends TestCase
     /** @var ActivationController */
     private $controller;
     /**
-     * @var M\MockInterface|\ProjectManager
+     * @var M\LegacyMockInterface|M\MockInterface|ProjectRetriever
      */
-    private $project_manager;
+    private $project_retriever;
+    /**
+     * @var M\LegacyMockInterface|M\MockInterface|ProjectAdministratorChecker
+     */
+    private $administrator_checker;
     /**
      * @var M\MockInterface|SynchronizedProjectMembershipDao
      */
@@ -59,12 +64,18 @@ final class ActivationControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->layout          = M::mock(BaseLayout::class);
-        $this->request         = M::mock(\HTTPRequest::class);
-        $this->project_manager = M::mock(\ProjectManager::class);
-        $this->dao             = M::mock(SynchronizedProjectMembershipDao::class);
-        $this->csrf            = M::mock(\CSRFSynchronizerToken::class);
-        $this->controller      = new ActivationController($this->project_manager, $this->dao, $this->csrf);
+        $this->layout            = M::mock(BaseLayout::class);
+        $this->request           = M::mock(\HTTPRequest::class);
+        $this->project_retriever = M::mock(ProjectRetriever::class);
+        $this->administrator_checker     = M::mock(ProjectAdministratorChecker::class);
+        $this->dao               = M::mock(SynchronizedProjectMembershipDao::class);
+        $this->csrf              = M::mock(\CSRFSynchronizerToken::class);
+        $this->controller        = new ActivationController(
+            $this->project_retriever,
+            $this->administrator_checker,
+            $this->dao,
+            $this->csrf
+        );
     }
 
     public function testGetUrl(): void
@@ -80,29 +91,11 @@ final class ActivationControllerTest extends TestCase
         );
     }
 
-    public function testProcessThrowsNotFoundWhenProjectIsInError(): void
-    {
-        $project = M::mock(Project::class);
-        $project->shouldReceive('isError')
-            ->once()
-            ->andReturnTrue();
-        $variables = ['id' => '104'];
-
-        $this->project_manager->shouldReceive('getProject')
-            ->with('104')
-            ->once()
-            ->andReturn($project);
-
-        $this->expectException(NotFoundException::class);
-
-        $this->controller->process($this->request, $this->layout, $variables);
-    }
-
     public function testProcessEnablesSynchronizedProjectMembership(): void
     {
         $this->csrf->shouldReceive('check')->once();
         $project = M::mock(Project::class, ['isError' => false, 'getID' => '104']);
-        $this->project_manager->shouldReceive('getProject')
+        $this->project_retriever->shouldReceive('getProjectFromId')
             ->with('104')
             ->once()
             ->andReturn($project);
@@ -111,6 +104,13 @@ final class ActivationControllerTest extends TestCase
             ->with('activation')
             ->once()
             ->andReturn('on');
+        $user = M::mock(\PFUser::class);
+        $this->request->shouldReceive('getCurrentUser')
+            ->once()
+            ->andReturn($user);
+        $this->administrator_checker->shouldReceive('checkUserIsProjectAdministrator')
+            ->with($user, $project)
+            ->once();
 
         $this->dao->shouldReceive('enable')
             ->once();
@@ -126,7 +126,7 @@ final class ActivationControllerTest extends TestCase
     {
         $this->csrf->shouldReceive('check')->once();
         $project = M::mock(Project::class, ['isError' => false, 'getID' => '104']);
-        $this->project_manager->shouldReceive('getProject')
+        $this->project_retriever->shouldReceive('getProjectFromId')
             ->with('104')
             ->once()
             ->andReturn($project);
@@ -135,6 +135,13 @@ final class ActivationControllerTest extends TestCase
             ->with('activation')
             ->once()
             ->andReturnFalse();
+        $user = M::mock(\PFUser::class);
+        $this->request->shouldReceive('getCurrentUser')
+            ->once()
+            ->andReturn($user);
+        $this->administrator_checker->shouldReceive('checkUserIsProjectAdministrator')
+            ->with($user, $project)
+            ->once();
 
         $this->dao->shouldReceive('disable')
             ->once();

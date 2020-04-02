@@ -21,7 +21,7 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class UserFinderTest extends TestCase
@@ -45,7 +45,7 @@ class UserFinderTest extends TestCase
         parent::setUp();
         $this->permissions_manager = \Mockery::spy(\PermissionsManager::class);
         $this->ugroup_manager      = \Mockery::spy(\UGroupManager::class);
-        $this->user_finder = new Git_Driver_Gerrit_UserFinder($this->permissions_manager, $this->ugroup_manager);
+        $this->user_finder = new Git_Driver_Gerrit_UserFinder($this->permissions_manager);
         $this->project_id = 666;
         $this->repository = \Mockery::spy(\GitRepository::class);
         $this->repository->shouldReceive('getId')->andReturns(5);

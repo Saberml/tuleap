@@ -18,7 +18,7 @@
  */
 
 import Vue from "vue";
-import { initVueGettext } from "../../tuleap/gettext/vue-gettext-init";
+import { initVueGettext, getPOFileFromLocale } from "../../tuleap/gettext/vue-gettext-init";
 import App from "./src/components/App.vue";
 import { TemplateData, TroveCatData } from "./src/type";
 import { createStore } from "./src/store";
@@ -33,7 +33,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     await initVueGettext(Vue, (locale: string) =>
-        import(/* webpackChunkName: "project-registration-po-" */ `./po/${locale}.po`)
+        import(
+            /* webpackChunkName: "project-registration-po-" */ "./po/" + getPOFileFromLocale(locale)
+        )
     );
 
     const tuleap_templates_json = vue_mount_point.dataset.availableTuleapTemplates;
@@ -64,6 +66,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const is_project_approval_required = Boolean(vue_mount_point.dataset.projectsMustBeApproved);
     const is_description_required = Boolean(vue_mount_point.dataset.isDescriptionMandatory);
     const are_anonymous_allowed = Boolean(vue_mount_point.dataset.areAnonymousAllowed);
+    const can_user_choose_project_visibility = Boolean(
+        vue_mount_point.dataset.canUserChoosePrivacy
+    );
 
     const company_templates_json = vue_mount_point.dataset.companyTemplates;
     if (!company_templates_json) {
@@ -96,15 +101,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         project_fields,
         company_templates,
         default_project_template,
-        company_name
+        company_name,
+        can_user_choose_project_visibility,
     };
 
     Vue.use(VueDOMPurifyHTML, {
         namedConfigurations: {
             svg: {
-                USE_PROFILES: { svg: true }
-            }
-        }
+                USE_PROFILES: { svg: true },
+            },
+        },
     });
 
     const AppComponent = Vue.extend(App);
@@ -113,6 +119,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     new AppComponent({
         store,
-        router
+        router,
     }).$mount(vue_mount_point);
 });

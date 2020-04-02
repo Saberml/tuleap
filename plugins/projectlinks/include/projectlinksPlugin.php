@@ -62,7 +62,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _adminURI()
+    public function _adminURI()
     {
         return $this->getPluginPath() . "/projectlinks_admin.php";
     }
@@ -90,7 +90,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
         require_once __DIR__ . '/../../../src/www/project/admin/project_admin_utils.php';
 
         $request  = HTTPRequest::instance();
-        $group_id = (int)$request->get('group_id');
+        $group_id = (int) $request->get('group_id');
 
         // get current information
         $project = ProjectManager::instance()->getProject($group_id);
@@ -130,14 +130,14 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
             switch ($disp) {
                 case 'edit_link_type':
                     if ($request->exist('link_type_id')) {
-                        $link_type_id = (int)$request->get('link_type_id');
+                        $link_type_id = (int) $request->get('link_type_id');
                     } else {
                         $link_type_id = null;
                     }
                     $this->_adminPage_UpdateLinkType($group_id, $link_type_id);
                     break;
                 case 'resync_template':
-                    $template_id = (int)$request->get('template_id');
+                    $template_id = (int) $request->get('template_id');
                     $this->_adminPage_ResyncTemplate($group_id, $template_id);
                     break;
             }
@@ -151,7 +151,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     private function adminPageUpdate_Service(HTTPRequest $request)
     {
         global $Language, $feedback;
-        $group_id = (int)$request->get('group_id');
+        $group_id = (int) $request->get('group_id');
         switch ($request->get('func')) {
             case 'pl_config_update':
                 if ($request->exist('EnableProjectLink')) {
@@ -179,7 +179,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
 
             case 'pl_type_delete':
                 // delete project link type and all links using the type
-                $link_type_id = (int)$request->get('link_type_id');
+                $link_type_id = (int) $request->get('link_type_id');
                 // delete project relationship instances
                 // NB: use group_id to defend against malicious use
                 if (! db_query(
@@ -215,7 +215,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
                 $q_uri_plus = "'" . db_es('/projects/$projname/') . "'";
                 // $link_type_id is not set when submitting a new link
                 if ($request->exist('link_type_id')) {
-                    $link_type_id = (int)$request->get('link_type_id');
+                    $link_type_id = (int) $request->get('link_type_id');
                 } else {
                     $link_type_id = null;
                 }
@@ -249,9 +249,9 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
                 break;
 
             case 'pl_link_update':
-                $link_type_id = (int)$request->get('link_type_id');
+                $link_type_id = (int) $request->get('link_type_id');
                 if ($request->exist('target_group_id')) {
-                    $target_group_id = (int)$request->get('target_group_id');
+                    $target_group_id = (int) $request->get('target_group_id');
                 } else {
                     $prjManager = ProjectManager::instance();
                     $trgProject = $prjManager->getProjectFromAutocompleter($request->get('target_group'));
@@ -282,7 +282,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
                 break;
 
             case 'template_sync_type_add':
-                $template_type_id = (int)$request->get('template_type_id');
+                $template_type_id = (int) $request->get('template_type_id');
                 $db_res           = db_query("SELECT * FROM plugin_projectlinks_link_type
                                 WHERE (link_type_id = " . db_ei($template_type_id) . ");");
                 if (db_numrows($db_res) == 1) {
@@ -312,7 +312,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _icon($icon, $params = null)
+    public function _icon($icon, $params = null)
     {
         // returns the HTML to display the named icon
         global $Language;
@@ -369,7 +369,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _getLinks($group_id)
+    public function _getLinks($group_id)
     {
         // returns a record set of project link types belonging to
         //the passed group
@@ -381,7 +381,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _adminPage_Default($group_id, $project)
+    public function _adminPage_Default($group_id, $project)
     {
         // show the default configuration page
         global $HTML, $Language;
@@ -474,7 +474,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _adminPage_UpdateLinkType($group_id, $link_type_id)
+    public function _adminPage_UpdateLinkType($group_id, $link_type_id)
     {
         global $HTML, $Language;
 
@@ -620,8 +620,9 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _adminPage_ResyncTemplate($group_id, $template_id)
+    public function _adminPage_ResyncTemplate($group_id, $template_id)
     {
+        $hp = Codendi_HTMLPurifier::instance();
         // re-synchronise project links and types with originating template
         global $HTML, $Language;
 
@@ -832,8 +833,8 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
                     );
                 }
                 print "</td>";
-                print "<td $cls>" . htmlentities($row_templLinks['link_name']) . "</td>";
-                print "<td $cls>" . htmlentities($row_templLinks['group_name']) . "</td>";
+                print "<td $cls>" . $hp->purify($row_templLinks['link_name']) . "</td>";
+                print "<td $cls>" . $hp->purify($row_templLinks['group_name']) . "</td>";
                 print "</tr>";
             }
             print "</TABLE>\n";
@@ -858,11 +859,12 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function _link_unique_update($group_id, $target_group_id, $link_type_id, $link_id = null)
+    public function _link_unique_update($group_id, $target_group_id, $link_type_id, $link_id = null)
     {
         // update link, but check the change would not create a duplicate
         // (same target project and link type)
         global $Language;
+        $hp = Codendi_HTMLPurifier::instance();
 
         $targetProject = ProjectManager::instance()->getProject($target_group_id);
 
@@ -879,7 +881,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
             $feedback = $Language->getText(
                 'plugin_plinks',
                 'project_link_change_makes_duplicate',
-                $targetProject->getPublicName()
+                $hp->purify($targetProject->getPublicName())
             );
         } else {
             $updates = array(
@@ -897,12 +899,12 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
                 $updates,
                 is_null($link_id) ? "" : "link_id=$link_id"
             )) {
-                $feedback = $Language->getText('plugin_plinks', 'update_ok_named', $targetProject->getPublicName()) . ' ';
+                $feedback = $Language->getText('plugin_plinks', 'update_ok_named', $hp->purify($targetProject->getPublicName())) . ' ';
             } else {
                 $feedback = $Language->getText(
                     'plugin_plinks',
                     'update_failed_named',
-                    array(db_error(), $targetProject->getPublicName())
+                    array(db_error(), $hp->purify($targetProject->getPublicName()))
                 );
             }
         }
@@ -914,8 +916,9 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
      *
      * @return string
      */
-    function _admin_links_table($link_type_id)
+    public function _admin_links_table($link_type_id)
     {
+        $hp = Codendi_HTMLPurifier::instance();
         $html = '';
 
         $dao   = $this->getProjectLinksDao();
@@ -934,7 +937,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
                 $html .= '<tr>';
 
                 // Name
-                $html .= '<td>' . $row['group_name'] . '</td>';
+                $html .= '<td>' . $hp->purify($row['group_name']) . '</td>';
 
                 // Delete
                 $url  = "?func=pl_link_delete&amp;disp=edit_link_type&amp;link_type_id=" . $link_type_id . "&amp;group_id=" . $row['master_group_id'] . "&amp;link_id=" . $row['link_id'];
@@ -951,7 +954,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function registerProjectCreation($params)
+    public function registerProjectCreation($params)
     {
         // called during new project creation to inherit project links and
         // types from a template
@@ -1028,7 +1031,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
     }
 
     //========================================================================
-    function registerProjectAbandon($params)
+    public function registerProjectAbandon($params)
     {
         // deletes all project link information for the passed group -
         // usually when a user declines to accept a new project at the
@@ -1061,7 +1064,7 @@ class ProjectLinksPlugin extends \Tuleap\Plugin\PluginWithLegacyInternalRouting
      *
      * @return ProjectLinksDao
      */
-    function getProjectLinksDao()
+    public function getProjectLinksDao()
     {
         include_once 'ProjectLinksDao.class.php';
         return new ProjectLinksDao(CodendiDataAccess::instance());

@@ -295,12 +295,20 @@ class AgileDashboard_Milestone_MilestoneDao extends DataAccessObject
 
     private function getOrderFragments(array $list_of_trackers_ids)
     {
-        return 'm'. implode('.id, m', $list_of_trackers_ids) .'.id';
+        return 'm' . implode('.id, m', $list_of_trackers_ids) . '.id';
     }
 
     private function getSelectFragments(array $list_of_trackers_ids)
     {
-        return implode(', ', array_map(array($this, 'extractSelectFragments'), $list_of_trackers_ids));
+        return implode(
+            ', ',
+            array_map(
+                function ($tracker_id) {
+                    return $this->extractSelectFragments($tracker_id);
+                },
+                $list_of_trackers_ids
+            )
+        );
     }
 
     private function extractSelectFragments($tracker_id)
@@ -360,7 +368,7 @@ class AgileDashboard_Milestone_MilestoneDao extends DataAccessObject
 
         $res = $this->retrieveFirstRow($sql);
 
-        return (!$res)? 0 : (int)$res['nb'];
+        return (!$res) ? 0 : (int) $res['nb'];
     }
 
     public function countMilestonesAfter(int $timestamp)
@@ -371,10 +379,10 @@ class AgileDashboard_Milestone_MilestoneDao extends DataAccessObject
                     ON planning.planning_tracker_id = hierarchy.parent_id
                 INNER JOIN tracker_artifact AS artifact
                     ON hierarchy.parent_id = artifact.tracker_id
-                    AND artifact.submitted_on > '.$this->da->escapeInt($timestamp);
+                    AND artifact.submitted_on > ' . $this->da->escapeInt($timestamp);
 
         $res = $this->retrieveFirstRow($sql);
 
-        return (!$res)? 0 : (int)$res['nb'];
+        return (!$res) ? 0 : (int) $res['nb'];
     }
 }

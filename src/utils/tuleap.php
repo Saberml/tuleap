@@ -38,7 +38,7 @@ use Tuleap\CLI\DelayExecution\ExecutionDelayedLauncher;
 use Tuleap\CLI\DelayExecution\ExecutionDelayerRandomizedSleep;
 use Tuleap\DB\DBFactory;
 use Tuleap\FRS\CorrectFrsRepositoryPermissionsCommand;
-use Tuleap\User\UserSuspensionLogger;
+use Tuleap\Language\LocaleSwitcher;
 use Tuleap\User\UserSuspensionManager;
 use Tuleap\Password\PasswordSanityChecker;
 use Tuleap\Queue\TaskWorker\TaskWorkerProcessCommand;
@@ -173,13 +173,13 @@ $CLI_command_collector->addCommand(
             ),
             new UserSuspensionManager(
                 new MailPresenterFactory(),
-                TemplateRendererFactory::build()->getRenderer(__DIR__ .'/../templates/mail/'),
-                'mail-suspension-alert',
+                TemplateRendererFactory::build()->getRenderer(__DIR__ . '/../templates/mail/'),
                 new Codendi_Mail,
-                new UserSuspensionDao(new UserSuspensionLogger()),
+                new UserSuspensionDao(),
                 $user_manager,
                 new BaseLanguageFactory(),
-                new UserSuspensionLogger()
+                BackendLogger::getDefaultLogger('usersuspension_syslog'),
+                new LocaleSwitcher()
             )
         );
     }
@@ -191,7 +191,7 @@ $CLI_command_collector->addCommand(
         return new TaskWorkerProcessCommand(
             $event_manager,
             new TruncateLevelLogger(
-                new BackendLogger(Tuleap\Queue\Worker::DEFAULT_LOG_FILE_PATH),
+                BackendLogger::getDefaultLogger(basename(Tuleap\Queue\Worker::DEFAULT_LOG_FILE_PATH)),
                 ForgeConfig::get('sys_logger_level')
             )
         );

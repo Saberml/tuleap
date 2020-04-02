@@ -71,7 +71,7 @@ class MetadataRepresentationBuilder
 
             $metadata_representations[] = new ItemMetadataRepresentation(
                 $metadata->getName(),
-                $this->getMetadataType((int)$metadata->getType()),
+                $this->getMetadataType((int) $metadata->getType()),
                 $metadata->isMultipleValuesAllowed(),
                 $transformed_values['value'],
                 $transformed_values['post_processed_value'],
@@ -128,9 +128,7 @@ class MetadataRepresentationBuilder
     }
 
     /**
-     * @param int $type
      *
-     * @return string
      * @throws UnknownMetadataException
      */
     private function getMetadataType(int $type): string

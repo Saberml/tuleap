@@ -75,7 +75,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
     public function formatCriteriaValue($value_id)
     {
         $hp = Codendi_HTMLPurifier::instance();
-        return  $hp->purify($this->format($this->getValue($value_id)), CODENDI_PURIFIER_CONVERT_HTML);
+        return $hp->purify($this->format($this->getValue($value_id)), CODENDI_PURIFIER_CONVERT_HTML);
     }
 
     /**
@@ -227,10 +227,10 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
      */
     public function getQuerySelect()
     {
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
-        $R3 = 'R3_'. $this->field->id;
-        return "$R2.id AS `". $this->field->name ."`";
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
+        $R3 = 'R3_' . $this->field->id;
+        return "$R2.id AS `" . $this->field->name . "`";
     }
 
     /**
@@ -244,19 +244,19 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
      */
     public function getQueryFrom($changesetvalue_table = 'tracker_changeset_value_list')
     {
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
-        $R3 = 'R3_'. $this->field->id;
-        $R4 = 'R4_'. $this->field->id;
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
+        $R3 = 'R3_' . $this->field->id;
+        $R4 = 'R4_' . $this->field->id;
         return "LEFT JOIN ( tracker_changeset_value AS $R1
                     INNER JOIN $changesetvalue_table AS $R3 ON ($R3.changeset_value_id = $R1.id)
-                    LEFT JOIN tracker_field_list_bind_ugroups_value AS $R2 ON ($R2.id = $R3.bindvalue_id AND $R2.field_id = ". $this->field->id ." )
+                    LEFT JOIN tracker_field_list_bind_ugroups_value AS $R2 ON ($R2.id = $R3.bindvalue_id AND $R2.field_id = " . $this->field->id . " )
                     INNER JOIN ugroup AS $R4 ON ($R4.ugroup_id = $R2.ugroup_id AND (
-                        ($R4.ugroup_id > 100 AND $R4.group_id = ". $this->field->getTracker()->getProject()->getID() ." )
+                        ($R4.ugroup_id > 100 AND $R4.group_id = " . $this->field->getTracker()->getProject()->getID() . " )
                         OR
                         ($R4.ugroup_id <= 100 AND $R4.group_id = 100))
                     )
-                ) ON ($R1.changeset_id = c.id AND $R1.field_id = ". $this->field->id ." )";
+                ) ON ($R1.changeset_id = c.id AND $R1.field_id = " . $this->field->id . " )";
     }
 
     /**
@@ -265,8 +265,8 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
     public function getQueryOrderby()
     {
         $uh = UserHelper::instance();
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
         return "$R2.ugroup_id";
     }
 
@@ -275,8 +275,8 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
      */
     public function getQueryGroupby()
     {
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
         return "$R2.id";
     }
 
@@ -309,10 +309,10 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
      */
     public function getQuerySelectAggregate($functions)
     {
-        $R1  = 'R1_'. $this->field->id;
-        $R2  = 'R2_'. $this->field->id;
-        $R3  = 'R3_'. $this->field->id;
-        $R4  = 'R4_'. $this->field->id;
+        $R1  = 'R1_' . $this->field->id;
+        $R2  = 'R2_' . $this->field->id;
+        $R3  = 'R3_' . $this->field->id;
+        $R4  = 'R4_' . $this->field->id;
         $same     = array();
         $separate = array();
         foreach ($functions as $f) {
@@ -324,7 +324,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
                         'group_by' => "$R4.name",
                     );
                 } else {
-                    $select = "$f($R4.name) AS `". $this->field->name ."_$f`";
+                    $select = "$f($R4.name) AS `" . $this->field->name . "_$f`";
                     if ($this->field->isMultiple()) {
                         $separate[] = array(
                             'function' => $f,
@@ -406,7 +406,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
     public function fetchAdminEditForm()
     {
         $html = '';
-        $html .= '<h3>'. $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'bind_to_ugroups') .'</h3>';
+        $html .= '<h3>' . $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'bind_to_ugroups') . '</h3>';
         $html .= self::fetchSelectUgroups('bind[values][]', $this->field, $this->values);
 
         //Select default values
@@ -426,16 +426,21 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
         );
 
         $html  = '';
-        $html .= '<input type="hidden" name="'. $select_name .'" value="" />';
-        $html .= '<select multiple="multiple" name="'. $select_name .'" size="'. min(9, max(5, count($ugroups))) .'">';
+        $html .= '<input type="hidden" name="' . $select_name . '" value="" />';
+        $html .= '<select multiple="multiple" name="' . $select_name . '" size="' . min(9, max(5, count($ugroups))) . '">';
 
-        $selected_ugroup_ids = array_map(array(self::class, 'getSelectedUgroupIds'), $values);
+        $selected_ugroup_ids = array_map(
+            static function ($value) {
+                return self::getSelectedUgroupIds($value);
+            },
+            $values
+        );
         foreach ($ugroups as $ugroup) {
             $selected = "";
             if (in_array($ugroup->getId(), $selected_ugroup_ids)) {
                 $selected = 'selected="selected"';
             }
-            $html .= '<option value="'. $ugroup->getId() .'" '.$selected.'>';
+            $html .= '<option value="' . $ugroup->getId() . '" ' . $selected . '>';
             $html .= $hp->purify($ugroup->getTranslatedName());
             $html .= '</option>';
         }
@@ -496,7 +501,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
     /**
      * @return Tracker_FormElement_Field_List_Bind_UgroupsValue or null if no match
      */
-    public function getValueByUGroupId($ugroup_id)
+    private function getValueByUGroupId($ugroup_id)
     {
         if (isset($this->values_indexed_by_ugroup_id[$ugroup_id])) {
             return $this->values_indexed_by_ugroup_id[$ugroup_id];
@@ -534,7 +539,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
             $item->addAttribute('ID', $id);
             $xmlMapping['values'][$id] = $value->getId();
             $item->addAttribute('label', $value->getUGroupName());
-            $item->addAttribute('is_hidden', (int)$value->isHidden());
+            $item->addAttribute('is_hidden', (int) $value->isHidden());
         }
         if ($this->default_values) {
             $default_child = $root->addChild('default_values');
@@ -714,18 +719,20 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
     {
         $project = $field->getTracker()->getProject();
 
+        $identifier = null;
+
         if (isset($rest_data['id'])) {
             $value = UserGroupRepresentation::getProjectAndUserGroupFromRESTId($rest_data['id']);
             $id    = $value['user_group_id'];
 
             $bind_value = $this->getValueByUGroupId($id);
             if ($bind_value) {
-                return Tracker_FormElement_Field_OpenList::BIND_PREFIX.$bind_value->getId();
+                return Tracker_FormElement_Field_OpenList::BIND_PREFIX . $bind_value->getId();
             }
 
             $user_group = $this->ugroup_manager->getUGroup($project, $id);
             if (! $user_group) {
-                throw new Tracker_FormElement_InvalidFieldValueException('User Group with ID '.$id.' does not exist for field ID '.$field->getId());
+                throw new Tracker_FormElement_InvalidFieldValueException('User Group with ID ' . $id . ' does not exist for field ID ' . $field->getId());
             }
 
             if (! $bind_value) {
@@ -736,7 +743,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
             $user_group = $this->ugroup_manager->getUGroupByName($project, $name);
 
             if (! $user_group) {
-                throw new Tracker_FormElement_InvalidFieldValueException('User Group with short_name '.$name.' does not exist for field ID '.$field->getId());
+                throw new Tracker_FormElement_InvalidFieldValueException('User Group with short_name ' . $name . ' does not exist for field ID ' . $field->getId());
             }
 
             $identifier = $name;
@@ -744,12 +751,14 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
             throw new Tracker_FormElement_InvalidFieldValueException('OpenList static fields values should be passed as an object with at least one of the properties "id" or "short_name"');
         }
 
-        $row = $this->getOpenValueDao()->searchByExactLabel($field->getId(), $identifier)->getRow();
-        if ($row) {
-            return Tracker_FormElement_Field_OpenList::OPEN_PREFIX.$row['id'];
+        if ($identifier !== null) {
+            $row = $this->getOpenValueDao()->searchByExactLabel($field->getId(), $identifier)->getRow();
+            if ($row) {
+                return Tracker_FormElement_Field_OpenList::OPEN_PREFIX . $row['id'];
+            }
         }
 
-        return Tracker_FormElement_Field_OpenList::NEW_VALUE_PREFIX.$identifier;
+        return Tracker_FormElement_Field_OpenList::NEW_VALUE_PREFIX . $identifier;
     }
 
     public function getFullRESTValue(Tracker_FormElement_Field_List_Value $value)
@@ -765,18 +774,17 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
         return $ugroup_representation;
     }
 
-    public function getFieldDataFromRESTValue($rest_data)
+    public function getFieldDataFromRESTValue($rest_data): int
     {
-        $representation_class = '\\Tuleap\\Project\\REST\\UserGroupRepresentation';
-        $value                = call_user_func_array($representation_class.'::getProjectAndUserGroupFromRESTId', array($rest_data));
-        $ugroup_id            = $value['user_group_id'];
-        $bind_value           = $this->getValueByUGroupId($ugroup_id);
+        $value      = UserGroupRepresentation::getProjectAndUserGroupFromRESTId($rest_data);
+        $ugroup_id  = $value['user_group_id'];
+        $bind_value = $this->getValueByUGroupId($ugroup_id);
 
         if ($bind_value) {
-            return intval($bind_value->getId());
+            return (int) $bind_value->getId();
         }
 
-        return;
+        return 0;
     }
 
     public function accept(BindVisitor $visitor, BindParameters $parameters)

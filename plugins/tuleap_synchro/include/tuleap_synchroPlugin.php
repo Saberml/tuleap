@@ -84,8 +84,7 @@ class tuleap_synchroPlugin extends Plugin  // @codingStandardsIgnoreLine
     public function routePostDeleteEndpoint(): EndpointDeleteController
     {
         return new EndpointDeleteController(
-            new EndpointUpdater(new TuleapSynchroDao(), new WebhookGenerator(new TuleapSynchroDao(), 5)),
-            new AdminPageRenderer()
+            new EndpointUpdater(new TuleapSynchroDao(), new WebhookGenerator(new TuleapSynchroDao(), 5))
         );
     }
 
@@ -100,7 +99,7 @@ class tuleap_synchroPlugin extends Plugin  // @codingStandardsIgnoreLine
     {
         $params['plugins'][] = [
             'label' => dgettext('tuleap-tuleap_synchro', 'Tuleap to Tuleap'),
-            'href'  => '/admin/'.self::NAME,
+            'href'  => '/admin/' . self::NAME,
         ];
     }
 }

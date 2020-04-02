@@ -49,13 +49,10 @@ class QueryToPeriodMilestoneRepresentationBuilderConverter
     }
 
     /**
-     * @param string $query
-     * @return MilestoneRepresentationBuilderInterface
      * @throws MalformedQueryParameterException
      */
     public function convert(string $query): MilestoneRepresentationBuilderInterface
     {
-
         $query_object = json_decode(stripslashes($query));
 
         if ($query_object === null) {

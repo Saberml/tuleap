@@ -35,10 +35,10 @@ class Git_Ci_Launcher
     /** @var Git_Ci_Dao */
     private $dao;
 
-    /** @var Logger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
-    public function __construct(Jenkins_Client $jenkins_client, Git_Ci_Dao $dao, Logger $logger)
+    public function __construct(Jenkins_Client $jenkins_client, Git_Ci_Dao $dao, \Psr\Log\LoggerInterface $logger)
     {
         $this->jenkins_client     = $jenkins_client;
         $this->dao                = $dao;
@@ -65,7 +65,7 @@ class Git_Ci_Launcher
                 try {
                     $this->jenkins_client->setToken($row['token'])->launchJobBuild($row['job_url']);
                 } catch (Exception $exception) {
-                    $this->logger->error(self::class.'['.$repository->getId().'] '.$exception->getMessage());
+                    $this->logger->error(self::class . '[' . $repository->getId() . '] ' . $exception->getMessage());
                 }
             }
         }

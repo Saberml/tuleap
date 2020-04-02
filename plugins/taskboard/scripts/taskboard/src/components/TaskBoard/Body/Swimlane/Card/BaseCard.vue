@@ -24,6 +24,7 @@
             v-if="can_user_update_card"
             class="taskboard-card-edit-trigger"
             v-on:click="switchToEditMode"
+            data-test="card-edit-button"
         >
             <i class="fa fa-pencil"></i>
         </span>
@@ -62,8 +63,8 @@ const fullscreen = namespace("fullscreen");
     components: {
         CardInfo,
         LabelEditor,
-        CardXrefLabel
-    }
+        CardXrefLabel,
+    },
 })
 export default class BaseCard extends Vue {
     @user.State
@@ -124,7 +125,7 @@ export default class BaseCard extends Vue {
             card: this.card,
             label: this.label,
             assignees: this.assignees,
-            tracker: this.tracker
+            tracker: this.tracker,
         };
         this.saveCard(payload);
     }

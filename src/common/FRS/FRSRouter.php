@@ -28,8 +28,6 @@ use PFUser;
 
 class FRSRouter
 {
-    /** @var Project */
-    private $project;
     /** @var PermissionController */
     private $permission_controller;
 
@@ -40,7 +38,6 @@ class FRSRouter
 
     /**
      * Routes the request to the correct controller
-     * @param HTTPRequest $request
      * @return void
      */
     public function route(HTTPRequest $request, Project $project)
@@ -84,7 +81,7 @@ class FRSRouter
 
     private function redirectToDefaultRoute(Project $project)
     {
-        $GLOBALS['Response']->redirect('/file/admin/?'. http_build_query(
+        $GLOBALS['Response']->redirect('/file/admin/?' . http_build_query(
             array(
                 'group_id' => $project->getId(),
                 'action'   => 'edit-permissions'

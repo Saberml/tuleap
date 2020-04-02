@@ -93,7 +93,6 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
 
     /**
      *
-     * @param Project $project
      * @param type $ugroup_id
      *
      * @return ProjectUGroup
@@ -131,7 +130,6 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
     }
 
     /**
-     * @param Project $project
      * @return ProjectUGroup
      */
     public function getProjectAdminsUGroup(Project $project)
@@ -141,7 +139,6 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
     }
 
     /**
-     * @param Project $project
      * @return ProjectUGroup
      */
     public function getProjectMembersUGroup(Project $project)
@@ -179,7 +176,6 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
     /**
      * @see self::getUGroupsWithSystemUserGroups() returns same groups, except system user groups and Nobody.
      *
-     * @param Project $project
      * @param array $excluded_ugroups_id
      * @return ProjectUGroup[]
      */
@@ -207,7 +203,6 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
         $user_groups = $this->getUGroups($project);
 
         return array_filter($user_groups, function (ProjectUGroup $ugroup) use ($project) {
-
             if ($ugroup->getId() == ProjectUgroup::ANONYMOUS) {
                 return ForgeConfig::areAnonymousAllowed() && $project->isPublic();
             }
@@ -291,7 +286,7 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
 
     private function getUnormalisedName($name)
     {
-        return 'ugroup_'.$name.'_name_key';
+        return 'ugroup_' . $name . '_name_key';
     }
 
     public function getLabel($group_id, $ugroup_id)
@@ -318,7 +313,7 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
 
         if ($dar && ! $dar->isError()) {
             foreach ($dar as $row) {
-                $ugroups [] = new ProjectUGroup($row);
+                $ugroups[] = new ProjectUGroup($row);
             }
         }
 
@@ -394,7 +389,6 @@ class UGroupManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespa
     }
 
     /**
-     * @param PFUSer $user
      * @param int $ugroup_id
      * @param int $group_id
      * @return bool

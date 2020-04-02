@@ -27,18 +27,18 @@ class Docman_View_Admin_LockInfos extends Docman_View_Extra
 {
     public $defaultUrl;
 
-    function _title($params)
+    public function _title($params)
     {
-        echo '<h2>'. $this->_getTitle($params) .' - '. $GLOBALS['Language']->getText('plugin_docman', 'admin_lock_infos_title') .'</h2>';
+        echo '<h2>' . $this->_getTitle($params) . ' - ' . dgettext('tuleap-docman', 'Locked Documents') . '</h2>';
     }
 
-    function _content($params)
+    public function _content($params)
     {
         $html = '';
 
         // Display help message
         $html .= '<p>';
-        $html .= $GLOBALS['Language']->getText('plugin_docman', 'admin_lock_infos_help');
+        $html .= dgettext('tuleap-docman', 'This is the list of all locked documents in project.');
         $html .= '</p>';
 
         $html .= $this->getTable($params);
@@ -46,15 +46,15 @@ class Docman_View_Admin_LockInfos extends Docman_View_Extra
         print($html);
     }
 
-    function getTable($params)
+    public function getTable($params)
     {
         $this->defaultUrl = $params['default_url'];
         $content = '';
 
-        $content .= html_build_list_table_top(array($GLOBALS['Language']->getText('plugin_docman', 'view_documenttable_title'),
-                                                    $GLOBALS['Language']->getText('plugin_docman', 'view_documenttable_location'),
-                                                    $GLOBALS['Language']->getText('plugin_docman', 'admin_lock_infos_who'),
-                                                    $GLOBALS['Language']->getText('plugin_docman', 'admin_lock_infos_when')
+        $content .= html_build_list_table_top(array(dgettext('tuleap-docman', 'Title'),
+                                                    dgettext('tuleap-docman', 'Location'),
+                                                    dgettext('tuleap-docman', 'Who'),
+                                                    dgettext('tuleap-docman', 'When')
                                             ));
 
         // Get list of all locked documents in the project.
@@ -76,16 +76,16 @@ class Docman_View_Admin_LockInfos extends Docman_View_Extra
                     return '</table>';
                 }
                 $parent = $dIF->getItemFromDb($item->getParentId());
-                $content .= '<tr class="'.$trclass.'">';
-                $content .= '<td>'. '<a href="/plugins/docman/?group_id='. $params['group_id']. '&action=details&id='. $item->getId(). '">'. $item->getTitle() .'</a></td>';
+                $content .= '<tr class="' . $trclass . '">';
+                $content .= '<td>' . '<a href="/plugins/docman/?group_id=' . $params['group_id'] . '&action=details&id=' . $item->getId() . '">' . $item->getTitle() . '</a></td>';
                 $content .= '<td>';
                 if ($parent === null || $dIF->isRoot($parent)) {
                     $content .= '</td>';
                 } else {
-                    $content .=  '<a href="'. $this->defaultUrl. '&action=show&id='. $parent->getId(). '">' .$parent->getTitle() .'</a></td>';
+                    $content .=  '<a href="' . $this->defaultUrl . '&action=show&id=' . $parent->getId() . '">' . $parent->getTitle() . '</a></td>';
                 }
-                $content .= '<td>'. $hp->purify($uH->getDisplayNameFromUserId($row['user_id'])) .'</td>';
-                $content .= '<td>'. format_date($GLOBALS['Language']->getText('system', 'datefmt'), $row['lock_date']) .'</td>';
+                $content .= '<td>' . $hp->purify($uH->getDisplayNameFromUserId($row['user_id'])) . '</td>';
+                $content .= '<td>' . format_date($GLOBALS['Language']->getText('system', 'datefmt'), $row['lock_date']) . '</td>';
                 $content .= '</tr>';
             }
         }

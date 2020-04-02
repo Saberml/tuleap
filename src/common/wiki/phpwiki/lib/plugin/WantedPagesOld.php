@@ -27,17 +27,17 @@ rcs_id('$Id: WantedPagesOld.php,v 1.1 2004/11/20 11:28:49 rurban Exp $');
 
 class WikiPlugin_WantedPagesOld extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("WantedPages");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Lists referenced page names which do not exist yet.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -46,7 +46,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('noheader' => false,
                      'exclude'  => _("PgsrcTranslation"),
@@ -60,7 +60,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
     // info=mtime,hits,summary,version,author,locked,minor,markup or all
     // exclude arg allows multiple pagenames exclude=HomePage,RecentChanges
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         extract($this->getArgs($argstr, $request));
 
@@ -114,7 +114,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
             // link count always seems to be 1 for a single page so
             // omit count column
             foreach ($this->pagelist as $key => $val) {
-                $row = HTML::li(WikiLink((string)$key, 'unknown'));
+                $row = HTML::li(WikiLink((string) $key, 'unknown'));
                 $this->_rows->pushContent($row);
             }
             if (!$noheader) {
@@ -182,9 +182,8 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
         }
     }
 
-    function _generateTable($caption)
+    public function _generateTable($caption)
     {
-
         if (count($this->pagelist) > 0) {
             $table = HTML::table(array('cellpadding' => 0,
                                        'cellspacing' => 1,
@@ -192,7 +191,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
                                        'class'       => 'pagelist'));
             if ($caption) {
                 $table->pushContent(HTML::caption(
-                    array('align'=>'top'),
+                    array('align' => 'top'),
                     $caption
                 ));
             }
@@ -227,7 +226,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
         return $table;
     }
 
-    function _generateList($caption)
+    public function _generateList($caption)
     {
         $list = HTML();
         $c = count($this->pagelist);
@@ -244,7 +243,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
         return $list;
     }
 
-    function _iterateLinks($page_handle, $dbi)
+    public function _iterateLinks($page_handle, $dbi)
     {
         $links_iter = $page_handle->getLinks($reversed = false);
         while ($link_handle = $links_iter->next()) {
@@ -257,7 +256,7 @@ class WikiPlugin_WantedPagesOld extends WikiPlugin
             }
         }
     }
-};
+}
 
 // $Log: WantedPagesOld.php,v $
 // Revision 1.1  2004/11/20 11:28:49  rurban

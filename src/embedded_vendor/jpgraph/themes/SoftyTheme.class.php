@@ -9,7 +9,7 @@ class SoftyTheme extends Theme
     protected $axis_color       = '#000000';
     protected $grid_color       = '#CCCCCC';
 
-    function GetColorList()
+    public function GetColorList()
     {
         return array(
             '#CFE7FB',
@@ -42,9 +42,8 @@ class SoftyTheme extends Theme
         );
     }
 
-    function SetupGraph($graph)
+    public function SetupGraph($graph)
     {
-
         // graph
         $graph->SetFrame(false);
         $graph->SetMarginColor('white');
@@ -112,9 +111,8 @@ class SoftyTheme extends Theme
     }
 
 
-    function SetupPieGraph($graph)
+    public function SetupPieGraph($graph)
     {
-
         // graph
         $graph->SetFrame(false);
 
@@ -127,7 +125,7 @@ class SoftyTheme extends Theme
     }
 
 
-    function PreStrokeApply($graph)
+    public function PreStrokeApply($graph)
     {
         if ($graph->legend->HasItems()) {
             $img = $graph->img;
@@ -140,9 +138,8 @@ class SoftyTheme extends Theme
         }
     }
 
-    function ApplyPlot($plot)
+    public function ApplyPlot($plot)
     {
-
         switch (get_class($plot)) {
             case 'BarPlot':
                 $plot->Clear();

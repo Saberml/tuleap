@@ -85,7 +85,7 @@ class captchaPlugin extends Plugin // @codingStandardsIgnoreLine
                 __DIR__ . '/../../../src/www/assets/captcha',
                 '/assets/captcha'
             );
-            echo '<link rel="stylesheet" type="text/css" href="'. $assets->getFileURL('style.css') . '" />';
+            echo '<link rel="stylesheet" type="text/css" href="' . $assets->getFileURL('style.css') . '" />';
         }
     }
 
@@ -115,8 +115,8 @@ class captchaPlugin extends Plugin // @codingStandardsIgnoreLine
 
     public function checkCaptchaBeforeSubmission(array $params)
     {
-        /** @var HTTPRequest $request */
         $request = $params['request'];
+        \assert($request instanceof HTTPRequest);
         if ($request->getCurrentUser()->isSuperUser()) {
             return;
         }

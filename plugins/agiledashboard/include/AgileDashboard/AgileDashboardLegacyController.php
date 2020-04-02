@@ -49,8 +49,6 @@ class AgileDashboardLegacyController implements DispatchableWithRequest
     /**
      * Is able to process a request routed by FrontRouter
      *
-     * @param HTTPRequest $request
-     * @param BaseLayout  $layout
      * @param array       $variables
      * @throws NotFoundException
      * @throws ForbiddenException
@@ -61,7 +59,7 @@ class AgileDashboardLegacyController implements DispatchableWithRequest
         $project = $request->getProject();
 
         if ($project->isDeleted()) {
-            $layout->addFeedback(Feedback::ERROR, $GLOBALS['Language']->getText('include_exit', 'project_status_' . $project->getStatus()));
+            $layout->addFeedback(Feedback::ERROR, $GLOBALS['Language']->getText('include_exit', 'project_status_D'));
             $layout->redirect('/');
         }
 
@@ -69,8 +67,8 @@ class AgileDashboardLegacyController implements DispatchableWithRequest
             $layout->addCssAsset(
                 new CssAsset(
                     new IncludeAssets(
-                        __DIR__ . '/../../../../src/www/assets/agiledashboard/themes',
-                        '/assets/agiledashboard/themes'
+                        __DIR__ . '/../../../../src/www/assets/agiledashboard',
+                        '/assets/agiledashboard'
                     ),
                     'kanban'
                 )

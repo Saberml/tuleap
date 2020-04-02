@@ -125,7 +125,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
      * You can join on 'c' which is a pseudo table used to retrieve
      * the last changeset of all artifacts.
      *
-     * @param Tracker_ReportCriteria $criteria
+     * @param Tracker_Report_Criteria $criteria
      *
      * @return string
      */
@@ -135,6 +135,8 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         if ($this->isUsed()) {
             return $this->getBind()->getCriteriaFrom($this->getCriteriaValue($criteria));
         }
+
+        return '';
     }
 
     /**
@@ -142,7 +144,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
      *
      * @see getCriteriaFrom
      *
-     * @param Tracker_ReportCriteria $criteria
+     * @param Tracker_Report_Criteria $criteria
      *
      * @return string
      */
@@ -397,7 +399,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
                     $criteria_value_node->addChild('none_value');
                 } else {
                     $selected_value_node = $criteria_value_node->addChild('selected_value');
-                    $selected_value_node->addAttribute('REF', 'V'.$value_id);
+                    $selected_value_node->addAttribute('REF', 'V' . $value_id);
                 }
             }
         }
@@ -486,7 +488,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
     /**
      * Display the field value as a criteria
-     * @param Tracker_ReportCriteria $criteria
+     * @param Tracker_Report_Criteria $criteria
      * @return string
      * @see fetchCriteria
      */
@@ -506,27 +508,27 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
         if ($criteria->is_advanced) {
             $multiple = ' multiple="multiple" ';
-            $size     = ' size="'. min(7, count($this->getBind()->getAllValues()) + 2) .'" ';
+            $size     = ' size="' . min(7, count($this->getBind()->getAllValues()) + 2) . '" ';
         }
 
-        $html .= '<input type="hidden" name="'. $prefix_name .'" />';
-        $html .= '<select id="tracker_report_criteria_'. ($criteria->is_advanced ? 'adv_' : '') . $this->id .'"
-                          name="'. $name .'" '.
+        $html .= '<input type="hidden" name="' . $prefix_name . '" />';
+        $html .= '<select id="tracker_report_criteria_' . ($criteria->is_advanced ? 'adv_' : '') . $this->id . '"
+                          name="' . $name . '" ' .
                           $size .
-                          $multiple .'>';
+                          $multiple . '>';
         //Any value
         $selected = count($criteria_value) && !in_array('', $criteria_value) ? '' : 'selected="selected"';
-        $html .= '<option value="" '. $selected .' title="'. $GLOBALS['Language']->getText('global', 'any') .'">'. $GLOBALS['Language']->getText('global', 'any') .'</option>';
+        $html .= '<option value="" ' . $selected . ' title="' . $GLOBALS['Language']->getText('global', 'any') . '">' . $GLOBALS['Language']->getText('global', 'any') . '</option>';
         //None value
         $selected = in_array(Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID, $criteria_value) ? 'selected="selected"' : '';
-        $html .= '<option value="'.Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID.'" '. $selected .' title="'. $GLOBALS['Language']->getText('global', 'none') .'">'. $GLOBALS['Language']->getText('global', 'none') .'</option>';
+        $html .= '<option value="' . Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID . '" ' . $selected . ' title="' . $GLOBALS['Language']->getText('global', 'none') . '">' . $GLOBALS['Language']->getText('global', 'none') . '</option>';
         //Field values
         foreach ($this->getBind()->getAllValues() as $id => $value) {
             $selected = in_array($id, $criteria_value) ? 'selected="selected"' : '';
 
             $styles = $this->getBind()->getSelectOptionStyles($id);
 
-            $html .= '<option value="'. $id .'"  title="'. $this->getBind()->formatCriteriaValue($id) .'" '. $selected .' style="'. $styles['inline-styles'] . '" class="' . $styles['classes'] . '">';
+            $html .= '<option value="' . $id . '"  title="' . $this->getBind()->formatCriteriaValue($id) . '" ' . $selected . ' style="' . $styles['inline-styles'] . '" class="' . $styles['classes'] . '">';
             $html .= $this->getBind()->formatCriteriaValue($id);
             $html .= '</option>';
         }
@@ -614,8 +616,8 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         $default_values  = $this->getSubmitDefaultValues();
 
         return $this->_fetchField(
-            'tracker_field_'. $this->id,
-            'artifact['. $this->id .']',
+            'tracker_field_' . $this->id,
+            'artifact[' . $this->id . ']',
             $default_values,
             $selected_values
         );
@@ -637,7 +639,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
      */
     protected function fetchSubmitValueMasschange()
     {
-        return $this->_fetchFieldMasschange('tracker_field_'. $this->id, 'artifact['. $this->id .']', $this->getBind()->getDefaultValues());
+        return $this->_fetchFieldMasschange('tracker_field_' . $this->id, 'artifact[' . $this->id . ']', $this->getBind()->getDefaultValues());
     }
     /**
      * Fetch the html code to display the field value in artifact
@@ -656,8 +658,8 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         $values = $submitted_values[$this->id] ?? [];
         $selected_values  = $value ? $value->getListValues() : array();
         return $this->_fetchField(
-            'tracker_field_'. $this->id,
-            'artifact['. $this->id .']',
+            'tracker_field_' . $this->id,
+            'artifact[' . $this->id . ']',
             $selected_values,
             $values
         );
@@ -685,7 +687,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         $output = '';
         switch ($format) {
             case 'html':
-                if (empty($value) ||  !$value->getListValues()) {
+                if (empty($value) || !$value->getListValues()) {
                     return '-';
                 }
                 $output = $this->fetchArtifactValueReadOnly($artifact, $value);
@@ -748,7 +750,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
     {
         $workflow = $this->getWorkflow();
         if (!empty($workflow) && $workflow->is_used) {
-            return $workflow->field_id===$this->id;
+            return $workflow->field_id === $this->id;
         }
         return false;
     }
@@ -762,7 +764,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
     {
         $workflow = $this->getWorkflow();
         if (!empty($workflow)) {
-            return $workflow->field_id===$this->id;
+            return $workflow->field_id === $this->id;
         }
         return false;
     }
@@ -778,7 +780,6 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
     /**
      * Validate a value
-     * @param Tracker_Artifact $artifact
      * @param mixed $value data coming from the request. May be string or array.
      *
      * @return bool true if the value is considered ok
@@ -799,7 +800,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
                            $valid = false;
                     }
                 } else {
-                    if ($last_changeset->getValue($this)!=null) {
+                    if ($last_changeset->getValue($this) != null) {
                         foreach ($last_changeset->getValue($this)->getListValues() as $id => $value) {
                             if ($value != $field_value_to) {
                                 if (!$this->isTransitionValid($value, $field_value_to)) {
@@ -872,7 +873,10 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         }
     }
 
-    private function getTransitionListValidator()
+    /**
+     * protected for testing purpose
+     */
+    protected function getTransitionListValidator(): TransitionListValidator
     {
         return new TransitionListValidator(TransitionFactory::instance());
     }
@@ -924,7 +928,6 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
     /**
      *
-     * @param Tracker_Artifact_Changeset $changeset
      * @return string
      */
     public function getFirstValueFor(Tracker_Artifact_Changeset $changeset)
@@ -941,8 +944,6 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
     }
 
     /**
-     * @param string $id
-     * @param string $name
      * @param array  $selected_values
      * @param mixed  $submitted_values_for_this_list
      *
@@ -957,11 +958,11 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
             if ($this->isMultiple()) {
                 $name .= '[]';
             }
-            $name = 'name="'. $purifier->purify($name) .'"';
+            $name = 'name="' . $purifier->purify($name) . '"';
         }
 
         if ($id) {
-            $id = 'id="'. $id .'"';
+            $id = 'id="' . $id . '"';
         }
 
         $html .= $this->fetchFieldContainerStart($id, $name);
@@ -970,7 +971,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         if ($from == null && !isset($submitted_values_for_this_list)) {
             $none_is_selected = isset($selected_values[Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID]);
         } else {
-            $none_is_selected = ($submitted_values_for_this_list==Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID);
+            $none_is_selected = ($submitted_values_for_this_list == Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID);
         }
 
         if (!$this->fieldHasEnableWorkflow()) {
@@ -1012,7 +1013,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         $required = '';
         if ($this->isMultiple()) {
             $multiple = 'multiple="multiple"';
-            $size     = 'size="'. min($this->getMaxSize(), count($this->getBind()->getBindValues()) + 2) .'"';
+            $size     = 'size="' . min($this->getMaxSize(), count($this->getBind()->getBindValues()) + 2) . '"';
         }
         if ($this->isRequired()) {
             $required = 'required';
@@ -1034,7 +1035,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
         $selected = $is_selected ? 'selected="selected"' : '';
 
-        return '<option value="'. $id .'" '. $selected .' title="'. $label .'" style="'. $styles['inline-styles'] . '" class="' .  $styles['classes'] .' ">'. $label .'</option>';
+        return '<option value="' . $id . '" ' . $selected . ' title="' . $label . '" style="' . $styles['inline-styles'] . '" class="' .  $styles['classes'] . ' ">' . $label . '</option>';
     }
 
     protected function fetchFieldContainerEnd()
@@ -1051,19 +1052,19 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         $size     = ' ';
         if ($this->isMultiple()) {
             $multiple = ' multiple="multiple" ';
-            $size     = ' size="'. min($this->getMaxSize(), count($this->getBind()->getAllValues()) + 2) .'" ';
+            $size     = ' size="' . min($this->getMaxSize(), count($this->getBind()->getAllValues()) + 2) . '" ';
             if ($name) {
                 $name .= '[]';
             }
         }
         $html .= '<select ';
         if ($id) {
-            $html .= 'id="'. $id .'" ';
+            $html .= 'id="' . $id . '" ';
         }
         if ($name) {
-            $html .= 'name="'. $name .'" ';
+            $html .= 'name="' . $name . '" ';
         }
-        $html .= $size . $multiple .'>';
+        $html .= $size . $multiple . '>';
 
         $html .= '<option value="' . $purifier->purify(BindStaticValueUnchanged::VALUE_ID) . '" selected="selected">' .
             $GLOBALS['Language']->getText('global', 'unchanged') . '</option>';
@@ -1073,7 +1074,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
             if (!$value->isHidden()) {
                 $styles  = $this->getBind()->getSelectOptionStyles($id);
 
-                $html .= '<option value="'. $id .'" title="'. $this->getBind()->formatArtifactValue($id) .'" style="'. $styles['inline-styles'] . '" classe="' . $styles['classes'] .'">';
+                $html .= '<option value="' . $id . '" title="' . $this->getBind()->formatArtifactValue($id) . '" style="' . $styles['inline-styles'] . '" classe="' . $styles['classes'] . '">';
                 $html .= $this->getBind()->formatArtifactValue($id);
                 $html .= '</option>';
             }
@@ -1091,7 +1092,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
     /**
      * Fetch the changes that has been made to this field in a followup
-     * @param Tracker_ $artifact
+     * @param Tracker_Artifact $artifact
      * @param array $from the value(s) *before*
      * @param array $to   the value(s) *after*
      */
@@ -1099,6 +1100,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
     {
         $html = '';
         $values = array();
+        $from_value = false;
         if ($from && isset($from['changeset_id'])) {
             foreach ($this->getBind()->getChangesetValues($from['changeset_id']) as $v) {
                 if ($v['id'] != Tracker_FormElement_Field_List_Bind_StaticValue_None::VALUE_ID) {
@@ -1109,13 +1111,13 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         }
 
         if (!$from_value) {
-            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to').' ';
+            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to') . ' ';
         } else {
-            $html .= ' '.$GLOBALS['Language']->getText('plugin_tracker_artifact', 'changed_from').' '. $from_value .'  '.$GLOBALS['Language']->getText('plugin_tracker_artifact', 'to').' ';
+            $html .= ' ' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'changed_from') . ' ' . $from_value . '  ' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'to') . ' ';
         }
 
         $values = array();
-        foreach ($this->getBind()->getfChangesetValues($to['changeset_id']) as $v) {
+        foreach ($this->getBind()->getChangesetValues($to['changeset_id']) as $v) {
             $values[] = $this->getBind()->formatChangesetValue($v);
         }
         $html .= implode(', ', $values);
@@ -1135,7 +1137,6 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
     /**
      * Fetch the html code to display the field value in tooltip
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue_List $value The changeset value of this field
      * @return string The html code to display the field value in tooltip
      */
@@ -1238,7 +1239,6 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
      *
      * @param SimpleXMLElement                          $xml         containing the structure of the imported Tracker_FormElement
      * @param array                                     &$xmlMapping where the newly created formElements indexed by their XML IDs are stored (and values)
-     * @param User\XML\Import\IFindUserFromXMLReference $user_finder
      */
     public function continueGetInstanceFromXML(
         $xml,
@@ -1282,7 +1282,7 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
      *
      * @return Tracker_FormElement_Field_List_BindFactory
      */
-    function getBindFactory()
+    public function getBindFactory()
     {
         return new Tracker_FormElement_Field_List_BindFactory();
     }
@@ -1311,8 +1311,10 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
         $changeset_value = null;
         $value_ids = $this->getValueDao()->searchById($value_id, $this->id);
         $bindvalue_ids = array();
-        foreach ($value_ids as $v) {
-            $bindvalue_ids[] = $v['bindvalue_id'];
+        if ($value_ids) {
+            foreach ($value_ids as $v) {
+                $bindvalue_ids[] = $v['bindvalue_id'];
+            }
         }
         $bind_values = array();
         if (count($bindvalue_ids)) {
@@ -1588,11 +1590,11 @@ abstract class Tracker_FormElement_Field_List extends Tracker_FormElement_Field 
 
         //Select default values
         $html .= '<p>';
-        $html .= '<strong>'. $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'select_default_value'). '</strong><br />';
+        $html .= '<strong>' . $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'select_default_value') . '</strong><br />';
         $html .= '<select name="bind[default][]" class="bind_default_values" size="7" multiple="multiple">';
         foreach ($this->getAllVisibleValues() as $v) {
             $selected = isset($default_values[$v->getId()]) ? 'selected="selected"' : '';
-            $html .= '<option value="'. $v->getId() .'" '. $selected .'>'. $hp->purify($v->getLabel(), CODENDI_PURIFIER_CONVERT_HTML)  .'</option>';
+            $html .= '<option value="' . $v->getId() . '" ' . $selected . '>' . $hp->purify($v->getLabel(), CODENDI_PURIFIER_CONVERT_HTML)  . '</option>';
         }
         $html .= '</select>';
         $html .= '</p>';

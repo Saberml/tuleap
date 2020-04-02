@@ -20,7 +20,7 @@
 
 use Tuleap\Tracker\Workflow\WorkflowBackendLogger;
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class Tracker_Workflow_Trigger_RulesProcessor_GeneralTest extends TuleapTestCase
 {
@@ -29,7 +29,6 @@ class Tracker_Workflow_Trigger_RulesProcessor_GeneralTest extends TuleapTestCase
      */
     private $parent;
     private $artifact;
-    private $user;
     private $rules_processor;
     private $target_field_id;
     private $target_value_id;
@@ -45,13 +44,12 @@ class Tracker_Workflow_Trigger_RulesProcessor_GeneralTest extends TuleapTestCase
         $this->parent->shouldReceive('getTrackerId')->andReturn(899);
         $this->task_tracker = aTracker()->withId(899)->build();
         $this->artifact = anArtifact()->withChangesets(array(mock('Tracker_Artifact_Changeset')))->withParentWithoutPermissionChecking($this->parent)->withTracker($this->task_tracker)->build();
-        $this->user = aUser()->build();
         $this->rules_processor = partial_mock(
             'Tracker_Workflow_Trigger_RulesProcessor',
             array('getRuleStrategy'),
             array(
                 new Tracker_Workflow_WorkflowUser(),
-                new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG)
+                new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG)
             )
         );
 
@@ -59,16 +57,16 @@ class Tracker_Workflow_Trigger_RulesProcessor_GeneralTest extends TuleapTestCase
         $this->target_field    = aSelectBoxField()->withId($this->target_field_id)->withTracker($this->task_tracker)->build();
         $this->target_value_id = 7;
         $this->target_value    = aBindStaticValue()->withId($this->target_value_id)->build();
-        $this->rule = aTriggerRule()
-            ->applyValue(
-                new Tracker_Workflow_Trigger_FieldValue(
-                    $this->target_field,
-                    $this->target_value
-                )
-            )
-            ->whenAtLeastOne()
-            ->childHas(mock('Tracker_Workflow_Trigger_FieldValue'))
-            ->build();
+
+        $this->rule = new Tracker_Workflow_Trigger_TriggerRule(
+            1,
+            new Tracker_Workflow_Trigger_FieldValue(
+                $this->target_field,
+                $this->target_value
+            ),
+            Tracker_Workflow_Trigger_RulesBuilderData::CONDITION_AT_LEAST_ONE,
+            [mock('Tracker_Workflow_Trigger_FieldValue')]
+        );
     }
 
     public function itDoesNothingWhenArtifactHasNoParents()

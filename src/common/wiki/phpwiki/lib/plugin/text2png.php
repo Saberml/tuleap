@@ -38,17 +38,17 @@ define('TEXT2PNG_DEBUG', true);
 
 class WikiPlugin_text2png extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return "text2png";
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Convert text into a png image using GD.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -57,14 +57,14 @@ class WikiPlugin_text2png extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         global $LANG;
         return array('text' => "Hello WikiWorld!",
                      'l'    => $LANG );
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         if (ImageTypes() & IMG_PNG) {
             // we have gd & png so go ahead.
@@ -74,15 +74,14 @@ class WikiPlugin_text2png extends WikiPlugin
             // we don't have png and/or gd.
             $error_html = _("Sorry, this version of PHP cannot create PNG image files.");
             $link = "http://www.php.net/manual/pl/ref.image.php";
-            $error_html .= sprintf(_("See %s"), $link) .".";
+            $error_html .= sprintf(_("See %s"), $link) . ".";
             trigger_error($error_html, E_USER_NOTICE);
             return;
         }
     }
 
-    function text2png($text, $l)
+    public function text2png($text, $l)
     {
-
         /**
          * Basic image creation and caching
          *
@@ -103,7 +102,7 @@ class WikiPlugin_text2png extends WikiPlugin
         } //english=C
         $filepath = getcwd() . "/images/$l";
 
-        if (!file_exists($filepath ."/". $filename)) {
+        if (!file_exists($filepath . "/" . $filename)) {
             if (!file_exists($filepath)) {
                 $oldumask = umask(0);
                 // permissions affected by user the www server is running as
@@ -127,7 +126,7 @@ class WikiPlugin_text2png extends WikiPlugin
                 // FIXME: Error manager does not transform URLs passed
                 //        through it.
                 $link = "http://www.php.net/manual/en/function.imagecreate.php";
-                $error_html .= sprintf(_("See %s"), $link) .".";
+                $error_html .= sprintf(_("See %s"), $link) . ".";
                 trigger_error($error_html, E_USER_NOTICE);
                 return;
             }
@@ -204,7 +203,7 @@ class WikiPlugin_text2png extends WikiPlugin
         }
         return $html;
     }
-};
+}
 
 // $Log: text2png.php,v $
 // Revision 1.13  2004/02/17 12:11:36  rurban

@@ -120,15 +120,20 @@ class ProjectLinks_Widget_HomePageLinks extends Widget
     {
         $html = '';
         if ($dar->rowCount() > 0) {
-            $linkTypeCmdId   = 'plugin_project_links_type_'.$way;
+            $linkTypeCmdId   = 'plugin_project_links_type_' . $way;
+
+            $title = $GLOBALS['Language']->getText('plugin_plinks', 'links');
+            if ($way === 'back_links') {
+                $title = $GLOBALS['Language']->getText('plugin_plinks', 'back_links');
+            }
 
             $cssClass = Toggler::getClassName($linkTypeCmdId);
             $titleSpan = "<span id=\"" . $this->html_purifier->purify($linkTypeCmdId) .
-                "\" class=\"" . $this->html_purifier->purify($cssClass) . "\">".
-                $this->html_purifier->purify($GLOBALS['Language']->getText('plugin_plinks', $way)) .
+                "\" class=\"" . $this->html_purifier->purify($cssClass) . "\">" .
+                $this->html_purifier->purify($title) .
                 '</span>';
 
-            $html .= "<li>".$titleSpan;
+            $html .= "<li>" . $titleSpan;
             $links = $this->getLinks($way, $dar);
             if ($links != '') {
                 $html .= "\n";
@@ -163,7 +168,7 @@ class ProjectLinks_Widget_HomePageLinks extends Widget
                     $html .= "  </li>\n";
                     $ulClosed = true;
                 }
-                $spanId  = 'plugin_project_links_name_'.$way.'_'.$row['link_type_id'];
+                $spanId  = 'plugin_project_links_name_' . $way . '_' . $row['link_type_id'];
                 $cssClass = Toggler::getClassName($spanId);
 
                 // Link name title
@@ -200,11 +205,11 @@ class ProjectLinks_Widget_HomePageLinks extends Widget
         $url = str_replace('$projname', $row['unix_group_name'], $row['uri_plus']);
         $ic = '';
         if ($row['type'] == 2) {
-            $path = $this->html_purifier->purify($this->themePath."/images/template.png");
+            $path = $this->html_purifier->purify($this->themePath . "/images/template.png");
             $alt  = $this->html_purifier->purify($GLOBALS['Language']->getText('plugin_plinks', 'template_marker'));
-            $ic   = '<img src="'.$path.'" alt="'.$alt.'" title="'.$alt.'" /> ';
+            $ic   = '<img src="' . $path . '" alt="' . $alt . '" title="' . $alt . '" /> ';
         }
-        return '<a href="'.$this->html_purifier->purify($url).'">'.$ic . $this->html_purifier->purify(html_entity_decode($row['group_name'])).'</a>';
+        return '<a href="' . $this->html_purifier->purify($url) . '">' . $ic . $this->html_purifier->purify($row['group_name']) . '</a>';
     }
 
     /**
@@ -221,8 +226,8 @@ class ProjectLinks_Widget_HomePageLinks extends Widget
     public function getStylesheetDependencies()
     {
         $include_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/projectlinks/themes',
-            '/assets/projectlinks/themes'
+            __DIR__ . '/../../../src/www/assets/projectlinks',
+            '/assets/projectlinks'
         );
         return new CssAssetCollection([new CssAssetWithoutVariantDeclinaisons($include_assets, 'projectlinks')]);
     }

@@ -25,7 +25,7 @@ class MediaWikiXMLImporter
     public const SERVICE_NAME = 'mediawiki';
 
     /**
-     * @var Logger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
@@ -59,7 +59,7 @@ class MediaWikiXMLImporter
     private $event_manager;
 
     public function __construct(
-        Logger $logger,
+        \Psr\Log\LoggerInterface $logger,
         MediawikiManager $mediawiki_manager,
         MediawikiLanguageManager $language_manager,
         UGroupManager $ugroup_manager,
@@ -108,7 +108,7 @@ class MediaWikiXMLImporter
 
         $this->importRights($project, $xml_mediawiki);
 
-        $mediawiki_storage_path = forge_get_config('projects_path', 'mediawiki') . "/". $project->getID();
+        $mediawiki_storage_path = forge_get_config('projects_path', 'mediawiki') . "/" . $project->getID();
         $owner = ForgeConfig::get('sys_http_user');
         if ($owner) {
             $no_filter_file_extension = array();
@@ -136,7 +136,7 @@ class MediaWikiXMLImporter
         try {
             $this->language_manager->saveLanguageOption($project, $language);
         } catch (Mediawiki_UnsupportedLanguageException $e) {
-            $this->logger->warn("Could not set up the language for {$project->getUnixName()} mediawiki, $language is not sopported.");
+            $this->logger->warning("Could not set up the language for {$project->getUnixName()} mediawiki, $language is not sopported.");
         }
     }
 
@@ -178,10 +178,10 @@ class MediaWikiXMLImporter
     {
         $ugroup_ids = array();
         foreach ($permission_xmlnode->ugroup as $ugroup) {
-            $ugroup_name = (string)$ugroup;
+            $ugroup_name = (string) $ugroup;
             $ugroup = $this->ugroup_manager->getUGroupByName($project, $ugroup_name);
             if ($ugroup === null) {
-                $this->logger->warn("Could not find any ugroup named $ugroup_name, skip it.");
+                $this->logger->warning("Could not find any ugroup named $ugroup_name, skip it.");
                 continue;
             }
             array_push($ugroup_ids, $ugroup->getId());

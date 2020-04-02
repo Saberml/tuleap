@@ -24,11 +24,13 @@ import {
     MilestoneData,
     MilestoneResourcesData,
     StoreOptions,
-    TrackerProjectLabel
+    TrackerProjectLabel,
 } from "../../../type";
 import { createReleaseWidgetLocalVue } from "../../../helpers/local-vue-for-test";
 import ReleaseOthersBadges from "./ReleaseOthersBadges.vue";
 import ReleaseBadgesClosedSprints from "./ReleaseBadgesClosedSprints.vue";
+import ReleaseBadgesOpenSprint from "./ReleaseBadgesOpenSprint.vue";
+import ReleaseBadgesAllSprints from "./ReleaseBadgesAllSprints.vue";
 
 let release_data: MilestoneData;
 const total_sprint = 10;
@@ -54,8 +56,8 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
     beforeEach(() => {
         store_options = {
             state: {
-                project_id: project_id
-            }
+                project_id: project_id,
+            },
         };
 
         release_data = {
@@ -66,15 +68,15 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
                     accept: {
                         trackers: [
                             {
-                                label: "Sprint1"
-                            }
-                        ]
-                    }
-                }
-            }
+                                label: "Sprint1",
+                            },
+                        ],
+                    },
+                },
+            },
         } as MilestoneData;
 
-        component_options.propsData = { release_data };
+        component_options.propsData = { release_data, isOpen: true };
     });
 
     it("When the component is rendered, Then ReleaseBasgesOthersSprints is rendered", async () => {
@@ -87,11 +89,11 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
         it("When there are not sprints, Then ReleaseBadgesSprints is not rendered", async () => {
             release_data = {
                 id: 2,
-                total_sprint: 0
+                total_sprint: 0,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
@@ -102,11 +104,11 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
         it("When total_sprints is null, Then ReleaseBadgesSprints is not rendered", async () => {
             release_data = {
                 id: 2,
-                total_sprint: null
+                total_sprint: null,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
@@ -120,24 +122,24 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
                 total_sprint: 10,
                 open_sprints: [
                     {
-                        id: 10
-                    } as MilestoneData
+                        id: 10,
+                    } as MilestoneData,
                 ],
                 resources: {
                     milestones: {
                         accept: {
                             trackers: [
                                 {
-                                    label: "Sprint1"
-                                }
-                            ]
-                        }
-                    }
-                }
+                                    label: "Sprint1",
+                                },
+                            ],
+                        },
+                    },
+                },
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             store_options.state.user_can_view_sub_milestones_planning = true;
@@ -154,14 +156,14 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
                 resources: {
                     milestones: {
                         accept: {
-                            trackers: [] as TrackerProjectLabel[]
-                        }
-                    }
-                } as MilestoneResourcesData
+                            trackers: [] as TrackerProjectLabel[],
+                        },
+                    },
+                } as MilestoneResourcesData,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
@@ -175,24 +177,24 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
                 total_sprint: 10,
                 open_sprints: [
                     {
-                        id: 10
-                    } as MilestoneData
+                        id: 10,
+                    } as MilestoneData,
                 ],
                 resources: {
                     milestones: {
                         accept: {
                             trackers: [
                                 {
-                                    label: "Sprint1"
-                                }
-                            ]
-                        }
-                    }
-                }
+                                    label: "Sprint1",
+                                },
+                            ],
+                        },
+                    },
+                },
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             store_options.state.user_can_view_sub_milestones_planning = false;
@@ -212,11 +214,13 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
 
     it("When the user clicked on sprints, Then ReleaseBadgesClosedSprints is rendered", async () => {
         store_options.state.user_can_view_sub_milestones_planning = true;
+        component_options.propsData = { release_data, isOpen: false };
 
         const wrapper = await getPersonalWidgetInstance(store_options);
 
         expect(wrapper.contains(ReleaseBadgesClosedSprints)).toBe(false);
         wrapper.setData({ open_sprints_details: true });
+        await wrapper.vm.$nextTick();
         expect(wrapper.contains(ReleaseBadgesClosedSprints)).toBe(true);
     });
 
@@ -224,10 +228,119 @@ describe("ReleaseBadgesDisplayerIfOpenSprints", () => {
         const wrapper = await getPersonalWidgetInstance(store_options);
 
         wrapper.setData({ open_sprints_details: true });
-        expect(wrapper.contains("[data-test=button-to-close-sprint-details]")).toBe(true);
+        expect(wrapper.contains("[data-test=button-to-close]")).toBe(true);
 
-        wrapper.find("[data-test=button-to-close]").trigger("click");
+        wrapper.get("[data-test=button-to-close]").trigger("click");
+        await wrapper.vm.$nextTick();
 
-        expect(wrapper.contains("[data-test=button-to-close-sprint-details]")).toBe(false);
+        expect(wrapper.contains("[data-test=button-to-close]")).toBe(false);
+    });
+
+    it("When component is rendered and it's the first release, Then sprints details is open", async () => {
+        release_data = {
+            id: 2,
+            total_sprint: 10,
+            open_sprints: [
+                {
+                    id: 10,
+                } as MilestoneData,
+            ],
+            resources: {
+                milestones: {
+                    accept: {
+                        trackers: [
+                            {
+                                label: "Sprint1",
+                            },
+                        ],
+                    },
+                },
+            },
+        } as MilestoneData;
+
+        component_options.propsData = {
+            release_data,
+            isOpen: true,
+        };
+
+        store_options.state.user_can_view_sub_milestones_planning = true;
+
+        const wrapper = await getPersonalWidgetInstance(store_options);
+
+        expect(wrapper.contains(ReleaseBadgesOpenSprint)).toBe(true);
+    });
+
+    it("When component is rendered and it's not the first release, Then sprints details is closed", async () => {
+        release_data = {
+            id: 2,
+            total_sprint: 10,
+            open_sprints: [
+                {
+                    id: 10,
+                } as MilestoneData,
+            ],
+            resources: {
+                milestones: {
+                    accept: {
+                        trackers: [
+                            {
+                                label: "Sprint1",
+                            },
+                        ],
+                    },
+                },
+            },
+        } as MilestoneData;
+
+        component_options.propsData = {
+            release_data,
+            isOpen: false,
+        };
+
+        store_options.state.user_can_view_sub_milestones_planning = true;
+
+        const wrapper = await getPersonalWidgetInstance(store_options);
+
+        expect(wrapper.contains(ReleaseBadgesOpenSprint)).toBe(false);
+    });
+
+    it("When sprints details is open, Then ReleaseBadgesOpenSprint is rendered", async () => {
+        release_data = {
+            id: 22,
+            total_sprint: 10,
+            open_sprints: [
+                {
+                    id: 10,
+                } as MilestoneData,
+            ],
+            resources: {
+                milestones: {
+                    accept: {
+                        trackers: [
+                            {
+                                label: "Sprint1",
+                            },
+                        ],
+                    },
+                },
+            },
+        } as MilestoneData;
+
+        component_options.propsData = {
+            release_data,
+            isOpen: false,
+        };
+
+        store_options.state.user_can_view_sub_milestones_planning = true;
+
+        const wrapper = await getPersonalWidgetInstance(store_options);
+
+        expect(wrapper.contains(ReleaseBadgesOpenSprint)).toBe(false);
+        expect(wrapper.contains(ReleaseBadgesAllSprints)).toBe(true);
+
+        wrapper.setData({ open_sprints_details: true });
+        await wrapper.vm.$nextTick();
+        expect(wrapper.contains(ReleaseBadgesOpenSprint)).toBe(true);
+        expect(wrapper.contains(ReleaseBadgesAllSprints)).toBe(false);
     });
 });

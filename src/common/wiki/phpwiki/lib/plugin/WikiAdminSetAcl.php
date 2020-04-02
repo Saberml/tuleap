@@ -35,17 +35,17 @@ require_once('lib/plugin/WikiAdminSelect.php');
 
 class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
 {
-    function getName()
+    public function getName()
     {
         return _("WikiAdminSetAcl");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Set individual page permissions.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -54,7 +54,7 @@ class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(),
@@ -67,7 +67,7 @@ class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function setaclPages(&$request, $pages, $acl)
+    public function setaclPages(&$request, $pages, $acl)
     {
         $ul = HTML::ul();
         $count = 0;
@@ -128,7 +128,7 @@ class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
         }
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         return $this->disabled("This action is blocked by administrator. Sorry for the inconvenience !");
     //if (!DEBUG)
@@ -237,7 +237,7 @@ class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function setaclForm(&$header, $post_args, $pagehash)
+    public function setaclForm(&$header, $post_args, $pagehash)
     {
         $acl = $post_args['acl'];
 
@@ -262,12 +262,12 @@ class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
         } elseif ($type == 'default') {
             $type = _("default page permission");
         }
-        $header->pushContent(HTML::strong(_("Type").': '), HTML::tt($type), HTML::br());
-        $header->pushContent(HTML::strong(_("getfacl").': '), pagePermissionsSimpleFormat($perm_tree, $owner), HTML::br());
-        $header->pushContent(HTML::strong(_("ACL").': '), HTML::tt($perm->asAclLines()), HTML::br());
+        $header->pushContent(HTML::strong(_("Type") . ': '), HTML::tt($type), HTML::br());
+        $header->pushContent(HTML::strong(_("getfacl") . ': '), pagePermissionsSimpleFormat($perm_tree, $owner), HTML::br());
+        $header->pushContent(HTML::strong(_("ACL") . ': '), HTML::tt($perm->asAclLines()), HTML::br());
 
         $header->pushContent(HTML::p(
-            HTML::strong(_("Description").': '),
+            HTML::strong(_("Description") . ': '),
             _("Selected Grant checkboxes allow access, unselected checkboxes deny access."),
             _("To ignore delete the line."),
             _("To add check 'Add' near the dropdown list.")
@@ -306,16 +306,16 @@ class WikiPlugin_WikiAdminSetAcl extends WikiPlugin_WikiAdminSelect
 
 class _PageList_Column_acl extends _PageList_Column
 {
-    function _getValue($page_handle, &$revision_handle)
+    public function _getValue($page_handle, &$revision_handle)
     {
         $perm_tree = pagePermissions($page_handle->_pagename);
         return pagePermissionsAclFormat($perm_tree);
     }
-};
+}
 
 class _PageList_Column_perm extends _PageList_Column
 {
-    function _getValue($page_handle, &$revision_handle)
+    public function _getValue($page_handle, &$revision_handle)
     {
         $perm_array = pagePermissions($page_handle->_pagename);
         return pagePermissionsSimpleFormat(
@@ -324,7 +324,7 @@ class _PageList_Column_perm extends _PageList_Column
             $page_handle->get('group')
         );
     }
-};
+}
 
 // $Log: WikiAdminSetAcl.php,v $
 // Revision 1.23  2005/02/12 17:24:24  rurban

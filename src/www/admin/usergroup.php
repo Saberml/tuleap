@@ -80,7 +80,7 @@ if ($request->valid($vAction)) {
     $action = '';
 }
 
-$user_administration_csrf = new CSRFSynchronizerToken('/admin/usergroup.php?user_id='.$user->getId());
+$user_administration_csrf = new CSRFSynchronizerToken('/admin/usergroup.php?user_id=' . $user->getId());
 
 if ($request->isPost()) {
     $user_administration_csrf->check();
@@ -149,15 +149,21 @@ if ($request->isPost()) {
 
                     case PFUser::STATUS_RESTRICTED:
                         if (! $user_status_checker->doesPlatformAllowRestricted()) {
-                            $GLOBALS['Response']->addFeedback(Feedback::WARN, _('Your platform does not allow restricted users.'));
-                            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+                            $GLOBALS['Response']->addFeedback(
+                                Feedback::ERROR,
+                                _('Your platform does not allow restricted users.')
+                            );
+                            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
+                        } elseif (! $user_status_checker->isRestrictedStatusAllowedForUser($user)) {
+                            $GLOBALS['Response']->addFeedback(Feedback::ERROR, _('This user can\'t be restricted.'));
+                            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
                         } elseif (ForgeConfig::areRestrictedUsersAllowed()) {
                             $user->setStatus($request->get('form_status'));
                             // If the user had a shell, set it to restricted shell
                             if ($user->getShell()
                                 && ($user->getShell() != "/bin/false")
                                 && ($user->getShell() != "/sbin/nologin")) {
-                                $user->setShell($GLOBALS['codendi_bin_prefix'].'/cvssh-restricted');
+                                $user->setShell($GLOBALS['codendi_bin_prefix'] . '/cvssh-restricted');
                             }
                             $accountActivationEvent = 'project_admin_activate_user';
                         }
@@ -224,20 +230,20 @@ if ($request->isPost()) {
             if ($user->getUnixStatus() != 'N' && !$user->getUnixUid()) {
                 $um->assignNextUnixUid($user);
             }
-            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
         }
     } elseif ($action == 'update_password') {
         if (! $request->existAndNonEmpty('user_id')) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $Language->getText('admin_user_changepw', 'error_userid'));
-            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
         }
         if (! $request->existAndNonEmpty('form_pw')) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $Language->getText('admin_user_changepw', 'error_nopasswd'));
-            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
         }
         if ($request->get('form_pw') !== $request->get('form_pw2')) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $Language->getText('admin_user_changepw', 'error_passwd'));
-            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
         }
 
         $password_sanity_checker = \Tuleap\Password\PasswordSanityChecker::build();
@@ -245,14 +251,14 @@ if ($request->isPost()) {
             foreach ($password_sanity_checker->getErrors() as $error) {
                 $GLOBALS['Response']->addFeedback(Feedback::ERROR, $error);
             }
-            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
         }
 
         $user = $user_manager->getUserById($request->get('user_id'));
 
         if ($user === null) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $Language->getText('admin_user_changepw', 'error_userid'));
-            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+            $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
         }
 
         $password_changer = new PasswordChanger(
@@ -267,7 +273,7 @@ if ($request->isPost()) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $Language->getText('admin_user_changepw', 'error_update'));
         }
 
-        $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id='.$user->getId());
+        $GLOBALS['Response']->redirect('/admin/usergroup.php?user_id=' . $user->getId());
     }
 }
 
@@ -302,7 +308,7 @@ include($GLOBALS['Language']->getContent('account/password_strategy'));
 $passwords_validators = array();
 foreach ($password_strategy->validators as $key => $v) {
     $passwords_validators[] = new PasswordValidatorPresenter(
-        'password_validator_msg_'. $purifier->purify($key),
+        'password_validator_msg_' . $purifier->purify($key),
         $purifier->purify($key, CODENDI_PURIFIER_JS_QUOTE),
         $purifier->purify($v->description())
     );

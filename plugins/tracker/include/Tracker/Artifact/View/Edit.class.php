@@ -42,28 +42,21 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
      */
     protected $renderer;
 
-    /**
-     * @var EventManager
-     */
-    private $event_manager;
-
     public function __construct(
         Tracker_Artifact $artifact,
         Codendi_Request $request,
         PFUser $user,
-        Tracker_Artifact_ArtifactRenderer $renderer,
-        EventManager $event_manager
+        Tracker_Artifact_ArtifactRenderer $renderer
     ) {
         parent::__construct($artifact, $request, $user);
 
         $this->renderer      = $renderer;
-        $this->event_manager = $event_manager;
     }
 
     /** @see Tracker_Artifact_View_View::getURL() */
     public function getURL()
     {
-        return TRACKER_BASE_URL .'/?'. http_build_query(
+        return TRACKER_BASE_URL . '/?' . http_build_query(
             array(
                 'aid' => $this->artifact->getId(),
             )
@@ -120,10 +113,10 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
             $classname = '';
         }
 
-        $html .= '<div id="tracker_artifact_followup_comments" class="'. $classname .'">';
+        $html .= '<div id="tracker_artifact_followup_comments" class="' . $classname . '">';
         $html .= '<div id="tracker_artifact_followup_comments-content">';
         $html .= $this->fetchSettingsButton($invert_order, $display_changes);
-        $html .= '<h1 id="tracker_artifact_followups">'.$GLOBALS['Language']->getText('plugin_tracker_include_artifact', 'follow_ups').'</h1>';
+        $html .= '<h1 id="tracker_artifact_followups">' . $GLOBALS['Language']->getText('plugin_tracker_include_artifact', 'follow_ups') . '</h1>';
         $html .= '<ul class="tracker_artifact_followups">';
 
         $comments = $this->artifact->getFollowupsContent();
@@ -168,12 +161,12 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
         $html .= '<ul class="dropdown-menu pull-right">';
         $html .= '<li>';
         $html .= '<a href="#invert-order" id="invert-order-menu-item">';
-        $html .= '<i class="fa fa-check" '. $invert_order_style .'></i> ' . $invert_comment_label;
+        $html .= '<i class="fa fa-check" ' . $invert_order_style . '></i> ' . $invert_comment_label;
         $html .= '</a>';
         $html .= '</li>';
         $html .= '<li>';
         $html .= '<a href="#" id="display-changes-menu-item">';
-        $html .= '<i class="fa fa-check"  '. $display_changes_style .'></i> ' . $display_changes_label;
+        $html .= '<i class="fa fa-check"  ' . $display_changes_style . '></i> ' . $display_changes_label;
         $html .= '</a>';
         $html .= '</li>';
         $html .= '</ul>';
@@ -192,12 +185,12 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
         $comments_content = array();
 
         foreach ($comments as $item) {
-            /** @var Tracker_Artifact_Followup_Item $item */
+            \assert($item instanceof Tracker_Artifact_Followup_Item);
             if ($previous_item) {
                 $diff_to_previous = $item->diffToPreviousArtifactView($this->user, $previous_item);
                 $classnames  = 'tracker_artifact_followup ';
                 $classnames .= $item->getFollowUpClassnames($diff_to_previous);
-                $comment_html = '<li id="followup_'. $item->getId() .'" class="'. $classnames .'">';
+                $comment_html = '<li id="followup_' . $item->getId() . '" class="' . $classnames . '">';
                 $comment_html .= $item->fetchFollowUp($diff_to_previous);
                 $comment_html .= '</li>';
                 $comments_content[] = $comment_html;
@@ -223,7 +216,7 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
             $html .= '<select id="tracker_artifact_canned_response_sb">';
             $html .= '<option selected="selected" value="">--</option>';
             foreach ($responses as $r) {
-                $html .= '<option value="'.  $hp->purify($r->body, CODENDI_PURIFIER_CONVERT_HTML) .'">'.  $hp->purify($r->title, CODENDI_PURIFIER_CONVERT_HTML) .'</option>';
+                $html .= '<option value="' .  $hp->purify($r->body, CODENDI_PURIFIER_CONVERT_HTML) . '">' .  $hp->purify($r->title, CODENDI_PURIFIER_CONVERT_HTML) . '</option>';
             }
             $html .= '</select>';
             $html .= '<noscript> javascript must be enabled to use this feature! </noscript>';

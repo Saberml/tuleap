@@ -33,8 +33,6 @@ declare -r include="${tools_dir}/setup/el7/include"
 . ${include}/helper.sh
 . ${include}/logger.sh
 . ${include}/php.sh
-. ${include}/mysqlcli.sh
-. ${include}/sql.sh
 . ${include}/core.sh
 . ${include}/plugins.sh
 
@@ -48,6 +46,11 @@ _checkLogFile
 _optionsSelected "${@}"
 ${tuleapcfg} systemctl mask "php73-php-fpm.service"
 _checkIfTuleapInstalled
+
+mysql_app_user_grant="${sys_db_user}@localhost"
+if [ "${web_server_ip:-NULL}" != "NULL" ]; then
+    mysql_app_user_grant="${sys_db_user}@${web_server_ip}"
+fi
 
 if [ ${tuleap_installed:-false} = "false" ] || \
     [ ${reinstall:-false} = "true" ]; then
@@ -77,33 +80,28 @@ if [ ${tuleap_installed:-false} = "false" ] || \
         _infoMessage "Set MySQL password for ${mysql_user}"
         _setupMysqlPassword "${mysql_user}" ${mysql_password}
         _logPassword "MySQL system user password (${mysql_user}): ${mysql_password}"
-    else
-        _checkMysqlStatus "${mysql_user}" "${mysql_password}"
     fi
 
     admin_password="$(_setupRandomPassword)"
     sys_db_password="$(_setupRandomPassword)"
-    _setupMysqlPrivileges "${mysql_user}" "${mysql_password}" \
-        "${sys_db_user}"  "${sys_db_password}"
     _logPassword "MySQL system user password (${sys_db_user}): ${sys_db_password}"
     _logPassword "Site admin password (${project_admin}): ${admin_password}"
-    _checkMysqlMode "${mysql_user}" "${mysql_password}"
-    _checkDatabase "${mysql_user}" "${mysql_password}" "${sys_db_name}"
-    _setupDatabase "${mysql_user}" "${mysql_password}" "${sys_db_name}" "${db_exist}"
-    _infoMessage "Populating the tuleap database..."
 
-    for file_sql in "${sql_structure}" "${sql_forgeupgrade}"; do
-        _setupSourceDb "${mysql_user}" "${mysql_password}" "${sys_db_name}" \
-            "${file_sql}"
-    done
+    ${tuleapcfg} setup:mysql-init \
+        --host="${mysql_server}" \
+        --admin-user="${mysql_user}" \
+        --admin-password="${mysql_password}" \
+        --db-name="${sys_db_name}" \
+        --app-user="${mysql_app_user_grant}" \
+        --app-password="${sys_db_password}"
 
-    tuleap_installed_version=$(cat "${install_dir}/VERSION")
-    _mysqlExecute "${mysql_user}" "${mysql_password:-NULL}" \
-        "INSERT INTO tuleap.tuleap_installed_version VALUES ('${tuleap_installed_version}')"
-
-    _setupInitValues $(_phpPasswordHasher "${admin_password}") "${server_name}" \
-        "${sql_init}" | \
-        $(_mysqlConnectDb "${mysql_user}" "${mysql_password}" "${sys_db_name}")
+    ${tuleapcfg} setup:mysql \
+        --host="${mysql_server}" \
+        --user="${sys_db_user}" \
+        --dbname="${sys_db_name}" \
+        --password="${sys_db_password}" \
+        "${admin_password}" \
+        "${server_name}"
 
     for directory in ${tuleap_conf} ${tuleap_plugins} ${pluginsadministration}; do
         if [ ! -d ${directory} ]; then
@@ -128,7 +126,6 @@ if [ ${tuleap_installed:-false} = "false" ] || \
 
     _setupForgeupgrade
     _phpActivePlugin "tracker" "${tuleap_unix_user}"
-    _phpImportTrackerTemplate
     _phpForgeupgrade "record-only"
     ${tuleapcfg} systemctl enable "${timers[@]}"
     ${tuleapcfg} systemctl start "${timers[@]}"

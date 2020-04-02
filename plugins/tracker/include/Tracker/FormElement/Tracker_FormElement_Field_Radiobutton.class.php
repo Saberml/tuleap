@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2014-2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2014-present. All Rights Reserved.
  * Copyright (c) Jtekt, Jason Team, 2014. All rights reserved
  *
  * This file is a part of Tuleap.
@@ -42,7 +42,7 @@ class Tracker_FormElement_Field_Radiobutton extends Tracker_FormElement_Field_Se
         $label    = $this->getBind()->formatChangesetValueWithoutLink($value);
 
         if (!$name) {
-            $name= 'name="admin"';
+            $name = 'name="admin"';
         }
 
         $id       = $value->getId();
@@ -50,10 +50,10 @@ class Tracker_FormElement_Field_Radiobutton extends Tracker_FormElement_Field_Se
         $checked  = $is_selected ? 'checked="checked"' : '';
         $required = $this->isRequired() ? 'required' : '';
 
-        $html .= '<div class="val_'. $id.'">';
-        $html .= '    <label class="radio" for="rb_'. $id .'" >';
-        $html .= '        <input type="radio" '. $name .' value="'. $id .'" id=rb_'. $id .' '. $checked .' '. $required .' valign="middle" />';
-        $html .= '    '. $label . '</label>';
+        $html .= '<div class="val_' . $id . '">';
+        $html .= '    <label class="radio" for="rb_' . $id . '" >';
+        $html .= '        <input type="radio" ' . $name . ' value="' . $id . '" id=rb_' . $id . ' ' . $checked . ' ' . $required . ' valign="middle" />';
+        $html .= '    ' . $label . '</label>';
         $html .= '</div>';
 
         return $html;
@@ -82,33 +82,21 @@ class Tracker_FormElement_Field_Radiobutton extends Tracker_FormElement_Field_Se
         return is_array($values) ? array_filter($values) : $values;
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'radiobtn');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'radiobtn_desc');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-radio-buttons.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-radio-buttons-plus.png');

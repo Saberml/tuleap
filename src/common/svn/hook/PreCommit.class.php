@@ -51,7 +51,7 @@ class SVN_Hook_PreCommit extends SVN_Hook
         SVN_Svnlook $svn_look,
         SVN_Immutable_Tags_Handler $handler,
         SHA1CollisionDetector $sha1_collision_detector,
-        Logger $logger
+        \Psr\Log\LoggerInterface $logger
     ) {
         parent::__construct($svn_hooks, $message_validator);
 
@@ -188,7 +188,7 @@ class SVN_Hook_PreCommit extends SVN_Hook
             (?:U|D)\s+$immutable_path_regexp            # U  moduleA/tags/v1
                                                         # U  moduleA/tags/v1/toto
             |
-            A\s+".$immutable_path_regexp."/[^/]+/[^/]+  # A  moduleA/tags/v1/toto
+            A\s+" . $immutable_path_regexp . "/[^/]+/[^/]+  # A  moduleA/tags/v1/toto
             )%x";
 
         if (preg_match($pattern, $path)) {

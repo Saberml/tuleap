@@ -20,7 +20,7 @@
 
 namespace Tuleap\Configuration\FPM;
 
-use Tuleap\Configuration\Logger\LoggerInterface;
+use Psr\Log\LoggerInterface;
 use Tuleap\Configuration\Logger\Wrapper;
 
 class BackendSVN
@@ -42,7 +42,7 @@ class BackendSVN
     public function configure()
     {
         if (file_exists('/etc/opt/remi/php73/php-fpm.d/www.conf.orig')) {
-            $this->logger->warn('/etc/opt/remi/php73/php-fpm.d/www.conf.orig already exists, skip FPM conf');
+            $this->logger->warning('/etc/opt/remi/php73/php-fpm.d/www.conf.orig already exists, skip FPM conf');
             return;
         }
 
@@ -58,7 +58,7 @@ class BackendSVN
         }
         $this->logger->info('Deploy new tuleap.conf');
         $this->replacePlaceHolderInto(
-            $this->tuleap_base_dir.'/src/etc/fpm73/tuleap.conf',
+            $this->tuleap_base_dir . '/src/etc/fpm73/tuleap.conf',
             '/etc/opt/remi/php73/php-fpm.d/tuleap.conf',
             array(
                 '%application_user%'

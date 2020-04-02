@@ -26,9 +26,6 @@ msgstr "Erreur lors de l'envoi de la notification à l'utilisateur %s."
 msgid "Owner"
 msgstr "Responsable"
 
-msgid "Project does not exist."
-msgstr "Ce projet n'existe pas."
-
 msgid "Project owner"
 msgstr "Responsable du projet"
 
@@ -40,6 +37,3 @@ msgstr "Il n'est pas possible de supprimer le responsable du projet."
 
 msgid "This project has no owner."
 msgstr "Ce projet n'a pas de responsable."
-
-msgid "You must be project administrator to access this page."
-msgstr "Vous devez être administrateur du projet pour accéder à cette page."

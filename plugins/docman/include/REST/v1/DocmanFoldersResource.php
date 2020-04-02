@@ -140,7 +140,6 @@ class DocmanFoldersResource extends AuthenticatedResource
      * @access hybrid
      * @status 201
      *
-     * @return CreatedItemRepresentation
      *
      * @throws I18NRestException 400
      * @throws RestException 403
@@ -232,7 +231,6 @@ class DocmanFoldersResource extends AuthenticatedResource
      * @access hybrid
      * @status 201
      *
-     * @return CreatedItemRepresentation
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -306,7 +304,6 @@ class DocmanFoldersResource extends AuthenticatedResource
      * @access hybrid
      * @status 201
      *
-     * @return CreatedItemRepresentation
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -382,7 +379,6 @@ class DocmanFoldersResource extends AuthenticatedResource
      * @access hybrid
      * @status 201
      *
-     * @return CreatedItemRepresentation
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -456,7 +452,6 @@ class DocmanFoldersResource extends AuthenticatedResource
      * @access hybrid
      * @status 201
      *
-     * @return CreatedItemRepresentation
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -542,7 +537,6 @@ class DocmanFoldersResource extends AuthenticatedResource
      * @access hybrid
      * @status 201
      *
-     * @return CreatedItemRepresentation
      *
      * @throws I18NRestException 400
      * @throws RestException 403
@@ -673,7 +667,7 @@ class DocmanFoldersResource extends AuthenticatedResource
         $item_to_delete      = $item_request->getItem();
         $current_user        = $this->user_manager->getCurrentUser();
         $project             = $item_request->getProject();
-        $validator_visitor   =$this->getValidator($project, $current_user, $item_to_delete);
+        $validator_visitor   = $this->getValidator($project, $current_user, $item_to_delete);
 
         $item_to_delete->accept($validator_visitor);
 
@@ -890,9 +884,6 @@ class DocmanFoldersResource extends AuthenticatedResource
         );
     }
 
-    /**
-     * @param \Project $project
-     */
     private function addAllEvent(\Project $project): void
     {
         $event_adder = $this->getDocmanItemsEventAdder();

@@ -126,26 +126,6 @@ class PlanningFactory
     }
 
     /**
-     * $tracker_mapping = array(1 => 4,
-     *                          2 => 5,
-     *                          3 => 6);
-     *
-     * $factory->filterByKeys($tracker_mapping, array(1, 3))
-     *
-     * => array(1 => 4,
-     *          3 => 6)
-     *
-     * @param array $array The array to filter.
-     * @param array $keys  The keys used for filtering.
-     *
-     * @return array
-     */
-    private function filterByKeys(array $array, array $keys)
-    {
-        return array_intersect_key($array, array_flip($keys));
-    }
-
-    /**
      * Get a list of planning defined in a group_id
      *
      * @param PFUser $user     The user who will see the planning
@@ -171,7 +151,6 @@ class PlanningFactory
     /**
      * Return a planning for a VirtualTopMilestone
      *
-     * @param PFUser  $user
      * @param int $group_id
      * @return \Planning
      * @throws Planning_NoPlanningsException
@@ -216,7 +195,6 @@ class PlanningFactory
      *
      * Note: if there are several parallel, we only return the fist one
      *
-     * @param PFUser  $user
      * @param int $group_id
      *
      * @return Planning | false
@@ -280,7 +258,12 @@ class PlanningFactory
      */
     private function getLastLevelPlanningTrackersIds($plannings)
     {
-        $tracker_ids = array_map(array($this, 'getPlanningTrackerId'), $plannings);
+        $tracker_ids = array_map(
+            static function (Planning $planning) {
+                return $planning->getPlanningTrackerId();
+            },
+            $plannings
+        );
 
         if (count($plannings) > 1) {
             $hierarchy = $this->tracker_factory->getHierarchy($tracker_ids);
@@ -335,7 +318,12 @@ class PlanningFactory
         if (! $plannings) {
             return;
         }
-        $tracker_ids = array_map(array($this, 'getPlanningTrackerId'), $plannings);
+        $tracker_ids = array_map(
+            static function (Planning $planning) {
+                return $planning->getPlanningTrackerId();
+            },
+            $plannings
+        );
         $hierarchy   = $this->tracker_factory->getHierarchy($tracker_ids);
         $tmp_tracker_ids_to_sort_plannings = $hierarchy->sortTrackerIds($tracker_ids);
         usort($plannings, static function (Planning $a, Planning $b) use ($tmp_tracker_ids_to_sort_plannings) : int {
@@ -344,11 +332,6 @@ class PlanningFactory
                 array_search($b->getPlanningTrackerId(), $tmp_tracker_ids_to_sort_plannings)
             );
         });
-    }
-
-    private function getPlanningTrackerId(Planning $planning)
-    {
-        return $planning->getPlanningTrackerId();
     }
 
     /**
@@ -397,7 +380,6 @@ class PlanningFactory
      * - Given I pass Release tracker as parameter
      * - Then I should get the Release planning (for instance Epic -> Release)
      *
-     * @param Tracker $planning_tracker
      *
      * @return Planning|null
      */
@@ -442,7 +424,6 @@ class PlanningFactory
      * When getPlanningsByBacklogTracker(Epic) -> [Product, Release]
      * When getPlanningsByBacklogTracker(Story) -> [Sprint]
      *
-     * @param Tracker $backlog_tracker
      *
      * @return Planning
      */
@@ -528,7 +509,6 @@ class PlanningFactory
     /**
      * Get a list of trackers defined as backlog for a planning
      *
-     * @param Planning $planning
      *
      * @return array of Tracker
      */
@@ -572,7 +552,6 @@ class PlanningFactory
      * Create a new planning
      *
      * @param int $group_id
-     * @param PlanningParameters $planning_parameters
      */
     public function createPlanning($group_id, PlanningParameters $planning_parameters)
     {
@@ -587,7 +566,6 @@ class PlanningFactory
      * Update an existing planning
      *
      * @param int $planning_id
-     * @param PlanningParameters $planning_parameters
      */
     public function updatePlanning($planning_id, $group_id, PlanningParameters $planning_parameters)
     {
@@ -654,7 +632,6 @@ class PlanningFactory
      * a planning defined so we get the whole planning tracker family (children
      * and parents)
      *
-     * @param PFUser $user
      * @param int $group_id
      *
      * @return Tracker[]
@@ -675,7 +652,6 @@ class PlanningFactory
      * a planning defined so we get the whole planning tracker family (children
      * and parents)
      *
-     * @param PFUser $user
      * @param int $group_id
      *
      * @return int[]
@@ -760,7 +736,7 @@ class PlanningFactory
         $sub_plannings = [];
         foreach ($all_plannings as $key => $planning) {
             if ($planning->getId() == $base_planning->getId()) {
-                $sub_plannings = array_slice($all_plannings, $key+1);
+                $sub_plannings = array_slice($all_plannings, $key + 1);
                 break;
             }
         }

@@ -35,17 +35,17 @@ async function getWrapper(is_being_saved = false): Promise<Wrapper<EditRemaining
                 remaining_effort: {
                     value: 3.14,
                     is_in_edit_mode: true,
-                    is_being_saved
-                }
-            } as Card
+                    is_being_saved,
+                },
+            } as Card,
         },
         mocks: {
             $store: createStoreMock({
                 state: {
-                    swimlane: {}
-                } as RootState
-            })
-        }
+                    swimlane: {},
+                } as RootState,
+            }),
+        },
     });
 }
 
@@ -81,12 +81,14 @@ describe("EditRemainingEffort", () => {
 
         const value = 42;
         wrapper.setData({ value });
+        await wrapper.vm.$nextTick();
         wrapper.trigger("keyup.enter");
+        await wrapper.vm.$nextTick();
 
         const card = wrapper.props("card");
         expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith("swimlane/saveRemainingEffort", {
             card,
-            value
+            value,
         });
         expect(card.remaining_effort.is_in_edit_mode).toBe(true);
     });
@@ -96,13 +98,14 @@ describe("EditRemainingEffort", () => {
 
         const value = 42;
         wrapper.setData({ value });
+        await wrapper.vm.$nextTick();
 
         const card = wrapper.props("card");
         EventBus.$emit(TaskboardEvent.SAVE_CARD_EDITION, card);
 
         expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith("swimlane/saveRemainingEffort", {
             card,
-            value
+            value,
         });
     });
 
@@ -111,6 +114,7 @@ describe("EditRemainingEffort", () => {
 
         const value = 42;
         wrapper.setData({ value });
+        await wrapper.vm.$nextTick();
 
         const card = wrapper.props("card");
         EventBus.$emit(TaskboardEvent.CANCEL_CARD_EDITION, card);
@@ -127,6 +131,7 @@ describe("EditRemainingEffort", () => {
 
         const value = 42;
         wrapper.setData({ value });
+        await wrapper.vm.$nextTick();
 
         const card = wrapper.props("card");
         EventBus.$emit(TaskboardEvent.SAVE_CARD_EDITION, {} as Card);
@@ -140,6 +145,7 @@ describe("EditRemainingEffort", () => {
 
         const value = 42;
         wrapper.setData({ value });
+        await wrapper.vm.$nextTick();
 
         const card = wrapper.props("card");
         EventBus.$emit(TaskboardEvent.CANCEL_CARD_EDITION, {} as Card);
@@ -151,12 +157,15 @@ describe("EditRemainingEffort", () => {
         const wrapper = await getWrapper();
 
         wrapper.setData({ value: "3" });
+        await wrapper.vm.$nextTick();
         expect(wrapper.classes()).toEqual(["taskboard-card-remaining-effort-input"]);
 
         wrapper.setData({ value: "3.14" });
+        await wrapper.vm.$nextTick();
         expect(wrapper.classes()).toContain("taskboard-card-remaining-effort-input-width-40");
 
         wrapper.setData({ value: "3.14159265358979323846264338327950288" });
+        await wrapper.vm.$nextTick();
         expect(wrapper.classes()).toContain("taskboard-card-remaining-effort-input-width-60");
     });
 });

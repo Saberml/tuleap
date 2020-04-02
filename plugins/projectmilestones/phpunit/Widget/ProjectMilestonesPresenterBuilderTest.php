@@ -35,15 +35,18 @@ use Planning;
 use Planning_Milestone;
 use Planning_MilestoneFactory;
 use Planning_VirtualTopMilestone;
-use PlanningFactory;
 use Project;
 use Tracker;
 use TrackerFactory;
 use Tuleap\AgileDashboard\ExplicitBacklog\ArtifactsInExplicitBacklogDao;
 use Tuleap\AgileDashboard\ExplicitBacklog\ExplicitBacklogDao;
+use Tuleap\AgileDashboard\FormElement\Burnup\CountElementsModeChecker;
 use Tuleap\Tracker\Semantic\Timeframe\SemanticTimeframe;
 use Tuleap\Tracker\Semantic\Timeframe\TimeframeBrokenConfigurationException;
 use Tuleap\Tracker\TrackerColor;
+use Tuleap\Project\ProjectAccessChecker;
+use Project_AccessProjectNotFoundException;
+use Tuleap\Tracker\Semantic\Timeframe\SemanticTimeframeBuilder;
 
 class ProjectMilestonesPresenterBuilderTest extends TestCase
 {
@@ -53,10 +56,6 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
      * @var HTTPRequest|Mockery\LegacyMockInterface|Mockery\MockInterface
      */
     private $http_request;
-    /**
-     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|PlanningFactory
-     */
-    private $planning_factory;
     /**
      * @var ProjectMilestonesPresenterBuilder
      */
@@ -117,12 +116,23 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
      * @var Mockery\LegacyMockInterface|Mockery\MockInterface|SemanticTimeframe
      */
     private $semantic_timeframe;
+    /**
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|CountElementsModeChecker
+     */
+    private $count_elements_mode_checker;
+    /**
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|ProjectAccessChecker
+     */
+    private $project_access_checker;
+    /**
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|SemanticTimeframeBuilder
+     */
+    private $semantic_timeframe_builder;
 
     public function setUp(): void
     {
         parent::setUp();
         $this->http_request                                             = Mockery::mock(HTTPRequest::class);
-        $this->planning_factory                                         = Mockery::mock(PlanningFactory::class);
         $this->planning_milestone_factory                               = Mockery::mock(Planning_MilestoneFactory::class);
         $this->project                                                  = Mockery::mock(Project::class, ['getID' => 101]);
         $this->john_doe                                                 = Mockery::mock(PFUser::class);
@@ -136,7 +146,10 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->artifacts_in_explicit_backlog_dao                        = Mockery::mock(ArtifactsInExplicitBacklogDao::class);
         $this->root_planning                                            = Mockery::mock(Planning::class);
         $this->tracker                                                  = Mockery::mock(Tracker::class);
+        $this->semantic_timeframe_builder                               = Mockery::mock(SemanticTimeframeBuilder::class);
         $this->semantic_timeframe                                       = Mockery::mock(SemanticTimeframe::class);
+        $this->count_elements_mode_checker                              = Mockery::mock(CountElementsModeChecker::class);
+        $this->project_access_checker                                   = Mockery::mock(ProjectAccessChecker::class);
 
         $this->root_planning->shouldReceive('getPlanningTracker')->andReturn($this->tracker);
         $this->tracker->shouldReceive('getName')->andReturn("Releases");
@@ -146,9 +159,10 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
 
         $this->planning_milestone_factory
             ->shouldReceive('getVirtualTopMilestone')
-            ->once()
             ->withArgs([$this->john_doe, $this->project])
             ->andReturn($this->planning_virtual_top_milestone);
+
+        $this->semantic_timeframe_builder->shouldReceive('getSemantic')->andReturn($this->semantic_timeframe);
 
         $this->builder = new ProjectMilestonesPresenterBuilder(
             $this->http_request,
@@ -158,14 +172,15 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
             $this->tracker_factory,
             $this->explicit_backlog_dao,
             $this->artifacts_in_explicit_backlog_dao,
-            $this->root_planning,
-            $this->semantic_timeframe
+            $this->semantic_timeframe_builder,
+            $this->count_elements_mode_checker,
+            $this->project_access_checker
         );
     }
 
     public function testGetZeroUpcomingReleaseWhenThereAreNoFutureMilestone(): void
     {
-         $this->mockPlanningTopMilestoneEmpty($this->planning_virtual_top_milestone);
+        $this->mockPlanningTopMilestoneEmpty($this->planning_virtual_top_milestone);
 
         $this->mockAgiledashboardBacklogFactory($this->agiledashboard_milestone_backlog_factory);
 
@@ -182,7 +197,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertEquals(0, $built_presenter->nb_upcoming_releases);
     }
@@ -209,7 +230,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertEquals(3, $built_presenter->nb_upcoming_releases);
     }
@@ -236,7 +263,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertEquals(5, $built_presenter->nb_backlog_items);
     }
@@ -269,8 +302,14 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
-        $tracker_json = '[{"id":122,"color_name":"fiesta-red","label":"Bug"},{"id":124,"color_name":"deep-blue","label":"Story"}]';
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
+        $tracker_json    = '[{"id":122,"color_name":"fiesta-red","label":"Bug"},{"id":124,"color_name":"deep-blue","label":"Story"}]';
 
         $this->assertEqualsCanonicalizing($tracker_json, $built_presenter->json_trackers_agile_dashboard);
     }
@@ -305,7 +344,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertEquals(50, $built_presenter->nb_backlog_items);
     }
@@ -331,7 +376,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertEquals('Releases', $built_presenter->label_tracker_planning);
     }
@@ -360,7 +411,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertFalse($built_presenter->is_timeframe_duration);
         $this->assertEquals($built_presenter->label_timeframe, 'end');
@@ -390,7 +447,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertTrue($built_presenter->is_timeframe_duration);
         $this->assertEquals($built_presenter->label_timeframe, 'duration');
@@ -421,8 +484,12 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
         $this->expectException(TimeframeBrokenConfigurationException::class);
-        $this->builder->getProjectMilestonePresenter();
+        $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
     }
 
     public function testGetIfUserCanViewSubMilestoneTracker(): void
@@ -447,7 +514,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker]);
         $this->tracker->shouldReceive('userCanView')->andReturn(false);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertFalse($built_presenter->user_can_view_sub_milestones_planning);
     }
@@ -474,7 +547,13 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
         $this->tracker->shouldReceive('getChildren')->andReturn([$this->tracker, Mockery::mock(Tracker::class)]);
         $this->tracker->shouldReceive('userCanView')->andReturn(true);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertTrue($built_presenter->user_can_view_sub_milestones_planning);
     }
@@ -500,9 +579,124 @@ class ProjectMilestonesPresenterBuilderTest extends TestCase
 
         $this->tracker->shouldReceive('getChildren')->andReturn([]);
 
-        $built_presenter = $this->builder->getProjectMilestonePresenter();
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
 
         $this->assertFalse($built_presenter->user_can_view_sub_milestones_planning);
+    }
+
+    public function testBurnupUseEffortMode(): void
+    {
+        $this->mockPlanningTopMilestoneEmpty($this->planning_virtual_top_milestone);
+
+        $this->mockAgiledashboardBacklogFactory($this->agiledashboard_milestone_backlog_factory);
+
+        $this->mockAgiledashboardBacklogItemFactory($this->agiledashboard_milestone_backlog_item_collection_factory);
+
+        $this->explicit_backlog_dao->shouldReceive('isProjectUsingExplicitBacklog')->andReturn(false)->once();
+
+        $this->agileDashboard_milestone_backlog_item_collection->shouldReceive('count')->once()->andReturn(0);
+
+        $this->mockTimeframe($this->semantic_timeframe);
+
+        $this->planning_milestone_factory
+            ->shouldReceive('getAllFutureMilestones')
+            ->once()
+            ->andReturn([Mockery::mock(Planning_Milestone::class), Mockery::mock(Planning_Milestone::class), Mockery::mock(Planning_Milestone::class)]);
+
+        $this->tracker->shouldReceive('getChildren')->andReturn([]);
+
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(false);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
+
+        $this->assertEquals($built_presenter->burnup_mode, "effort");
+    }
+
+    public function testBurnupUseCountMode(): void
+    {
+        $this->mockPlanningTopMilestoneEmpty($this->planning_virtual_top_milestone);
+
+        $this->mockAgiledashboardBacklogFactory($this->agiledashboard_milestone_backlog_factory);
+
+        $this->mockAgiledashboardBacklogItemFactory($this->agiledashboard_milestone_backlog_item_collection_factory);
+
+        $this->explicit_backlog_dao->shouldReceive('isProjectUsingExplicitBacklog')->andReturn(false)->once();
+
+        $this->agileDashboard_milestone_backlog_item_collection->shouldReceive('count')->once()->andReturn(0);
+
+        $this->mockTimeframe($this->semantic_timeframe);
+
+        $this->planning_milestone_factory
+            ->shouldReceive('getAllFutureMilestones')
+            ->once()
+            ->andReturn([Mockery::mock(Planning_Milestone::class), Mockery::mock(Planning_Milestone::class), Mockery::mock(Planning_Milestone::class)]);
+
+        $this->tracker->shouldReceive('getChildren')->andReturn([]);
+
+        $this->count_elements_mode_checker->shouldReceive("burnupMustUseCountElementsMode")->once()->andReturn(true);
+
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+
+        $built_presenter = $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
+
+        $this->assertEquals($built_presenter->burnup_mode, "count");
+    }
+
+    public function testThrowExceptionWhenIsIE11(): void
+    {
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => true]));
+        $this->expectException(ProjectMilestonesException::class);
+        $this->expectExceptionMessage(ProjectMilestonesException::buildBrowserIsIE11()->getTranslatedMessage());
+        $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
+    }
+
+    public function testThrowExceptionWhenUserCantAccessToProject(): void
+    {
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once()->andThrow(Project_AccessProjectNotFoundException::class);
+        $this->expectException(ProjectMilestonesException::class);
+        $this->expectExceptionMessage(ProjectMilestonesException::buildUserNotAccessToProject()->getTranslatedMessage());
+        $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
+    }
+
+    public function testThrowExceptionWhenUserCantAccessToAPrivateProject(): void
+    {
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once()->andThrow(\Project_AccessPrivateException::class);
+        $this->expectException(ProjectMilestonesException::class);
+        $this->expectExceptionMessage(ProjectMilestonesException::buildUserNotAccessToPrivateProject()->getTranslatedMessage());
+        $this->builder->getProjectMilestonePresenter($this->project, $this->root_planning);
+    }
+
+    public function testThrowExceptionWhenNoProject(): void
+    {
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+        $this->expectException(ProjectMilestonesException::class);
+        $this->expectExceptionMessage(ProjectMilestonesException::buildProjectDontExist()->getTranslatedMessage());
+        $this->builder->getProjectMilestonePresenter(null, $this->root_planning);
+    }
+
+    public function testThrowExceptionWhenNoRootPlanning(): void
+    {
+        $this->http_request->shouldReceive("getBrowser")->andReturn(Mockery::mock(\Browser::class, ["isIE11" => false]));
+        $this->project_access_checker->shouldReceive("checkUserCanAccessProject")->once();
+        $this->expectException(ProjectMilestonesException::class);
+        $this->expectExceptionMessage(ProjectMilestonesException::buildRootPlanningDontExist()->getTranslatedMessage());
+        $this->builder->getProjectMilestonePresenter($this->project, null);
+
+        $this->http_request->shouldReceive("getCurrentUser")->andReturn($this->john_doe);
     }
 
     private function mockAnArtifact(string $name, string $color)

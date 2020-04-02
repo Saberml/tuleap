@@ -103,7 +103,7 @@ class ArtifactsFoldersPlugin extends PluginWithLegacyInternalRouting // phpcs:ig
     {
         if (strpos($_SERVER['REQUEST_URI'], TRACKER_BASE_URL) === 0) {
             $asset = $this->getIncludeAssets();
-            echo '<link rel="stylesheet" type="text/css" href="'. $asset->getFileURL('style.css') .'" />';
+            echo '<link rel="stylesheet" type="text/css" href="' . $asset->getFileURL('style.css') . '" />';
         }
     }
 
@@ -190,14 +190,14 @@ class ArtifactsFoldersPlugin extends PluginWithLegacyInternalRouting // phpcs:ig
         }
     }
 
-    private function setFolderProperty(Project $project, $tracker_id, Logger $logger)
+    private function setFolderProperty(Project $project, $tracker_id, \Psr\Log\LoggerInterface $logger)
     {
         if (! $this->getFolderUsageRetriever()->doesProjectHaveAFolderTracker($project)) {
             if (! $this->getDao()->create($tracker_id)) {
-                $logger->warn("Error while setting Folder flag for tracker $tracker_id.");
+                $logger->warning("Error while setting Folder flag for tracker $tracker_id.");
             }
         } else {
-            $logger->warn("Cannot set tracker $tracker_id as a Folder tracker because you already have one defined for this project");
+            $logger->warning("Cannot set tracker $tracker_id as a Folder tracker because you already have one defined for this project");
         }
     }
 
@@ -290,8 +290,7 @@ class ArtifactsFoldersPlugin extends PluginWithLegacyInternalRouting // phpcs:ig
             $this->getHierarchyOfFolderBuilder(),
             new FolderHierarchicalRepresentationCollectionBuilder(
                 Tracker_ArtifactFactory::instance(),
-                new Dao(),
-                $this->getNatureIsChildLinkRetriever()
+                new Dao()
             )
         );
 
@@ -322,7 +321,6 @@ class ArtifactsFoldersPlugin extends PluginWithLegacyInternalRouting // phpcs:ig
 
         $augmentor = new DataFromRequestAugmentor(
             $request,
-            Tracker_ArtifactFactory::instance(),
             $this->getHierarchyOfFolderBuilder()
         );
 

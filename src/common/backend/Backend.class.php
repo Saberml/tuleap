@@ -28,10 +28,10 @@ use Tuleap\Backend\FileExtensionFilterIterator;
 class Backend
 {
 
-    public const LOG_INFO    = "info";
-    public const LOG_WARNING = "warn";
-    public const LOG_ERROR   = "error";
-    public const LOG_DEBUG   = "debug";
+    public const LOG_INFO    = \Psr\Log\LogLevel::INFO;
+    public const LOG_WARNING = \Psr\Log\LogLevel::WARNING;
+    public const LOG_ERROR   = \Psr\Log\LogLevel::ERROR;
+    public const LOG_DEBUG   = \Psr\Log\LogLevel::DEBUG;
 
     public const SVN         = 'SVN';
     public const CVS         = 'CVS';
@@ -55,7 +55,6 @@ class Backend
      */
     protected function __construct()
     {
-
         /* Make sure umask is properly positioned for the
          entire session. Root has umask 022 by default
          causing all the mkdir xxx, 775 to actually
@@ -113,7 +112,7 @@ class Backend
 
             //check that all is ok
             if (!is_a($backend, $wanted_base)) {
-                throw new Exception('Backend should inherit from '. $wanted_base .'. Received: "'. get_class($backend) .'"');
+                throw new Exception('Backend should inherit from ' . $wanted_base . '. Received: "' . get_class($backend) . '"');
             }
 
             //SetUp if needed
@@ -121,7 +120,7 @@ class Backend
                 if (method_exists($backend, 'setUp')) {
                     call_user_func_array(array($backend, 'setUp'), $setup);
                 } else {
-                    throw new Exception($base .' does not have setUp.');
+                    throw new Exception($base . ' does not have setUp.');
                 }
             }
 
@@ -270,9 +269,9 @@ class Backend
      */
     protected function getent($database, $entry = false)
     {
-        $cmd = 'getent '.escapeshellarg($database);
+        $cmd = 'getent ' . escapeshellarg($database);
         if ($entry !== false) {
-            $cmd .= ' '.escapeshellarg($entry);
+            $cmd .= ' ' . escapeshellarg($entry);
         }
         $output      = array();
         $returnValue = null;
@@ -333,13 +332,11 @@ class Backend
      *
      * @param string $message The error message that should be logged.
      * @param string $level   The level of the message "info", "warn", ...
-     *
-     * @return bool true on success or false on failure
      */
     public function log($message, $level = 'info')
     {
-        $logger = new BackendLogger();
-        return $logger->log($message, $level);
+        $logger = BackendLogger::getDefaultLogger();
+        $logger->log($level, $message);
     }
 
     /**
@@ -472,13 +469,12 @@ class Backend
      */
     public function addBlock($filename, $command)
     {
-
         if (!$handle = fopen($filename, 'a')) {
             $this->log("Can't open file for writing: $filename", self::LOG_ERROR);
             return false;
         }
         fwrite($handle, $this->block_marker_start);
-        fwrite($handle, $command."\n");
+        fwrite($handle, $command . "\n");
         fwrite($handle, $this->block_marker_end);
         return fclose($handle);
     }
@@ -521,7 +517,6 @@ class Backend
      */
     public function writeArrayToFile($file_array, $filename)
     {
-
         if (!$handle = fopen($filename, 'w')) {
             $this->log("Can't open file for writing: $filename", self::LOG_ERROR);
             return false;

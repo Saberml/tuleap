@@ -26,7 +26,7 @@ use Tracker_FormElement_Chart_Field_Exception;
 use Tuleap\Tracker\Semantic\Timeframe\SemanticTimeframe;
 use Tuleap\Tracker\Semantic\Timeframe\SemanticTimeframeBuilder;
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class ChartConfigurationFieldRetrieverTest extends TestCase
 {
@@ -109,7 +109,7 @@ class ChartConfigurationFieldRetrieverTest extends TestCase
 
         $this->semantic_timeframe_builder = \Mockery::mock(SemanticTimeframeBuilder::class);
 
-        $this->logger = \Mockery::mock(\Logger::class);
+        $this->logger = \Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->configuration_retriever = new ChartConfigurationFieldRetriever(
             $this->form_element_field_factoy,
             $this->semantic_timeframe_builder,

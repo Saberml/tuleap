@@ -60,7 +60,7 @@ class PreCommitCommitToTagTest extends TestCase
             $this->svn_look,
             $this->handler,
             \Mockery::spy(\Tuleap\Svn\SHA1CollisionDetector::class),
-            \Mockery::spy(\BackendLogger::class)
+            \Mockery::spy(\Psr\Log\LoggerInterface::class)
         );
     }
 
@@ -284,7 +284,7 @@ EOS;
 
             $this->doesNotPerformAssertions();
         } catch (SVN_CommitToTagDeniedException $ex) {
-            $this->fail('Commit of "'.implode(', ', $paths) .'" should be allowed');
+            $this->fail('Commit of "' . implode(', ', $paths) . '" should be allowed');
         }
     }
 
@@ -299,7 +299,7 @@ EOS;
                 $this->transaction
             );
 
-            $this->fail('Commit of "'.implode(', ', $paths).'" should be denied');
+            $this->fail('Commit of "' . implode(', ', $paths) . '" should be denied');
         } catch (SVN_CommitToTagDeniedException $ex) {
             $this->doesNotPerformAssertions();
         }
@@ -315,7 +315,7 @@ EOS;
             $svn_look,
             $this->handler,
             \Mockery::spy(\Tuleap\Svn\SHA1CollisionDetector::class),
-            \Mockery::spy(\BackendLogger::class)
+            \Mockery::spy(\Psr\Log\LoggerInterface::class)
         );
     }
 }

@@ -43,11 +43,7 @@ class Tracker_Artifact_XMLImport_XMLImportFieldStrategyOpenList implements Track
     /**
      * Extract Field data from XML input
      *
-     * @param Tracker_FormElement_Field $field
-     * @param SimpleXMLElement $field_change
      *
-     * @param PFUser $submitted_by
-     * @param Tracker_Artifact $artifact
      * @return mixed
      */
     public function getFieldData(
@@ -83,7 +79,7 @@ class Tracker_Artifact_XMLImport_XMLImportFieldStrategyOpenList implements Track
                 return '';
             }
 
-            return Tracker_FormElement_Field_OpenList::BIND_PREFIX.$user->getId();
+            return Tracker_FormElement_Field_OpenList::BIND_PREFIX . $user->getId();
         }
 
         return $field->getFieldData((string) $value);

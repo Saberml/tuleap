@@ -18,16 +18,16 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Tuleap\Admin\AdminPageRenderer;
 use Tuleap\Git\AdminGerritBuilder;
 use Tuleap\Git\BigObjectAuthorization\BigObjectAuthorizationManager;
 use Tuleap\Git\GeneralSettingsController;
+use Tuleap\Git\GerritServerResourceRestrictor;
 use Tuleap\Git\Gitolite\SSHKey\ManagementDetector;
 use Tuleap\Git\Gitolite\VersionDetector;
 use Tuleap\Git\Permissions\RegexpFineGrainedDisabler;
-use Tuleap\Git\Permissions\RegexpFineGrainedRetriever;
 use Tuleap\Git\Permissions\RegexpFineGrainedEnabler;
-use Tuleap\Admin\AdminPageRenderer;
-use Tuleap\Git\GerritServerResourceRestrictor;
+use Tuleap\Git\Permissions\RegexpFineGrainedRetriever;
 use Tuleap\Git\RemoteServer\Gerrit\Restrictor;
 use Tuleap\Layout\CssAsset;
 use Tuleap\Layout\IncludeAssets;
@@ -51,9 +51,6 @@ class Git_AdminRouter implements \Tuleap\Request\DispatchableWithRequest, \Tulea
 
     /** @var ProjectManager */
     private $project_manager;
-
-    /** @var Git_Mirror_ManifestManager */
-    private $git_mirror_manifest_manager;
 
     /** @var Git_SystemEventManager */
     private $git_system_event_manager;
@@ -105,29 +102,27 @@ class Git_AdminRouter implements \Tuleap\Request\DispatchableWithRequest, \Tulea
 
     public function __construct(
         Git_RemoteServer_GerritServerFactory $gerrit_server_factory,
-        CSRFSynchronizerToken                $csrf,
-        Git_Mirror_MirrorDataMapper          $git_mirror_factory,
-        Git_MirrorResourceRestrictor         $git_mirror_resource_restrictor,
-        ProjectManager                       $project_manager,
-        Git_Mirror_ManifestManager           $git_mirror_manifest_manager,
-        Git_SystemEventManager               $git_system_event_manager,
-        RegexpFineGrainedRetriever           $regexp_retriever,
-        RegexpFineGrainedEnabler             $regexp_enabler,
-        AdminPageRenderer                    $admin_page_renderer,
-        RegexpFineGrainedDisabler            $regexp_disabler,
-        GerritServerResourceRestrictor       $gerrit_ressource_restrictor,
-        Restrictor                           $gerrit_restrictor,
-        ManagementDetector                   $management_detector,
-        BigObjectAuthorizationManager        $big_object_authorization_manager,
-        IncludeAssets                        $include_assets,
-        VersionDetector                      $version_detector
+        CSRFSynchronizerToken $csrf,
+        Git_Mirror_MirrorDataMapper $git_mirror_factory,
+        Git_MirrorResourceRestrictor $git_mirror_resource_restrictor,
+        ProjectManager $project_manager,
+        Git_SystemEventManager $git_system_event_manager,
+        RegexpFineGrainedRetriever $regexp_retriever,
+        RegexpFineGrainedEnabler $regexp_enabler,
+        AdminPageRenderer $admin_page_renderer,
+        RegexpFineGrainedDisabler $regexp_disabler,
+        GerritServerResourceRestrictor $gerrit_ressource_restrictor,
+        Restrictor $gerrit_restrictor,
+        ManagementDetector $management_detector,
+        BigObjectAuthorizationManager $big_object_authorization_manager,
+        IncludeAssets $include_assets,
+        VersionDetector $version_detector
     ) {
         $this->gerrit_server_factory            = $gerrit_server_factory;
         $this->csrf                             = $csrf;
         $this->git_mirror_mapper                = $git_mirror_factory;
         $this->git_mirror_resource_restrictor   = $git_mirror_resource_restrictor;
         $this->project_manager                  = $project_manager;
-        $this->git_mirror_manifest_manager      = $git_mirror_manifest_manager;
         $this->git_system_event_manager         = $git_system_event_manager;
         $this->regexp_retriever                 = $regexp_retriever;
         $this->regexp_enabler                   = $regexp_enabler;
@@ -152,15 +147,7 @@ class Git_AdminRouter implements \Tuleap\Request\DispatchableWithRequest, \Tulea
 
         $controller->process($request);
 
-        $layout->addCssAsset(
-            new CssAsset(
-                new IncludeAssets(
-                    __DIR__ . '/../../../../src/www/assets/git/themes',
-                    '/assets/git/themes'
-                ),
-                'bp-style-siteadmin'
-            )
-        );
+        $layout->addCssAsset(new CssAsset($this->include_assets, 'bp-style-siteadmin'));
 
         $controller->display($request);
     }
@@ -174,7 +161,8 @@ class Git_AdminRouter implements \Tuleap\Request\DispatchableWithRequest, \Tulea
                 $this->admin_page_renderer,
                 $this->gerrit_ressource_restrictor,
                 $this->gerrit_restrictor,
-                new AdminGerritBuilder(new User_SSHKeyValidator())
+                new AdminGerritBuilder(new User_SSHKeyValidator()),
+                $this->include_assets
             );
         } elseif ($request->get('pane') == 'gitolite_config') {
             return new Git_AdminGitoliteConfig(
@@ -193,9 +181,9 @@ class Git_AdminRouter implements \Tuleap\Request\DispatchableWithRequest, \Tulea
                 $this->git_mirror_mapper,
                 $this->git_mirror_resource_restrictor,
                 $this->project_manager,
-                $this->git_mirror_manifest_manager,
                 $this->git_system_event_manager,
-                $this->admin_page_renderer
+                $this->admin_page_renderer,
+                $this->include_assets
             );
         } else {
             return new GeneralSettingsController(

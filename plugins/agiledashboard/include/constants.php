@@ -20,8 +20,7 @@
 
 define('AGILEDASHBOARD_BASE_URL', '/plugins/agiledashboard');
 define('AGILEDASHBOARD_BASE_DIR', dirname(__FILE__));
-define('AGILEDASHBOARD_TEMPLATE_DIR', dirname(__FILE__).'/../templates');
-define('AGILEDASHBOARD_RESOURCE_DIR', dirname(__FILE__).'/../www/resources');
+define('AGILEDASHBOARD_TEMPLATE_DIR', dirname(__FILE__) . '/../templates');
 
 /**
  * Get the pane to display on agile dashboard index page

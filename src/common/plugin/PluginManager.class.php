@@ -69,7 +69,7 @@ class PluginManager
                 new ForgeUpgradeConfig(
                     new System_Command()
                 ),
-                new ContentInterpretor()
+                \Tuleap\Markdown\CommonMarkInterpreter::build(Codendi_HTMLPurifier::instance())
             );
         }
 
@@ -91,17 +91,17 @@ class PluginManager
         return $this->plugin_factory->getAvailablePlugins();
     }
 
-    function getAllPlugins()
+    public function getAllPlugins()
     {
         return $this->plugin_factory->getAllPlugins();
     }
 
-    function isPluginAvailable($plugin)
+    public function isPluginAvailable($plugin)
     {
         return $this->plugin_factory->isPluginAvailable($plugin);
     }
 
-    function availablePlugin($plugin)
+    public function availablePlugin($plugin)
     {
         if ($plugin->canBeMadeAvailable()) {
             $this->plugin_factory->availablePlugin($plugin);
@@ -111,7 +111,7 @@ class PluginManager
         }
     }
 
-    function unavailablePlugin($plugin)
+    public function unavailablePlugin($plugin)
     {
         $this->plugin_factory->unavailablePlugin($plugin);
 
@@ -131,7 +131,7 @@ class PluginManager
         $this->site_cache->invalidatePluginBasedCaches();
     }
 
-    function installPlugin($name)
+    public function installPlugin($name)
     {
         $plugin = false;
         if ($this->isNameValid($name)) {
@@ -153,7 +153,7 @@ class PluginManager
         return $plugin;
     }
 
-    function uninstallPlugin(Plugin $plugin)
+    public function uninstallPlugin(Plugin $plugin)
     {
         $name = $this->plugin_factory->getNameForPlugin($plugin);
         if (!$this->_executeSqlStatements('uninstall', $name)) {
@@ -165,20 +165,20 @@ class PluginManager
             return false;
         }
     }
-    function getPostInstall($name)
+    public function getPostInstall($name)
     {
-        $path_to_file = '/'.$name.'/POSTINSTALL.txt';
-        return file_exists($GLOBALS['sys_pluginsroot'].$path_to_file) ?
-            file_get_contents($GLOBALS['sys_pluginsroot'].$path_to_file) :
+        $path_to_file = '/' . $name . '/POSTINSTALL.txt';
+        return file_exists($GLOBALS['sys_pluginsroot'] . $path_to_file) ?
+            file_get_contents($GLOBALS['sys_pluginsroot'] . $path_to_file) :
             false;
     }
 
-    function getInstallReadme($name)
+    public function getInstallReadme($name)
     {
         foreach ($this->plugin_factory->getAllPossiblePluginsDir() as $dir) {
-            $path = $dir.'/'.$name;
-            if (file_exists($path.'/README.mkd') || file_exists($path.'/README.md') || file_exists($path.'/README.txt') || file_exists($path.'/README')) {
-                return $path.'/README';
+            $path = $dir . '/' . $name;
+            if (file_exists($path . '/README.mkd') || file_exists($path . '/README.md') || file_exists($path . '/README.txt') || file_exists($path . '/README')) {
+                return $path . '/README';
             }
         }
         return false;
@@ -214,7 +214,7 @@ class PluginManager
 
     private function getEscapedReadme($content)
     {
-        return '<pre>'.Codendi_HTMLPurifier::instance()->purify($content).'</pre>';
+        return '<pre>' . Codendi_HTMLPurifier::instance()->purify($content) . '</pre>';
     }
 
     /**
@@ -228,12 +228,12 @@ class PluginManager
     protected function configureForgeUpgrade($name)
     {
         try {
-            $plugin_path = $GLOBALS['sys_pluginsroot'].$name;
+            $plugin_path = $GLOBALS['sys_pluginsroot'] . $name;
             $this->forgeupgrade_config->loadDefaults();
-            $this->forgeupgrade_config->addPath($GLOBALS['sys_pluginsroot'].$name);
+            $this->forgeupgrade_config->addPath($GLOBALS['sys_pluginsroot'] . $name);
             $this->forgeupgrade_config->recordOnlyPath($plugin_path);
         } catch (Exception $e) {
-            $GLOBALS['Response']->addFeedback('warning', "ForgeUpgrade configuration update failed: ".$e->getMessage());
+            $GLOBALS['Response']->addFeedback('warning', "ForgeUpgrade configuration update failed: " . $e->getMessage());
         }
     }
 
@@ -248,43 +248,43 @@ class PluginManager
     {
         try {
             $this->forgeupgrade_config->loadDefaults();
-            $this->forgeupgrade_config->removePath($GLOBALS['sys_pluginsroot'].$name);
+            $this->forgeupgrade_config->removePath($GLOBALS['sys_pluginsroot'] . $name);
         } catch (Exception $e) {
-            $GLOBALS['Response']->addFeedback('warning', "ForgeUpgrade configuration update failed: ".$e->getMessage());
+            $GLOBALS['Response']->addFeedback('warning', "ForgeUpgrade configuration update failed: " . $e->getMessage());
         }
     }
 
-    function _createEtc($name)
+    public function _createEtc($name)
     {
-        if (!is_dir($GLOBALS['sys_custompluginsroot'] .'/'. $name)) {
-            mkdir($GLOBALS['sys_custompluginsroot'] .'/'. $name, 0700);
+        if (!is_dir($GLOBALS['sys_custompluginsroot'] . '/' . $name)) {
+            mkdir($GLOBALS['sys_custompluginsroot'] . '/' . $name, 0700);
         }
-        if (is_dir($GLOBALS['sys_pluginsroot'] .'/'. $name .'/etc')) {
-            if (!is_dir($GLOBALS['sys_custompluginsroot'] .'/'. $name .'/etc')) {
-                mkdir($GLOBALS['sys_custompluginsroot'] .'/'. $name . '/etc', 0700);
+        if (is_dir($GLOBALS['sys_pluginsroot'] . '/' . $name . '/etc')) {
+            if (!is_dir($GLOBALS['sys_custompluginsroot'] . '/' . $name . '/etc')) {
+                mkdir($GLOBALS['sys_custompluginsroot'] . '/' . $name . '/etc', 0700);
             }
-            $etcs = glob($GLOBALS['sys_pluginsroot'] .'/'. $name .'/etc/*');
+            $etcs = glob($GLOBALS['sys_pluginsroot'] . '/' . $name . '/etc/*');
             foreach ($etcs as $etc) {
                 if (is_dir($etc)) {
-                    $this->copyDirectory($etc, $GLOBALS['sys_custompluginsroot'] .'/'. $name . '/etc/' . basename($etc));
+                    $this->copyDirectory($etc, $GLOBALS['sys_custompluginsroot'] . '/' . $name . '/etc/' . basename($etc));
                 } else {
-                    copy($etc, $GLOBALS['sys_custompluginsroot'] .'/'. $name . '/etc/' . basename($etc));
+                    copy($etc, $GLOBALS['sys_custompluginsroot'] . '/' . $name . '/etc/' . basename($etc));
                 }
             }
-            $incdists = glob($GLOBALS['sys_custompluginsroot'] .'/'. $name .'/etc/*.dist');
+            $incdists = glob($GLOBALS['sys_custompluginsroot'] . '/' . $name . '/etc/*.dist');
             foreach ($incdists as $incdist) {
-                rename($incdist, $GLOBALS['sys_custompluginsroot'] .'/'. $name . '/etc/' . basename($incdist, '.dist'));
+                rename($incdist, $GLOBALS['sys_custompluginsroot'] . '/' . $name . '/etc/' . basename($incdist, '.dist'));
             }
         }
     }
 
-    function _executeSqlStatements($file, $name)
+    public function _executeSqlStatements($file, $name)
     {
         $db_corrupted = false;
-        $path_to_file = '/'.$name.'/db/'.$file.'.sql';
+        $path_to_file = '/' . $name . '/db/' . $file . '.sql';
 
         foreach ($this->plugin_factory->getAllPossiblePluginsDir() as $dir) {
-            $sql_filename = $dir.$path_to_file;
+            $sql_filename = $dir . $path_to_file;
             if (file_exists($sql_filename)) {
                 $dbtables = new DBTablesDao();
                 if (!$dbtables->updateFromFile($sql_filename)) {
@@ -301,34 +301,34 @@ class PluginManager
         return $this->plugin_factory->getNotYetInstalledPlugins();
     }
 
-    function isNameValid($name)
+    public function isNameValid($name)
     {
         return (0 === preg_match('/[^a-zA-Z0-9_-]/', $name));
     }
 
-    function getPluginByName($name)
+    public function getPluginByName($name)
     {
         return $this->plugin_factory->getPluginByName($name);
     }
 
-    function getAvailablePluginByName($name)
+    public function getAvailablePluginByName($name)
     {
         $plugin = $this->getPluginByName($name);
         if ($plugin && $this->isPluginAvailable($plugin)) {
             return $plugin;
         }
     }
-    function getPluginById($id)
+    public function getPluginById($id)
     {
         return $this->plugin_factory->getPluginById($id);
     }
-    function pluginIsCustom($plugin)
+    public function pluginIsCustom($plugin)
     {
         return $this->plugin_factory->pluginIsCustom($plugin);
     }
 
     public $plugins_name;
-    function getNameForPlugin($plugin)
+    public function getNameForPlugin($plugin)
     {
         if (!$this->plugins_name) {
             $this->plugins_name = array();
@@ -339,12 +339,12 @@ class PluginManager
         return $this->plugins_name[$plugin->getId()];
     }
 
-    function getAllowedProjects($plugin)
+    public function getAllowedProjects($plugin)
     {
         return $this->plugin_factory->getProjectsByPluginId($plugin);
     }
 
-    function _updateProjectForPlugin($action, $plugin, $projectIds)
+    public function _updateProjectForPlugin($action, $plugin, $projectIds)
     {
         $success     = true;
         $successOnce = false;
@@ -381,22 +381,22 @@ class PluginManager
         }
     }
 
-    function addProjectForPlugin($plugin, $projectIds)
+    public function addProjectForPlugin($plugin, $projectIds)
     {
         $this->_updateProjectForPlugin('add', $plugin, $projectIds);
     }
 
-    function delProjectForPlugin($plugin, $projectIds)
+    public function delProjectForPlugin($plugin, $projectIds)
     {
         $this->_updateProjectForPlugin('del', $plugin, $projectIds);
     }
 
-    function isProjectPluginRestricted($plugin)
+    public function isProjectPluginRestricted($plugin)
     {
         return $this->plugin_factory->isProjectPluginRestricted($plugin);
     }
 
-    function updateProjectPluginRestriction($plugin, $restricted)
+    public function updateProjectPluginRestriction($plugin, $restricted)
     {
         $this->plugin_factory->restrictProjectPluginUse($plugin, $restricted);
         if ($restricted == false) {
@@ -404,7 +404,7 @@ class PluginManager
         }
     }
 
-    function isPluginAllowedForProject($plugin, $projectId)
+    public function isPluginAllowedForProject($plugin, $projectId)
     {
         if ($this->isProjectPluginRestricted($plugin)) {
             return $this->plugin_factory->isPluginAllowedForProject($plugin, $projectId);
@@ -428,7 +428,6 @@ class PluginManager
 
     private function copyDirectory($source, $destination)
     {
-
         if (!is_dir($destination)) {
             if (!mkdir($destination)) {
                 return false;

@@ -23,9 +23,7 @@
  */
 
 use Tuleap\BurningParrotCompatiblePageEvent;
-use Tuleap\CVS\DiskUsage\Collector as CVSCollector;
-use Tuleap\CVS\DiskUsage\FullHistoryDao;
-use Tuleap\CVS\DiskUsage\Retriever as CVSRetriever;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\Collector as CVSCollector;
 use Tuleap\Layout\IncludeAssets;
 use Tuleap\Project\Admin\Navigation\NavigationDropdownItemPresenter;
 use Tuleap\Project\Admin\Navigation\NavigationPresenter;
@@ -36,8 +34,10 @@ use Tuleap\Project\Quota\ProjectQuotaInformation;
 use Tuleap\Project\Quota\ProjectQuotaRequester;
 use Tuleap\Project\RestrictedUserCanAccessProjectVerifier;
 use Tuleap\SOAP\SOAPRequestValidatorImplementation;
-use Tuleap\SVN\DiskUsage\Collector as SVNCollector;
-use Tuleap\SVN\DiskUsage\Retriever as SVNRetriever;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\FullHistoryDao;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\Retriever as CVSRetriever;
+use Tuleap\Statistics\DiskUsage\Subversion\Collector as SVNCollector;
+use Tuleap\Statistics\DiskUsage\Subversion\Retriever as SVNRetriever;
 use Tuleap\SystemEvent\RootDailyStartEvent;
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -121,7 +121,7 @@ class StatisticsPlugin extends Plugin
         }
     }
 
-    function getPluginInfo()
+    public function getPluginInfo()
     {
         if (!$this->pluginInfo instanceof StatisticsPluginInfo) {
             include_once('StatisticsPluginInfo.class.php');
@@ -130,7 +130,7 @@ class StatisticsPlugin extends Plugin
         return $this->pluginInfo;
     }
 
-    function site_admin_option_hook($params)
+    public function site_admin_option_hook($params)
     {
         $params['plugins'][] = array(
             'label' => 'Statistics',
@@ -154,7 +154,7 @@ class StatisticsPlugin extends Plugin
         );
     }
 
-    private function getDiskUsagePurger(Logger $logger)
+    private function getDiskUsagePurger(\Psr\Log\LoggerInterface $logger)
     {
         return new Statistics_DiskUsagePurger(
             new Statistics_DiskUsageDao(),
@@ -192,21 +192,21 @@ class StatisticsPlugin extends Plugin
      *
      * @return void
      */
-    function usergroup_data($params)
+    public function usergroup_data($params)
     {
         $user_url_params = array(
             'menu' => 'one_user_details',
-            'user' => $params['user']->getRealName().' ('.$params['user']->getUserName() .')'
+            'user' => $params['user']->getRealName() . ' (' . $params['user']->getUserName() . ')'
         );
 
         $params['links'][] = array(
-            'href'  => $this->getPluginPath() . '/disk_usage.php?'.http_build_query($user_url_params),
+            'href'  => $this->getPluginPath() . '/disk_usage.php?' . http_build_query($user_url_params),
             'label' => $GLOBALS['Language']->getText('plugin_statistics_admin_page', 'show_statistics')
         );
     }
 
     /** @see ProjectDetailsPresenter::GET_MORE_INFO_LINKS */
-    function get_more_info_links($params)
+    public function get_more_info_links($params)
     {
         if (! UserManager::instance()->getCurrentUser()->isSuperUser()) {
             return;
@@ -214,10 +214,10 @@ class StatisticsPlugin extends Plugin
 
         $project_url_params = array(
             'menu'           => 'services',
-            'project_filter' => $params['project']->getUnconvertedPublicName().' ('.$params['project']->getUnixName() .')'
+            'project_filter' => $params['project']->getPublicName() . ' (' . $params['project']->getUnixName() . ')'
         );
         $params['links'][] = array(
-            'href'  => $this->getPluginPath().'/disk_usage.php?'.http_build_query($project_url_params),
+            'href'  => $this->getPluginPath() . '/disk_usage.php?' . http_build_query($project_url_params),
             'label' => $GLOBALS['Language']->getText('plugin_statistics_admin_page', 'show_statistics')
         );
     }
@@ -225,7 +225,6 @@ class StatisticsPlugin extends Plugin
     /**
      * Instanciate the widget
      *
-     * @param \Tuleap\Widget\Event\GetWidget $get_wiget_event
      *
      * @return void
      */
@@ -253,11 +252,7 @@ class StatisticsPlugin extends Plugin
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0 ||
             strpos($_SERVER['REQUEST_URI'], '/widgets/') === 0
         ) {
-            $css_assets = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/statistics/themes',
-                '/assets/statistics/themes'
-            );
-            echo '<link rel="stylesheet" type="text/css" href="' . $css_assets->getFileURL('style-fp.css') . '" />' . "\n";
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getAssets()->getFileURL('style-fp.css') . '" />' . "\n";
         }
     }
 
@@ -265,7 +260,7 @@ class StatisticsPlugin extends Plugin
     {
         $uri           = $this->getSoapUri();
         $service_class = 'Statistics_SOAPServer';
-        require_once $service_class .'.class.php';
+        require_once $service_class . '.class.php';
 
         if ($request->exist('wsdl')) {
             $this->dumpWSDL($uri, $service_class);
@@ -297,7 +292,7 @@ class StatisticsPlugin extends Plugin
         $disk_usage_manager     = $this->getDiskUsageManager();
         $project_quota_manager  = new ProjectQuotaManager();
 
-        $server = new TuleapSOAPServer($uri.'/?wsdl', array('cache_wsdl' => WSDL_CACHE_NONE));
+        $server = new TuleapSOAPServer($uri . '/?wsdl', array('cache_wsdl' => WSDL_CACHE_NONE));
         $server->setClass($service_class, $soap_request_validator, $disk_usage_manager, $project_quota_manager);
         $xml_security = new XML_Security();
         $xml_security->enableExternalLoadOfEntities();
@@ -328,14 +323,14 @@ class StatisticsPlugin extends Plugin
 
     private function getSoapUri()
     {
-        return HTTPRequest::instance()->getServerUrl().'/plugins/statistics/soap';
+        return HTTPRequest::instance()->getServerUrl() . '/plugins/statistics/soap';
     }
 
     public function renderWSDL()
     {
         $uri = $this->getSoapUri();
         $wsdl_renderer = new SOAP_WSDLRenderer();
-        $wsdl_renderer->render($uri .'/?wsdl');
+        $wsdl_renderer->render($uri . '/?wsdl');
     }
 
     public function wsdl_doc2soap_types($params)
@@ -365,19 +360,16 @@ class StatisticsPlugin extends Plugin
     {
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0) {
             $variant    = $params['variant'];
-            $css_assets = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/statistics/themes',
-                '/assets/statistics/themes'
-            );
-
-            $params['stylesheets'][] = $css_assets->getFileURL('style-bp-' . $variant->getName() . '.css');
+            $params['stylesheets'][] = $this->getAssets()->getFileURL('style-bp-' . $variant->getName() . '.css');
         }
     }
 
     public function burning_parrot_get_javascript_files(array $params)
     {
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0) {
-            $params['javascript_files'][] = $this->getPluginPath() . '/js/admin.js';
+            $ckeditor_assets = new IncludeAssets(__DIR__ . '/../../../src/www/assets', '/assets');
+            $params['javascript_files'][] = $ckeditor_assets->getFileURL('ckeditor.js');
+            $params['javascript_files'][] = $this->getAssets()->getFileURL('admin.js');
         }
     }
 
@@ -389,10 +381,17 @@ class StatisticsPlugin extends Plugin
 
         $project_quota_requester->setProjectQuotaInformation(
             new ProjectQuotaInformation(
-                $project,
                 $project_quota_manager->getProjectAuthorizedQuota($project->getID()),
                 $disk_usage_manager->returnTotalProjectSize($project->getID())
             )
+        );
+    }
+
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/statistics',
+            '/assets/statistics'
         );
     }
 }

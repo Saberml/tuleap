@@ -33,17 +33,17 @@ require_once('lib/plugin/WikiAdminSelect.php');
 
 class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
 {
-    function getName()
+    public function getName()
     {
         return _("WikiAdminRename");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Rename selected pages");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -52,7 +52,7 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(),
@@ -65,10 +65,10 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function renameHelper($name, $from, $to, $options = false)
+    public function renameHelper($name, $from, $to, $options = false)
     {
         if ($options['regex']) {
-            $pattern = '/' . str_replace('/', '\/', $from) . '/'.($options['icase']?'i':'');
+            $pattern = '/' . str_replace('/', '\/', $from) . '/' . ($options['icase'] ? 'i' : '');
             return preg_replace($pattern, $to, $name);
         } elseif ($options['icase']) {
             return str_ireplace($from, $to, $name);
@@ -77,7 +77,7 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
         }
     }
 
-    function renamePages(&$dbi, &$request, $pages, $from, $to, $updatelinks = false)
+    public function renamePages(&$dbi, &$request, $pages, $from, $to, $updatelinks = false)
     {
         $ul = HTML::ul();
         $count = 0;
@@ -131,7 +131,7 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
         }
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         if ($request->getArg('action') != 'browse') {
             if ($request->getArg('action') != _("PhpWikiAdministration/Rename")) {
@@ -240,10 +240,10 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function checkBox(&$post_args, $name, $msg)
+    public function checkBox(&$post_args, $name, $msg)
     {
         $checkbox = HTML::input(array('type' => 'checkbox',
-                                      'name' => 'admin_rename['.$name.']',
+                                      'name' => 'admin_rename[' . $name . ']',
                                       'value' => 1));
         if (!empty($post_args[$name])) {
             $checkbox->setAttr('checked', 'checked');
@@ -251,12 +251,12 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
         return HTML::div($checkbox, ' ', HTML::span($msg));
     }
 
-    function renameForm(&$header, $post_args)
+    public function renameForm(&$header, $post_args)
     {
-        $header->pushContent(_("Rename")." "._("from").': ');
+        $header->pushContent(_("Rename") . " " . _("from") . ': ');
         $header->pushContent(HTML::input(array('name' => 'admin_rename[from]',
                                                'value' => $post_args['from'])));
-        $header->pushContent(' '._("to").': ');
+        $header->pushContent(' ' . _("to") . ': ');
         $header->pushContent(HTML::input(array('name' => 'admin_rename[to]',
                                                'value' => $post_args['to'])));
         $header->pushContent($this->checkBox($post_args, 'regex', _("Regex?")));
@@ -279,7 +279,7 @@ class WikiPlugin_WikiAdminRename extends WikiPlugin_WikiAdminSelect
 // moved from lib/PageList.php
 class _PageList_Column_renamed_pagename extends _PageList_Column
 {
-    function _getValue($page_handle, &$revision_handle)
+    public function _getValue($page_handle, &$revision_handle)
     {
         global $request;
         $post_args = $request->getArg('admin_rename');
@@ -301,7 +301,7 @@ class _PageList_Column_renamed_pagename extends _PageList_Column
         }
         return $div;
     }
-};
+}
 
 // $Log: WikiAdminRename.php,v $
 // Revision 1.26  2005/04/01 16:06:41  rurban

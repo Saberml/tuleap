@@ -22,7 +22,7 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 final class GitActionsForkTests extends TestCase
@@ -59,7 +59,7 @@ final class GitActionsForkTests extends TestCase
             \Mockery::spy(\ProjectManager::class),
             \Mockery::spy(\GitPermissionsManager::class),
             $url_manager,
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             \Mockery::spy(\Git_Mirror_MirrorDataMapper::class),
             \Mockery::spy(\ProjectHistoryDao::class),
             \Mockery::spy(\GitRepositoryMirrorUpdater::class),

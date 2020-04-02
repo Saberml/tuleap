@@ -31,14 +31,14 @@ require_once('lib/WikiPlugin.php');
 class Theme_Sidebar extends Theme
 {
 
-    function __construct($theme_name = 'Sidebar')
+    public function __construct($theme_name = 'Sidebar')
     {
         parent::__construct($theme_name);
 
         $this->calendarInit(true);
     }
 
-    function findTemplate($name)
+    public function findTemplate($name)
     {
         // hack for navbar.tmpl to hide the buttonseparator
         if ($name == "navbar") {
@@ -50,13 +50,13 @@ class Theme_Sidebar extends Theme
         return parent::findTemplate($name);
     }
 
-    function calendarLink($date = false)
+    public function calendarLink($date = false)
     {
         return $this->calendarBase() . SUBPAGE_SEPARATOR .
                strftime("%Y-%m-%d", $date ? $date : time());
     }
 
-    function calendarBase()
+    public function calendarBase()
     {
         static $UserCalPageTitle = false;
         global $request;
@@ -72,7 +72,7 @@ class Theme_Sidebar extends Theme
         return $UserCalPageTitle;
     }
 
-    function calendarInit($force = false)
+    public function calendarInit($force = false)
     {
         $dbi = $GLOBALS['request']->getDbh();
         // display flat calender dhtml in the sidebar
@@ -87,7 +87,7 @@ class Theme_Sidebar extends Theme
             );
             $this->addMoreHeaders(JavaScript(
                 '',
-                array('src' => $this->_findData('jscalendar/calendar'.(DEBUG?'':'_stripped').'.js'))
+                array('src' => $this->_findData('jscalendar/calendar' . (DEBUG ? '' : '_stripped') . '.js'))
             ));
             if (!($langfile = $this->_findData("jscalendar/lang/calendar-$jslang.js"))) {
                 $langfile = $this->_findData("jscalendar/lang/calendar-en.js");
@@ -96,12 +96,12 @@ class Theme_Sidebar extends Theme
             $this->addMoreHeaders(JavaScript(
                 '',
                 array('src' =>
-                $this->_findData('jscalendar/calendar-setup'.(DEBUG?'':'_stripped').'.js'))
+                $this->_findData('jscalendar/calendar-setup' . (DEBUG ? '' : '_stripped') . '.js'))
             ));
 
             // Get existing date entries for the current user
             require_once("lib/TextSearchQuery.php");
-            $iter = $dbi->titleSearch(new TextSearchQuery("^".$this->calendarBase().SUBPAGE_SEPARATOR, true, "auto"));
+            $iter = $dbi->titleSearch(new TextSearchQuery("^" . $this->calendarBase() . SUBPAGE_SEPARATOR, true, "auto"));
             $existing = array();
             while ($page = $iter->next()) {
                 if ($page->exists()) {
@@ -109,12 +109,12 @@ class Theme_Sidebar extends Theme
                 }
             }
             if (!empty($existing)) {
-                $js_exist = '{"'.join('":1,"', $existing).'":1}';
+                $js_exist = '{"' . join('":1,"', $existing) . '":1}';
                 //var SPECIAL_DAYS = {"2004-05-11":1,"2004-05-12":1,"2004-06-01":1}
                 $this->addMoreHeaders(JavaScript('
 // This table holds the existing calender entries for the current user
 // calculated from the database
-var SPECIAL_DAYS = '.$js_exist.';
+var SPECIAL_DAYS = ' . $js_exist . ';
 // This function returns true if the date exists in SPECIAL_DAYS
 function dateExists(date, y, m, d) {
     var year = date.getFullYear();

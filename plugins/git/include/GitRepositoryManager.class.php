@@ -88,8 +88,6 @@ class GitRepositoryManager
     private $event_manager;
 
     /**
-     * @param GitRepositoryFactory $repository_factory
-     * @param Git_SystemEventManager   $git_system_event_manager
      * @param string $backup_directory
      */
     public function __construct(
@@ -120,7 +118,6 @@ class GitRepositoryManager
     /**
      * Delete all project repositories (on project deletion).
      *
-     * @param Project $project
      */
     public function deleteProjectRepositories(Project $project)
     {
@@ -132,8 +129,6 @@ class GitRepositoryManager
     }
 
     /**
-     * @param GitRepository        $repository
-     * @param GitRepositoryCreator $creator
      *
      * @throws GitDaoException
      * @throws GitRepositoryAlreadyExistsException
@@ -154,8 +149,6 @@ class GitRepositoryManager
     }
 
     /**
-     * @param GitRepository        $repository
-     * @param GitRepositoryCreator $creator
      * @param array                $mirror_ids
      *
      * @throws GitDaoException
@@ -229,7 +222,7 @@ class GitRepositoryManager
         );
 
         $this->system_command->exec(
-            "chown -R gitolite:gitolite $tmp_git_import_folder_arg"
+            "chgrp -R gitolite $tmp_git_import_folder_arg"
         );
     }
 
@@ -261,7 +254,7 @@ class GitRepositoryManager
         $clone->setParent($repository);
         $clone->setNamespace($namespace);
         $clone->setId(null);
-        $path = PathJoinUtil::unixPathJoin(array($to_project->getUnixName(), $namespace, $repository->getName())).'.git';
+        $path = PathJoinUtil::unixPathJoin(array($to_project->getUnixName(), $namespace, $repository->getName())) . '.git';
         $clone->setPath($path);
         $clone->setScope($scope);
 
@@ -322,7 +315,6 @@ class GitRepositoryManager
     }
 
     /**
-     * @param GitRepository $repository
      *
      * @throws GitRepositoryAlreadyExistsException
      */
@@ -401,7 +393,6 @@ class GitRepositoryManager
      * @param Project $project
      * @param String  $name
      *
-     * @return bool
      */
     public function isRepositoryNameAlreadyUsed(GitRepository $new_repository): bool
     {
@@ -450,13 +441,12 @@ class GitRepositoryManager
      *
      * Purge archived Gitolite repositories
      *
-     * @param Logger $logger
      *
      */
-    public function purgeArchivedRepositories(Logger $logger)
+    public function purgeArchivedRepositories(\Psr\Log\LoggerInterface $logger)
     {
         if (!isset($GLOBALS['sys_file_deletion_delay'])) {
-            $logger->warn("Purge of archived Gitolite repositories is disabled: sys_file_deletion_delay is missing in local.inc file");
+            $logger->warning("Purge of archived Gitolite repositories is disabled: sys_file_deletion_delay is missing in local.inc file");
             return;
         }
         $retention_period      = intval($GLOBALS['sys_file_deletion_delay']);
@@ -466,11 +456,11 @@ class GitRepositoryManager
                 $backend = $repository->getBackend();
                 $backend->deletePermissions($repository);
                 if ($backend->archiveBeforePurge($repository)) {
-                    $logger->info('Archive of the Gitolite repository: '.$repository->getName().' done');
-                    $logger->info('Purge of archived Gitolite repository: '.$repository->getName());
+                    $logger->info('Archive of the Gitolite repository: ' . $repository->getName() . ' done');
+                    $logger->info('Purge of archived Gitolite repository: ' . $repository->getName());
                     $backend->deleteArchivedRepository($repository);
                 } else {
-                    $logger->warn('An error occured while archiving Gitolite repository: '.$repository->getName());
+                    $logger->warning('An error occured while archiving Gitolite repository: ' . $repository->getName());
                 }
             } catch (GitDriverErrorException $exception) {
                 $logger->error($exception->getMessage());
@@ -492,7 +482,7 @@ class GitRepositoryManager
         $retention_period      = intval($GLOBALS['sys_file_deletion_delay']);
         $deleted_repositories  = $this->repository_factory->getDeletedRepositoriesByProjectId($project_id, $retention_period);
         foreach ($deleted_repositories as $repository) {
-            $archive = realpath($this->backup_directory.'/'.$repository->getBackupPath().".tar.gz");
+            $archive = realpath($this->backup_directory . '/' . $repository->getBackupPath() . ".tar.gz");
             if (file_exists($archive)) {
                 array_push($archived_repositories, $repository);
             }

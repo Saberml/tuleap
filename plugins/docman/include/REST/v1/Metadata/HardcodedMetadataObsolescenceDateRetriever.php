@@ -39,7 +39,6 @@ class HardcodedMetadataObsolescenceDateRetriever
     }
 
     /**
-     * @return int
      * @throws HardCodedMetadataException
      */
     public function getTimeStampOfDate(?string $date): int
@@ -66,7 +65,7 @@ class HardcodedMetadataObsolescenceDateRetriever
     public function getTimeStampOfDateWithoutPeriodValidity(?string $date, \DateTimeImmutable $current_time): int
     {
         if (!$this->date_checker->isObsolescenceMetadataUsed()) {
-            return (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE;
+            return (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE;
         }
 
         $formatted_date_timestamp = $this->getTimeStampOfDate($date);

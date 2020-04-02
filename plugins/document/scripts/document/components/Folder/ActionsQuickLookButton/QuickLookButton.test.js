@@ -33,7 +33,7 @@ describe("QuickLookButton", () => {
             return shallowMount(QuickLookButton, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -43,9 +43,9 @@ describe("QuickLookButton", () => {
         const event_bus_emit = jest.spyOn(EventBus, "$emit");
         const wrapper = factory({ item });
 
-        wrapper.find("[data-test=document-quick-look-button]").trigger("click");
+        wrapper.get("[data-test=document-quick-look-button]").trigger("click");
         expect(event_bus_emit).toHaveBeenCalledWith("toggle-quick-look", {
-            details: { item }
+            details: { item },
         });
     });
 });

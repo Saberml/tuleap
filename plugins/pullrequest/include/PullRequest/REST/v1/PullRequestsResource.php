@@ -37,6 +37,7 @@ use Project_AccessException;
 use Project_AccessProjectNotFoundException;
 use ProjectHistoryDao;
 use ProjectManager;
+use Psr\Log\LoggerInterface;
 use ReferenceManager;
 use Tuleap\Git\CommitMetadata\CommitMetadataRetriever;
 use Tuleap\Git\CommitStatus\CommitStatusDAO;
@@ -166,7 +167,7 @@ class PullRequestsResource extends AuthenticatedResource
     /** @var EventManager */
     private $event_manager;
 
-    /** @var BackendLogger */
+    /** @var LoggerInterface */
     private $logger;
 
     /**
@@ -210,7 +211,7 @@ class PullRequestsResource extends AuthenticatedResource
         $reference_manager          = ReferenceManager::instance();
         $this->pull_request_factory = new PullRequestFactory($pull_request_dao, $reference_manager);
 
-        $this->logger               = new BackendLogger();
+        $this->logger               = BackendLogger::getDefaultLogger();
 
         $event_dispatcher = PullRequestNotificationSupport::buildDispatcher($this->logger);
 
@@ -548,7 +549,6 @@ class PullRequestsResource extends AuthenticatedResource
      * @access protected
      *
      * @param int $id pull request ID
-     * @param LabelsPATCHRepresentation $body
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -1201,7 +1201,6 @@ class PullRequestsResource extends AuthenticatedResource
      *
      * @param int $id Pull request ID
      *
-     * @return ReviewersRepresentation
      *
      * @throws RestException 403
      * @throws RestException 404
@@ -1226,7 +1225,6 @@ class PullRequestsResource extends AuthenticatedResource
      * @status 204
      *
      * @param int $id Pull request ID
-     * @param ReviewersPUTRepresentation $representation
      *
      * @throws RestException 400
      * @throws RestException 403

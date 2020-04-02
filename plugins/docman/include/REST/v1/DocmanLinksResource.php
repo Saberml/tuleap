@@ -284,10 +284,10 @@ class DocmanLinksResource extends AuthenticatedResource
         $this->createNewLinkVersion(
             $representation,
             $item_request,
-            (int)$item->getStatus(),
-            (int)$item->getObsolescenceDate(),
-            (string)$item->getTitle(),
-            (string)$item->getDescription()
+            (int) $item->getStatus(),
+            (int) $item->getObsolescenceDate(),
+            (string) $item->getTitle(),
+            (string) $item->getDescription()
         );
     }
 
@@ -311,7 +311,6 @@ class DocmanLinksResource extends AuthenticatedResource
         int $id,
         PUTMetadataRepresentation $representation
     ): void {
-
         $this->checkAccess();
         $this->setMetadataHeaders();
 
@@ -450,9 +449,6 @@ class DocmanLinksResource extends AuthenticatedResource
         );
     }
 
-    /**
-     * @param \Project $project
-     */
     private function addAllEvent(\Project $project): void
     {
         $event_adder = $this->getDocmanItemsEventAdder();

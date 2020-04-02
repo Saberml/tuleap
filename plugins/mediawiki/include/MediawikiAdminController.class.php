@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2014, 2015, 2016, 2017. All rights reserved
+ * Copyright (c) Enalean, 2014-Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -11,14 +11,14 @@
  *
  * Tuleap is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with Tuleap. If not, see <http://www.gnu.org/licenses/
+ * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class MediawikiAdminController
+class MediawikiAdminController //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
 
     /** @var MediawikiUserGroupsMapper */
@@ -54,7 +54,10 @@ class MediawikiAdminController
     public function index(ServiceMediawiki $service, HTTPRequest $request)
     {
         $this->assertUserIsProjectAdmin($service, $request);
-        $GLOBALS['HTML']->includeFooterJavascriptFile(MEDIAWIKI_BASE_URL.'/forgejs/admin.js');
+
+        $assets = new \Tuleap\Layout\IncludeAssets(__DIR__ . '/../../../src/www/assets/mediawiki', '/assets/mediawiki');
+
+        $GLOBALS['HTML']->includeFooterJavascriptFile($assets->getFileURL('admin.js'));
 
         $project = $request->getProject();
 
@@ -86,7 +89,6 @@ class MediawikiAdminController
                     new MediawikiAdminPermissionsPanePresenter(
                         $project,
                         $this->getMappedGroupPresenter($project),
-                        $this->mapper->isDefaultMapping($project),
                         $this->manager->isCompatibilityViewEnabled($project),
                         $read_ugroups,
                         $write_ugroups
@@ -171,13 +173,30 @@ class MediawikiAdminController
         }
         return new MediawikiGroupPresenter(
             $mw_group_name,
-            $GLOBALS['Language']->getText('plugin_mediawiki', 'group_name_'.$mw_group_name),
+            $this->getGroupName($mw_group_name),
             $available_groups,
             $mapped_groups
         );
     }
 
-    public function save_language(ServiceMediawiki $service, HTTPRequest $request)
+    private function getGroupName($mw_group_name): string
+    {
+        switch ($mw_group_name) {
+            case 'user':
+                return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_name_user');
+            case 'bot':
+                return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_name_bot');
+            case 'sysop':
+                return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_name_sysop');
+            case 'bureaucrat':
+                return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_name_bureaucrat');
+            case 'anonymous':
+            default:
+                return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_name_anonymous');
+        }
+    }
+
+    public function save_language(ServiceMediawiki $service, HTTPRequest $request) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $this->assertUserIsProjectAdmin($service, $request);
         if ($request->isPost()) {
@@ -191,7 +210,7 @@ class MediawikiAdminController
             }
         }
 
-        $GLOBALS['Response']->redirect(MEDIAWIKI_BASE_URL .'/forge_admin.php?'. http_build_query(
+        $GLOBALS['Response']->redirect(MEDIAWIKI_BASE_URL . '/forge_admin.php?' . http_build_query(
             array(
                 'group_id'   => $request->get('group_id'),
                 'pane'       => 'language',
@@ -199,7 +218,7 @@ class MediawikiAdminController
         ));
     }
 
-    public function save_permissions(ServiceMediawiki $service, HTTPRequest $request)
+    public function save_permissions(ServiceMediawiki $service, HTTPRequest $request) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $this->assertUserIsProjectAdmin($service, $request);
         if ($request->isPost()) {
@@ -238,7 +257,7 @@ class MediawikiAdminController
             }
         }
 
-        $GLOBALS['Response']->redirect(MEDIAWIKI_BASE_URL .'/forge_admin.php?'. http_build_query(
+        $GLOBALS['Response']->redirect(MEDIAWIKI_BASE_URL . '/forge_admin.php?' . http_build_query(
             array(
                 'group_id'   => $request->get('group_id'),
             )
@@ -253,7 +272,7 @@ class MediawikiAdminController
 
         $list = array();
         foreach (MediawikiUserGroupsMapper::$MEDIAWIKI_GROUPS_NAME as $mw_group_name) {
-            $list[$mw_group_name] = array_filter(explode(',', $request->get('hidden_selected_'.$mw_group_name)));
+            $list[$mw_group_name] = array_filter(explode(',', $request->get('hidden_selected_' . $mw_group_name)));
         }
         return $list;
     }
@@ -266,7 +285,7 @@ class MediawikiAdminController
     private function assertUserIsProjectAdmin(ServiceMediawiki $service, HTTPRequest $request)
     {
         if (! $service->userIsAdmin($request->getCurrentUser())) {
-            $GLOBALS['Response']->redirect(MEDIAWIKI_BASE_URL.'/wiki/'.$request->getProject()->getUnixName());
+            $GLOBALS['Response']->redirect(MEDIAWIKI_BASE_URL . '/wiki/' . $request->getProject()->getUnixName());
         }
     }
 }

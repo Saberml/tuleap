@@ -63,12 +63,11 @@ final class SystemEventUserActiveStatusChange extends SystemEvent
      * @param bool $with_link true if you want links to entities. The returned
      * string will be html instead of plain/text
      *
-     * @return string
      */
     public function verbalizeParameters($with_link) : string
     {
         $txt = '';
-        $txt .= 'user: '. $this->verbalizeUserId($this->getIdFromParam(), $with_link);
+        $txt .= 'user: ' . $this->verbalizeUserId($this->getIdFromParam(), $with_link);
         return $txt;
     }
 
@@ -99,8 +98,8 @@ final class SystemEventUserActiveStatusChange extends SystemEvent
      */
     private function createUser(PFUser $user) : bool
     {
-        /** @var \BackendSystem $system_backend */
         $system_backend = Backend::instance('System');
+        \assert($system_backend instanceof \BackendSystem);
         $system_backend->flushNscdAndFsCache();
         return $system_backend->createUserHome($user);
     }

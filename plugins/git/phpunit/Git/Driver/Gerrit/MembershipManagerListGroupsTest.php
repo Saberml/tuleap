@@ -23,7 +23,7 @@ use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Tuleap\ForgeConfigSandbox;
 
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class MembershipManagerListGroupsTest extends TestCase
@@ -78,7 +78,7 @@ class MembershipManagerListGroupsTest extends TestCase
             $this->driver_factory,
             $this->gerrit_user_manager,
             \Mockery::spy(\Git_RemoteServer_GerritServerFactory::class),
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             \Mockery::spy(\UGroupManager::class),
             $this->project_manager
         );

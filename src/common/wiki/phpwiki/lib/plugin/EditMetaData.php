@@ -41,17 +41,17 @@ rcs_id('$Id: EditMetaData.php,v 1.11 2004/06/01 16:48:11 rurban Exp $');
  */
 class WikiPlugin_EditMetaData extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("EditMetaData");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return sprintf(_("Edit metadata for %s"), '[pagename]');
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -65,14 +65,14 @@ class WikiPlugin_EditMetaData extends WikiPlugin
     //  page - page whose metadata is editted
 
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('page'       => '[pagename]'
                     );
     }
 
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $this->_args = $this->getArgs($argstr, $request);
         extract($this->_args);
@@ -141,7 +141,6 @@ class WikiPlugin_EditMetaData extends WikiPlugin
                 }
                 $dl->pushContent($dl1);
             } elseif (in_array($key, $hidden_pagemeta)) {
-                ;
             } elseif (in_array($key, $readonly_pagemeta)) {
                 $dl->pushContent(HTML::dt(
                     array('style' => 'background: #dddddd'),
@@ -180,7 +179,7 @@ class WikiPlugin_EditMetaData extends WikiPlugin
         }
         return $html;
     }
-};
+}
 
 // $Log: EditMetaData.php,v $
 // Revision 1.11  2004/06/01 16:48:11  rurban

@@ -52,7 +52,7 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
         switch ($request->get('func')) {
             case 'toggle-collapse':
                 $current_user = $request->getCurrentUser();
-                $current_user->togglePreference('fieldset_'. $this->getId(), 1, 0);
+                $current_user->togglePreference('fieldset_' . $this->getId(), 1, 0);
                 break;
             default:
                 parent::process($layout, $request, $current_user);
@@ -125,14 +125,14 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
 
         $html  = '';
         $html .= "<fieldset class=\"tracker_artifact_fieldset $purified_extra_class\">";
-        $html .= '<legend title="'. $hp->purify($this->getDescription(), CODENDI_PURIFIER_CONVERT_HTML) .'"
-                          class="'. Toggler::getClassName('fieldset_'. $this->getId(), $fieldset_is_expanded, true) .'"
-                          id="fieldset_'. $this->getId() .'"
-                          data-id="'. $this->getId() .'">';
+        $html .= '<legend title="' . $hp->purify($this->getDescription(), CODENDI_PURIFIER_CONVERT_HTML) . '"
+                          class="' . Toggler::getClassName('fieldset_' . $this->getId(), $fieldset_is_expanded, true) . '"
+                          id="fieldset_' . $this->getId() . '"
+                          data-id="' . $this->getId() . '">';
         $html .= '<table><tr><td class="tracker_artifact_fieldset_title">';
         $html .= $hp->purify($this->getLabel(), CODENDI_PURIFIER_CONVERT_HTML);
         $html .= '</td>';
-        $html .= '<td class="tracker_artifact_fieldset_alwayscollapsed '. $always_collapsed .'">';
+        $html .= '<td class="tracker_artifact_fieldset_alwayscollapsed ' . $always_collapsed . '">';
         if ($current_user->isLoggedIn()) {
             $html .= '<i class="fa fa-thumb-tack"></i>';
         }
@@ -161,7 +161,7 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
                 <tr><td colspan="2">&nbsp;</td></tr>
                 <tr style="color: #444444; background-color: #F6F6F6;">
                     <td align="left" colspan="2">
-                        <h3>'. $purifier->purify($label) .'</h3>
+                        <h3>' . $purifier->purify($label) . '</h3>
                     </td>
                 </tr>';
         }
@@ -180,20 +180,20 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
     {
         $html = '';
         $hp = Codendi_HTMLPurifier::instance();
-        $html .= '<fieldset class="tracker-admin-container tracker-admin-fieldset" id="tracker-admin-formElements_'. $this->id .'"><legend title="'. $hp->purify($this->getDescription(), CODENDI_PURIFIER_CONVERT_HTML) .'"><label>';
+        $html .= '<fieldset class="tracker-admin-container tracker-admin-fieldset" id="tracker-admin-formElements_' . $this->id . '"><legend title="' . $hp->purify($this->getDescription(), CODENDI_PURIFIER_CONVERT_HTML) . '"><label>';
         $html .= $hp->purify($this->getLabel(), CODENDI_PURIFIER_CONVERT_HTML);
         $html .= '</label><span class="tracker-admin-field-controls">';
-        $html .= '<a class="edit-field" href="'. $this->getAdminEditUrl() .'">'. $GLOBALS['HTML']->getImage('ic/edit.png', array('alt' => 'edit')) .'</a> ';
+        $html .= '<a class="edit-field" href="' . $this->getAdminEditUrl() . '">' . $GLOBALS['HTML']->getImage('ic/edit.png', array('alt' => 'edit')) . '</a> ';
 
         if ($this->canBeRemovedFromUsage()) {
-            $html .= '<a href="?'. http_build_query(array(
+            $html .= '<a href="?' . http_build_query(array(
                 'tracker'  => $this->tracker_id,
                 'func'     => 'admin-formElement-remove',
                 'formElement' => $this->id,
-            )) .'">'. $GLOBALS['HTML']->getImage('ic/cross.png', array('alt' => 'remove')) .'</a>';
+            )) . '">' . $GLOBALS['HTML']->getImage('ic/cross.png', array('alt' => 'remove')) . '</a>';
         } else {
             $cannot_remove_message = $this->getCannotRemoveMessage();
-            $html .= '<span style="color:gray;" title="'. $cannot_remove_message .'">';
+            $html .= '<span style="color:gray;" title="' . $cannot_remove_message . '">';
             $html .= $GLOBALS['HTML']->getImage('ic/cross-disabled.png', array('alt' => 'remove'));
             $html .= '</span>';
         }
@@ -220,30 +220,13 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
      *
      * @return string label, the name if the name is not internationalized, or the localized text if so
      */
-    function getLabel()
+    public function getLabel()
     {
         global $Language;
         if ($this->isLabelMustBeLocalized()) {
             return $Language->getText('plugin_tracker_common_fieldset', $this->label);
         } else {
             return $this->label;
-        }
-    }
-
-    /**
-     * getDescriptionText - the text of the description of this Tracker_FormElement_FieldSet
-     * The tracker descripiton can be internationalized.
-     * To do this, fill the description field with the ad-hoc format.
-     *
-     * @return string description, the description text if the description is not internationalized, or the localized text if so
-     */
-    function getDescriptionText()
-    {
-        global $Language;
-        if ($this->isDescriptionMustBeLocalized()) {
-            return $Language->getText('plugin_tracker_common_fieldset', $this->description);
-        } else {
-            return $this->description;
         }
     }
 
@@ -259,45 +242,22 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
         return preg_match($pattern, $this->label);
     }
 
-    /**
-     * Returns if the fieldset description must be localized or not.
-     * The field set description must be localized if the name looks like fieldset_{$fieldset_id}_desc_key
-     *
-     * @return true if the fieldset description must be localized, false otherwise.
-     */
-    public function isDescriptionMustBeLocalized()
-    {
-        $pattern = "/fieldset_(.*)_desc_key/";
-        return preg_match($pattern, $this->description);
-    }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'fieldset');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'fieldset_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/application-form.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/application-form--plus.png');
@@ -317,7 +277,7 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
     {
         $current_user = UserManager::instance()->getCurrentUser();
 
-        return $current_user->getPreference('fieldset_'. $this->getId());
+        return $current_user->getPreference('fieldset_' . $this->getId());
     }
 
     /**
@@ -325,7 +285,7 @@ class Tracker_FormElement_Container_Fieldset extends Tracker_FormElement_Contain
      *
      * @return int The id.
      */
-    function getID()
+    public function getID()
     {
         return $this->id;
     }

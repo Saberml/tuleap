@@ -38,7 +38,7 @@ class Docman_ItemFactory
 
     private static $instance;
 
-    function __construct($groupId = null)
+    public function __construct($groupId = null)
     {
         // Cache highly used info
         $this->rootItems[] = array();
@@ -95,11 +95,11 @@ class Docman_ItemFactory
         self::$instance[$group_id] = null;
     }
 
-    function setGroupId($id)
+    public function setGroupId($id)
     {
         $this->groupId = $id;
     }
-    function getGroupId()
+    public function getGroupId()
     {
         return $this->groupId;
     }
@@ -169,33 +169,33 @@ class Docman_ItemFactory
         return $item;
     }
 
-    function getItemTypeAsText($itemTypeId)
+    public function getItemTypeAsText($itemTypeId)
     {
         switch ($itemTypeId) {
             case PLUGIN_DOCMAN_ITEM_TYPE_FOLDER:
-                return $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type_folder');
+                return dgettext('tuleap-docman', 'Folder');
             break;
             case PLUGIN_DOCMAN_ITEM_TYPE_FILE:
-                return $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type_file');
+                return dgettext('tuleap-docman', 'File');
             break;
             case PLUGIN_DOCMAN_ITEM_TYPE_LINK:
-                return $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type_link');
+                return dgettext('tuleap-docman', 'Link');
             break;
             case PLUGIN_DOCMAN_ITEM_TYPE_EMBEDDEDFILE:
-                return $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type_embeddedfile');
+                return dgettext('tuleap-docman', 'Embedded file');
             break;
             case PLUGIN_DOCMAN_ITEM_TYPE_WIKI:
-                return $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type_wiki');
+                return dgettext('tuleap-docman', 'Wiki page');
             break;
             case PLUGIN_DOCMAN_ITEM_TYPE_EMPTY:
-                return $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type_empty');
+                return dgettext('tuleap-docman', 'Empty document');
             break;
             default:
                 return $GLOBALS['Language']->getText('include_html', 'unknown_value');
         }
     }
 
-    function getItemTypeForItem(&$item)
+    public function getItemTypeForItem(&$item)
     {
         $type = false;
         switch (strtolower(get_class($item))) {
@@ -226,7 +226,7 @@ class Docman_ItemFactory
     /**
     * @return int|null wiki page id or null if the page is not yet created in wiki.
     */
-    function getIdInWikiOfWikiPageItem($pagename, $group_id)
+    public function getIdInWikiOfWikiPageItem($pagename, $group_id)
     {
         $wiki_page = $this->getWikiPage($group_id, $pagename);
 
@@ -278,7 +278,7 @@ class Docman_ItemFactory
     *
     * @return true if there was no error.
     */
-    function deleteWikiPage($wiki_page_name, $group_id)
+    public function deleteWikiPage($wiki_page_name, $group_id)
     {
         $wiki_page = $this->getWikiPage($group_id, $wiki_page_name);
 
@@ -401,7 +401,7 @@ class Docman_ItemFactory
     /**
      * Preload item perms from a item result set
      */
-    function preloadItemPerms($dar, $user, $groupId)
+    public function preloadItemPerms($dar, $user, $groupId)
     {
         // Preload perms
         $objectsIds = array();
@@ -425,7 +425,7 @@ class Docman_ItemFactory
      *
      * @return bool
      */
-    function isInSubTree($childId, $parentId)
+    public function isInSubTree($childId, $parentId)
     {
         $child = $this->getItemFromDb($childId);
         if ($child === null || $this->isRoot($child)) {
@@ -446,7 +446,7 @@ class Docman_ItemFactory
      *
      * @return Array
      */
-    function getParents($childId)
+    public function getParents($childId)
     {
         $child = $this->getItemFromDb($childId);
         if ($child === null || $this->isRoot($child)) {
@@ -470,7 +470,7 @@ class Docman_ItemFactory
      * @param bool $ignoreObsolete
      * @return Docman_Item
      */
-    function &getItemSubTree(&$rootItem, &$user, $ignorePerms = false, $expandAll = false, $ignoreObsolete = true)
+    public function &getItemSubTree(&$rootItem, &$user, $ignorePerms = false, $expandAll = false, $ignoreObsolete = true)
     {
         // {{1}} Exclude collapsed items
         $expandedFolders = array();
@@ -675,7 +675,7 @@ class Docman_ItemFactory
     /**
      * Build a list of items
      *
-     * @return ItemNode
+     * @return Iterator
      */
     public function getItemList($id, &$nbItemsFound, $params = null)
     {
@@ -718,7 +718,7 @@ class Docman_ItemFactory
         return $this->_getItemDao()->doesTitleCorrespondToExistingFolder($title, $parent_id);
     }
 
-    function findByTitle($user, $title, $groupId)
+    public function findByTitle($user, $title, $groupId)
     {
         $ia = array();
 
@@ -751,12 +751,12 @@ class Docman_ItemFactory
      * It means that the obso date of the document is between 00:00:00 and
      * 23:59:59 in on month from today.
      */
-    function findFuturObsoleteItems()
+    public function findFuturObsoleteItems()
     {
         // Compute the timescale for the day in one month
         $today = getdate();
-        $tsStart = mktime(0, 0, 0, $today['mon']+1, $today['mday'], $today['year']);
-        $tsEnd   = mktime(23, 59, 59, $today['mon']+1, $today['mday'], $today['year']);
+        $tsStart = mktime(0, 0, 0, $today['mon'] + 1, $today['mday'], $today['year']);
+        $tsEnd   = mktime(23, 59, 59, $today['mon'] + 1, $today['mday'], $today['year']);
 
         $ia = array();
         $dao = $this->_getItemDao();
@@ -775,7 +775,7 @@ class Docman_ItemFactory
     /**
      * @return Docman_ItemDao
      */
-    function _getItemDao()
+    public function _getItemDao()
     {
         if (! $this->dao) {
             $this->dao = new Docman_ItemDao(CodendiDataAccess::instance());
@@ -867,7 +867,7 @@ class Docman_ItemFactory
         return $update && $this->createNewLinkVersion($link, $version_data);
     }
 
-    function massUpdate($srcItemId, $mdLabel, $itemIdArray)
+    public function massUpdate($srcItemId, $mdLabel, $itemIdArray)
     {
         $dao = $this->_getItemDao();
         $dao->massUpdate($srcItemId, $mdLabel, $itemIdArray);
@@ -896,6 +896,8 @@ class Docman_ItemFactory
         ?int $obsolescence_date,
         $user_id,
         $item_type_id,
+        DateTimeImmutable $create_date,
+        DateTimeImmutable $update_date,
         $wiki_page = null,
         $link_url = null
     ) {
@@ -904,8 +906,8 @@ class Docman_ItemFactory
             'description'       => $description,
             'parent_id'         => $parent_id,
             'group_id'          => $this->groupId,
-            'create_date'       => time(),
-            'update_date'       => time(),
+            'create_date'       => $create_date->getTimestamp(),
+            'update_date'       => $update_date->getTimestamp(),
             'user_id'           => $user_id,
             'status'            => $status_id,
             'obsolescence_date' => $obsolescence_date,
@@ -933,7 +935,7 @@ class Docman_ItemFactory
      *                     true if there is no child for root.
      *                     item_id of the unique child of root if any.
      */
-    function isItemTheOnlyChildOfRoot($groupId)
+    public function isItemTheOnlyChildOfRoot($groupId)
     {
         if (!isset($this->onlyOneChildForRoot[$groupId])) {
             $dao = $this->_getItemDao();
@@ -960,7 +962,7 @@ class Docman_ItemFactory
      * - there is more than one children for root.
      * - or if the item is not the unique children of root.
      */
-    function isMoveable($item)
+    public function isMoveable($item)
     {
         $movable = false;
         if ($item->getParentId() != 0) {
@@ -972,7 +974,7 @@ class Docman_ItemFactory
         return $movable;
     }
 
-    function setNewParent($item_id, $new_parent_id, $ordering)
+    public function setNewParent($item_id, $new_parent_id, $ordering)
     {
         $item = $this->getItemFromDb($item_id);
         $dao  = $this->_getItemDao();
@@ -1015,7 +1017,7 @@ class Docman_ItemFactory
     * @param array $params   Parameters for the callback function
     * @return void
     */
-    function breathFirst($item_id, $callback, $params)
+    public function breathFirst($item_id, $callback, $params)
     {
         $dao = $this->_getItemDao();
         $parents = array($item_id);
@@ -1039,9 +1041,9 @@ class Docman_ItemFactory
      * Returns an item tree build from leaves to root ("bottom -> top").
      *
      * @param  Array of items.
-     * @return Item_Folder A sub tree or null if root node was not found.
+     * @return Docman_Folder|null A sub tree or null if root node was not found.
      */
-    function &getItemTreeFromLeaves($itemArray, $user)
+    public function &getItemTreeFromLeaves($itemArray, $user)
     {
         $null = null;
         if (is_array($itemArray)) {
@@ -1084,6 +1086,9 @@ class Docman_ItemFactory
                     while ($dar->valid()) {
                         $row = $dar->current();
                         $item = $this->getItemFromRow($row);
+                        if ($item === null) {
+                            continue;
+                        }
                         if ($dpm->userCanRead($user, $item->getId())) {
                             $itemList[$item->getId()] = $item;
                             $orphans[$item->getId()] = $item->getId();
@@ -1120,7 +1125,7 @@ class Docman_ItemFactory
      * @param $wantedItems Items needed to continue to build the tree.
      * @return int Id of root item if found, false otherwise.
      */
-    function connectOrphansToParents(&$itemList, &$orphans, &$wantedItems)
+    public function connectOrphansToParents(&$itemList, &$orphans, &$wantedItems)
     {
         $rootId = false;
         foreach ($orphans as $itemId) {
@@ -1155,7 +1160,7 @@ class Docman_ItemFactory
      * Returns a hashmap with the mapping between items in $item tree and items
      * that belongs to this group.
      */
-    function getItemMapping($item)
+    public function getItemMapping($item)
     {
         $v = new Docman_BuildItemMappingVisitor($this->groupId);
         $item->accept($v);
@@ -1192,7 +1197,7 @@ class Docman_ItemFactory
         return $dao->createFromRow($root->toRow());
     }
 
-    function rawCreate($item)
+    public function rawCreate($item)
     {
         $dao            = $this->_getItemDao();
         $row            = $item->toRow();
@@ -1240,18 +1245,18 @@ class Docman_ItemFactory
         return $itemMapping;
     }
 
-    function setCutPreference($item)
+    public function setCutPreference($item)
     {
         user_set_preference(
-            PLUGIN_DOCMAN_PREF.'_item_cut',
+            PLUGIN_DOCMAN_PREF . '_item_cut',
             $item->getId()
         );
     }
 
-    function setCopyPreference($item)
+    public function setCopyPreference($item)
     {
         user_set_preference(
-            PLUGIN_DOCMAN_PREF.'_item_copy',
+            PLUGIN_DOCMAN_PREF . '_item_copy',
             $item->getId()
         );
     }
@@ -1268,11 +1273,11 @@ class Docman_ItemFactory
      *
      * @return int or false.
      */
-    function getCutPreference($user, $groupId = null)
+    public function getCutPreference($user, $groupId = null)
     {
         if (!isset($this->cutItem[$user->getId()])) {
             $cutId = false;
-            $id = user_get_preference(PLUGIN_DOCMAN_PREF.'_item_cut');
+            $id = user_get_preference(PLUGIN_DOCMAN_PREF . '_item_cut');
             if ($groupId !== null && $id !== false) {
                 $item = $this->getItemFromDb($id);
                 if ($item && $item->getGroupId() == $groupId) {
@@ -1284,22 +1289,22 @@ class Docman_ItemFactory
         return $this->cutItem[$user->getId()];
     }
 
-    function getCopyPreference($user)
+    public function getCopyPreference($user)
     {
         if (!isset($this->copiedItem[$user->getId()])) {
-            $this->copiedItem[$user->getId()] = user_get_preference(PLUGIN_DOCMAN_PREF.'_item_copy');
+            $this->copiedItem[$user->getId()] = user_get_preference(PLUGIN_DOCMAN_PREF . '_item_copy');
         }
         return $this->copiedItem[$user->getId()];
     }
 
-    function delCutPreference()
+    public function delCutPreference()
     {
-        user_del_preference(PLUGIN_DOCMAN_PREF.'_item_cut');
+        user_del_preference(PLUGIN_DOCMAN_PREF . '_item_cut');
     }
 
-    function delCopyPreference()
+    public function delCopyPreference()
     {
-        user_del_preference(PLUGIN_DOCMAN_PREF.'_item_copy');
+        user_del_preference(PLUGIN_DOCMAN_PREF . '_item_copy');
     }
 
     /**
@@ -1309,7 +1314,7 @@ class Docman_ItemFactory
     * @return void
     *
     */
-    function delCutPreferenceForAllUsers($item_id)
+    public function delCutPreferenceForAllUsers($item_id)
     {
         $dao = $this->_getItemDao();
         $dao->deleteCutPreferenceForAllUsers($item_id);
@@ -1322,13 +1327,13 @@ class Docman_ItemFactory
     * @return void
     *
     */
-    function delCopyPreferenceForAllUsers($item_id)
+    public function delCopyPreferenceForAllUsers($item_id)
     {
         $dao = $this->_getItemDao();
         $dao->deleteCopyPreferenceForAllUsers($item_id);
     }
 
-    function getCurrentWikiVersion($item)
+    public function getCurrentWikiVersion($item)
     {
         $version = null;
         if ($this->getItemTypeForItem($item) == PLUGIN_DOCMAN_ITEM_TYPE_WIKI) {
@@ -1507,7 +1512,7 @@ class Docman_ItemFactory
                     $deletor = new Docman_ActionsDeleteVisitor();
                     if ($itemSubTree->accept($deletor, array('user'  => $user, 'cascadeWikiPageDeletion' => $cascadeWiki))) {
                         if ($cascadeWiki) {
-                            $GLOBALS['Response']->addFeedback(Feedback::INFO, $GLOBALS['Language']->getText('plugin_docman', 'docman_wiki_delete_wiki_page_success'));
+                            $GLOBALS['Response']->addFeedback(Feedback::INFO, dgettext('tuleap-docman', 'Wiki page successfully deleted from wiki service.'));
                         }
                         return true;
                     }
@@ -1528,7 +1533,7 @@ class Docman_ItemFactory
      *
      * @return Array
      */
-    function listPendingItems($groupId, $offset, $limit)
+    public function listPendingItems($groupId, $offset, $limit)
     {
         $dao = $this->_getItemDao();
         return $dao->listPendingItems($groupId, $offset, $limit);
@@ -1541,7 +1546,7 @@ class Docman_ItemFactory
      *
      * @return bool
      */
-    function purgeDeletedItems($time)
+    public function purgeDeletedItems($time)
     {
         $dao = $this->_getItemDao();
         $dar = $dao->listItemsToPurge($time);

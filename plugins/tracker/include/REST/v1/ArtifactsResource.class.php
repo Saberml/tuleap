@@ -22,7 +22,7 @@ namespace Tuleap\Tracker\REST\v1;
 
 use EventManager;
 use FeedbackDao;
-use Log_NoopLogger;
+use Psr\Log\NullLogger;
 use Luracast\Restler\RestException;
 use PFUser;
 use Project_AccessException;
@@ -87,6 +87,7 @@ use Tuleap\Tracker\FormElement\Field\ArtifactLink\Nature\NatureDao;
 use Tuleap\Tracker\FormElement\Field\ListFields\FieldValueMatcher;
 use Tuleap\Tracker\PermissionsFunctionsWrapper;
 use Tuleap\Tracker\REST\Artifact\ArtifactReference;
+use Tuleap\Tracker\REST\Artifact\ArtifactRepresentation;
 use Tuleap\Tracker\REST\Artifact\ArtifactRepresentationBuilder;
 use Tuleap\Tracker\REST\Artifact\MovedArtifactValueBuilder;
 use Tuleap\Tracker\REST\ChangesetCommentRepresentation;
@@ -279,6 +280,7 @@ class ArtifactsResource extends AuthenticatedResource
      *
      * @url GET
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param string $query JSON object of search criteria properties {@from query}
      * @param int $limit Number of elements displayed per page {@from path}{@min 1}{@max 100}
@@ -302,7 +304,7 @@ class ArtifactsResource extends AuthenticatedResource
             throw new RestException(400, $ex->getMessage());
         }
         if (count($requested_artifact_ids) > 100) {
-            throw new RestException(403, 'No more than '. self::MAX_ARTIFACT_BATCH .' artifacts can be requested at once.');
+            throw new RestException(403, 'No more than ' . self::MAX_ARTIFACT_BATCH . ' artifacts can be requested at once.');
         }
 
         $user                     = $this->user_manager->getCurrentUser();
@@ -389,12 +391,13 @@ class ArtifactsResource extends AuthenticatedResource
      *
      * @url GET {id}
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param int $id Id of the artifact
      * @param string $values_format The format of the value {@from query} {@choice ,collection,by_field,all}
      * @param string $tracker_structure_format The format of the structure {@from query} {@choice ,minimal,complete}
      *
-     * @return Tuleap\Tracker\REST\Artifact\ArtifactRepresentation
+     * @return ArtifactRepresentation
      *
      * @throws RestException 403
      */
@@ -440,10 +443,11 @@ class ArtifactsResource extends AuthenticatedResource
      *
      * @url GET {id}/links
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param int $id Id of the artifact
      *
-     * @return Tuleap\Tracker\REST\v1\ArtifactLinkRepresentation
+     * @return ArtifactLinkRepresentation
      *
      * @throws RestException 403
      */
@@ -485,6 +489,7 @@ class ArtifactsResource extends AuthenticatedResource
      * @url GET {id}/linked_artifacts
      *
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param int $id Id of the artifact
      * @param string $direction The artifact link direction {@from query} {@choice forward,reverse}
@@ -492,7 +497,8 @@ class ArtifactsResource extends AuthenticatedResource
      * @param int $limit Number of elements displayed per page {@from path}{@min 1}{@max 50}
      * @param int $offset Position of the first element to display {@from path}{@min 0}
      *
-     * @return Tuleap\Tracker\REST\v1\ArtifactLinkRepresentation
+     * @return array
+     * @psalm-return array{collection:list<\Tuleap\Tracker\REST\Artifact\ArtifactRepresentation>}
      *
      * @throws RestException 403
      */
@@ -569,6 +575,7 @@ class ArtifactsResource extends AuthenticatedResource
      *
      * @url GET {id}/changesets
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param int $id Id of the artifact
      * @param string $fields Whether you want to fetch all fields or just comments {@from path}{@choice all,comments}
@@ -1097,7 +1104,7 @@ class ArtifactsResource extends AuthenticatedResource
             ),
             $xml_import_builder->build(
                 $user_finder,
-                new Log_NoopLogger()
+                new NullLogger()
             ),
             new Tracker_Artifact_PriorityManager(
                 new Tracker_Artifact_PriorityDao(),

@@ -33,10 +33,10 @@ class SystemEventProcessor_Factory
     /** @var SystemEventManager */
     private $system_event_manager;
 
-    /** @var Logger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
-    public function __construct(Logger $logger, SystemEventManager $system_event_manager, EventManager $event_manager)
+    public function __construct(\Psr\Log\LoggerInterface $logger, SystemEventManager $system_event_manager, EventManager $event_manager)
     {
         $this->logger               = $logger;
         $this->system_event_manager = $system_event_manager;
@@ -56,7 +56,7 @@ class SystemEventProcessor_Factory
         );
         if (isset($custom_queues[$request_queue])) {
             $this->logger = $custom_queues[$request_queue]->getLogger();
-            $this->logger->debug('Processing '. $request_queue .' queue.');
+            $this->logger->debug('Processing ' . $request_queue . ' queue.');
             $process = new SystemEventProcessCustomQueue($request_queue);
             $owner   = $custom_queues[$request_queue]->getOwner();
         } else {
@@ -71,7 +71,7 @@ class SystemEventProcessor_Factory
                     $process = new SystemEventProcessRootDefaultQueue();
                     break;
                 default:
-                    $this->logger->debug('Ignoring '. $request_queue .' queue.');
+                    $this->logger->debug('Ignoring ' . $request_queue . ' queue.');
                     exit(0);
             }
         }

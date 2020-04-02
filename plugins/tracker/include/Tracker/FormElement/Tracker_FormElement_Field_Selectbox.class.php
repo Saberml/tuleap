@@ -24,33 +24,21 @@ use Tuleap\Tracker\FormElement\Field\ListFields\Bind\BindStaticValueUnchanged;
 class Tracker_FormElement_Field_Selectbox extends Tracker_FormElement_Field_List implements Tracker_FormElement_IComputeValues
 {
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'selectbox');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'selectbox_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-combo-box.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-combo-box--plus.png');
@@ -114,14 +102,14 @@ class Tracker_FormElement_Field_Selectbox extends Tracker_FormElement_Field_List
     {
         $hp = Codendi_HTMLPurifier::instance();
         $html = '<script type="text/javascript">';
-        $html .= "tuleap.tracker.fields.add('".(int)$this->getID()."', '".$this->getName()."', '". $hp->purify($this->getLabel(), CODENDI_PURIFIER_JS_QUOTE) ."')";
+        $html .= "tuleap.tracker.fields.add('" . (int) $this->getID() . "', '" . $this->getName() . "', '" . $hp->purify($this->getLabel(), CODENDI_PURIFIER_JS_QUOTE) . "')";
         $default_value = $this->getDefaultValue();
         $values = $this->getBind()->getAllValues();
 
-        $html .= "\n\t.addOption('None'.escapeHTML(), '100', ". (empty($changeset_values)?'true':'false') .")";
+        $html .= "\n\t.addOption('None'.escapeHTML(), '100', " . (empty($changeset_values) ? 'true' : 'false') . ")";
 
         foreach ($values as $id => $value) {
-            $html .= "\n\t.addOption('". $hp->purify($value->getLabel(), CODENDI_PURIFIER_JS_QUOTE) ."'.escapeHTML(), '". (int)$id ."', ". (in_array($id, array_values($changeset_values))?'true':'false') .")";
+            $html .= "\n\t.addOption('" . $hp->purify($value->getLabel(), CODENDI_PURIFIER_JS_QUOTE) . "'.escapeHTML(), '" . (int) $id . "', " . (in_array($id, array_values($changeset_values)) ? 'true' : 'false') . ")";
         }
         $html .= ";\n";
         $html .= '</script>';
@@ -132,14 +120,14 @@ class Tracker_FormElement_Field_Selectbox extends Tracker_FormElement_Field_List
     {
         $hp = Codendi_HTMLPurifier::instance();
         $html = '<script type="text/javascript">';
-        $html .= "tuleap.tracker.fields.add('".(int)$this->getID()."', '".$hp->purify($this->getName(), CODENDI_PURIFIER_JS_QUOTE)."', '". $hp->purify($this->getLabel(), CODENDI_PURIFIER_JS_QUOTE) ."')";
+        $html .= "tuleap.tracker.fields.add('" . (int) $this->getID() . "', '" . $hp->purify($this->getName(), CODENDI_PURIFIER_JS_QUOTE) . "', '" . $hp->purify($this->getLabel(), CODENDI_PURIFIER_JS_QUOTE) . "')";
         $default_value = $this->getDefaultValue();
         $values = $this->getBind()->getAllValues();
-        $html .= "\n\t.addOption('None'.escapeHTML(), '100', ". ($default_value==100?'true':'false') .")";
-        $html .= "\n\t.addOption('".$hp->purify($GLOBALS['Language']->getText('global', 'unchanged'), CODENDI_PURIFIER_JS_QUOTE)."'.escapeHTML(), '".$hp->purify(BindStaticValueUnchanged::VALUE_ID, CODENDI_PURIFIER_JS_QUOTE)."', false)";
+        $html .= "\n\t.addOption('None'.escapeHTML(), '100', " . ($default_value == 100 ? 'true' : 'false') . ")";
+        $html .= "\n\t.addOption('" . $hp->purify($GLOBALS['Language']->getText('global', 'unchanged'), CODENDI_PURIFIER_JS_QUOTE) . "'.escapeHTML(), '" . $hp->purify(BindStaticValueUnchanged::VALUE_ID, CODENDI_PURIFIER_JS_QUOTE) . "', false)";
 
         foreach ($values as $id => $value) {
-            $html .= "\n\t.addOption('". $hp->purify($value->getLabel(), CODENDI_PURIFIER_JS_QUOTE) ."'.escapeHTML(), '". (int)$id ."', ". ($id==$default_value?'true':'false') .")";
+            $html .= "\n\t.addOption('" . $hp->purify($value->getLabel(), CODENDI_PURIFIER_JS_QUOTE) . "'.escapeHTML(), '" . (int) $id . "', " . ($id == $default_value ? 'true' : 'false') . ")";
         }
         $html .= ";\n";
         $html .= '</script>';
@@ -214,15 +202,39 @@ class Tracker_FormElement_Field_Selectbox extends Tracker_FormElement_Field_List
     public function getFieldDataFromRESTValue(array $value, ?Tracker_Artifact $artifact = null)
     {
         if (array_key_exists('bind_value_ids', $value) && is_array($value['bind_value_ids'])) {
-            if (count($value['bind_value_ids']) > 1) {
+            $submitted_bind_value_ids = array_filter(array_unique($value['bind_value_ids']));
+            if (count($submitted_bind_value_ids) > 1) {
                 throw new Tracker_FormElement_InvalidFieldValueException('Selectbox fields can only have one value');
             }
 
-            $map = array_map(array($this->getBind(), 'getFieldDataFromRESTValue'), $value['bind_value_ids']);
-            return (int) array_shift($map);
+            if (empty($submitted_bind_value_ids)) {
+                return Tracker_FormElement_Field_List::NONE_VALUE;
+            }
+
+            return $this->getBindValueIdFromSubmittedBindValueId($submitted_bind_value_ids[0]);
         }
+
         throw new Tracker_FormElement_InvalidFieldValueException('List fields values must be passed as an array of ids (integer) in \'bind_value_ids\''
-           .' Expected format for field '.$this->id .' : {"field_id": 1548, "bind_value_ids": [457]}');
+           . ' Expected format for field ' . $this->id . ' : {"field_id": 1548, "bind_value_ids": [457]}');
+    }
+
+    /**
+     * @param string|int $submitted_bind_value_id
+     *
+     * @throws Tracker_FormElement_InvalidFieldValueException
+     */
+    protected function getBindValueIdFromSubmittedBindValueId($submitted_bind_value_id): int
+    {
+        if ((int) $submitted_bind_value_id === Tracker_FormElement_Field_List::NONE_VALUE) {
+            return Tracker_FormElement_Field_List::NONE_VALUE;
+        }
+
+        $bind_value_id = $this->getBind()->getFieldDataFromRESTValue($submitted_bind_value_id);
+        if (empty($bind_value_id)) {
+            throw new Tracker_FormElement_InvalidFieldValueException("The submitted value $submitted_bind_value_id is invalid");
+        }
+
+        return $bind_value_id;
     }
 
     public function getFieldDataFromCSVValue($csv_value, ?Tracker_Artifact $artifact = null)

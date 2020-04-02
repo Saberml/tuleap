@@ -31,17 +31,12 @@ class SystemEvent_GIT_REPO_RESTORE extends SystemEvent
     /** @var Git_SystemEventManager */
     private $system_event_manager;
 
-    /** @var Logger */
-    private $logger;
-
     public function injectDependencies(
         GitRepositoryFactory $repository_factory,
-        Git_SystemEventManager $system_event_manager,
-        Logger $logger
+        Git_SystemEventManager $system_event_manager
     ) {
         $this->repository_factory   = $repository_factory;
         $this->system_event_manager = $system_event_manager;
-        $this->logger               = $logger;
     }
 
     public function process()
@@ -65,7 +60,7 @@ class SystemEvent_GIT_REPO_RESTORE extends SystemEvent
         }
 
         if (!$repository->getBackend()->restoreArchivedRepository($repository)) {
-            $this->error('Unable to restore repository : '.$repository->getName());
+            $this->error('Unable to restore repository : ' . $repository->getName());
             return false;
         }
 
@@ -79,7 +74,7 @@ class SystemEvent_GIT_REPO_RESTORE extends SystemEvent
     {
         $repository = $this->getRepositoryFromParameters();
         if ($repository !== null) {
-            return '<a href="/plugins/git/?action=repo_management&group_id='.$repository->getProjectId().'&repo_id='.$repository->getId().'">'.$repository->getName().'</a>';
+            return '<a href="/plugins/git/?action=repo_management&group_id=' . $repository->getProjectId() . '&repo_id=' . $repository->getId() . '">' . $repository->getName() . '</a>';
         }
         return '';
     }

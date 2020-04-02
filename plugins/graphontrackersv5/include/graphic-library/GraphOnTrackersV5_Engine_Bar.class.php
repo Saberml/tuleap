@@ -21,6 +21,8 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Tuleap\Chart\Chart;
+
 class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
 {
 
@@ -32,17 +34,18 @@ class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
     public $width;
     public $legend;
     public $xaxis;
+    private $keys;
 
     /**
      * Builds bar chart object
      */
-    function buildGraph()
+    public function buildGraph()
     {
         if ($this->width == 0) {
             if (!is_null($this->xaxis)) {
-                $this->width = (count($this->data)*count($this->data[0])*25)+(2*150);
+                $this->width = (count($this->data) * count($this->data[0]) * 25) + (2 * 150);
             } else {
-                $this->width = (count($this->data)*100)+(2*150);
+                $this->width = (count($this->data) * 100) + (2 * 150);
             }
         }
 
@@ -71,7 +74,7 @@ class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
         $colors = $this->getColors();
 
         if (is_null($this->xaxis)) {
-            if ((is_array($this->data)) && (array_sum($this->data)>0)) {
+            if ((is_array($this->data)) && (array_sum($this->data) > 0)) {
                 $this->graph->add($this->getBarPlot($this->data, $colors));
             }
         } else {
@@ -105,7 +108,7 @@ class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
         $this->graph->SetMargin(50, $right_margin, $this->graph->getTopMargin() + 40, 100);
         return $this->graph;
     }
-    function sort($a, $b)
+    public function sort($a, $b)
     {
         $search_a = array_search($a, $this->keys);
         $search_b = array_search($b, $this->keys);
@@ -116,7 +119,7 @@ class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
     }
 
 
-    function getBarPlot($data, $color)
+    public function getBarPlot($data, $color)
     {
         $b = new BarPlot($data);
         //parameters hard coded for the moment
@@ -132,7 +135,7 @@ class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
         if (is_array($color)) {
             $b->SetColor('#FFFFFF:0.7');
         } else {
-            $b->SetColor($color.':0.7');
+            $b->SetColor($color . ':0.7');
         }
         $b->SetFillColor($color);
         // end hard coded parameter
@@ -208,7 +211,7 @@ class GraphOnTrackersV5_Engine_Bar extends GraphOnTrackersV5_Engine
     {
         $colors = array();
         foreach ($this->legend as $index => $name) {
-            $colors[]= array(
+            $colors[] = array(
                 'label' => $name,
                 'color' => $this->getColorOrNull($this->colors[$index]),
             );

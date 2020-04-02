@@ -25,9 +25,14 @@ use Feedback;
 use HTTPRequest;
 use PFUser;
 use Tuleap\Admin\AdminPageRenderer;
+use Tuleap\Layout\CssAsset;
+use Tuleap\Layout\IncludeAssets;
+use Tuleap\Layout\JavascriptAsset;
 use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\AcceptableTenantForAuthenticationConfiguration;
 use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\AzureADProvider;
 use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\AzureADProviderManager;
+use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\AzureADTenantSetup;
+use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\UnknownAcceptableTenantForAuthenticationIdentifierException;
 use Tuleap\OpenIDConnectClient\Provider\EnableUniqueAuthenticationEndpointVerifier;
 use Tuleap\OpenIDConnectClient\Provider\GenericProvider\GenericProvider;
 use Tuleap\OpenIDConnectClient\Provider\GenericProvider\GenericProviderManager;
@@ -65,6 +70,10 @@ class Controller
      * @var AzureADProviderManager
      */
     private $azure_provider_manager;
+    /**
+     * @var IncludeAssets
+     */
+    private $assets;
 
     public function __construct(
         ProviderManager $provider_manager,
@@ -73,7 +82,8 @@ class Controller
         EnableUniqueAuthenticationEndpointVerifier $enable_unique_authentication_endpoint_verifier,
         IconPresenterFactory $icon_presenter_factory,
         ColorPresenterFactory $color_presenter_factory,
-        AdminPageRenderer $admin_page_renderer
+        AdminPageRenderer $admin_page_renderer,
+        IncludeAssets $assets
     ) {
         $this->provider_manager                               = $provider_manager;
         $this->generic_provider_manager                       = $generic_provider_manager;
@@ -82,6 +92,7 @@ class Controller
         $this->icon_presenter_factory                         = $icon_presenter_factory;
         $this->color_presenter_factory                        = $color_presenter_factory;
         $this->admin_page_renderer                            = $admin_page_renderer;
+        $this->assets                                         = $assets;
     }
 
     public function showAdministration(CSRFSynchronizerToken $csrf_token, PFUser $user)
@@ -113,7 +124,22 @@ class Controller
             $this->provider_manager->isAProviderConfiguredAsUniqueAuthenticationEndpoint(),
             $this->icon_presenter_factory->getIconsPresenters(),
             $this->color_presenter_factory->getColorsPresenters(),
+            AzureADTenantSetupPresenter::fromAllAcceptableValues(AzureADTenantSetup::allPossibleSetups(), AzureADTenantSetup::tenantSpecific()),
             $csrf_token
+        );
+
+        $this->admin_page_renderer->addJavascriptAsset(
+            new JavascriptAsset(
+                $this->assets,
+                'open-id-connect-client.js',
+            ),
+        );
+
+        $this->admin_page_renderer->addCssAsset(
+            new CssAsset(
+                $this->assets,
+                'bp-style',
+            )
         );
 
         $this->admin_page_renderer->renderAPresenter(
@@ -125,7 +151,6 @@ class Controller
     }
 
     /**
-     * @param HTTPRequest $request
      * @throws ProviderMalformedDataException
      */
     public function createGenericProvider(CSRFSynchronizerToken $csrf_token, HTTPRequest $request): void
@@ -168,7 +193,6 @@ class Controller
     }
 
     /**
-     * @param HTTPRequest $request
      * @throws ProviderMalformedDataException
      */
     public function createAzureADProvider(CSRFSynchronizerToken $csrf_token, HTTPRequest $request): void
@@ -176,12 +200,13 @@ class Controller
         $csrf_token->check();
 
         try {
-            $name          = $request->get('name');
-            $client_id     = $request->get('client_id');
-            $client_secret = $request->get('client_secret');
-            $icon          = $request->get('icon');
-            $color         = $request->get('color');
-            $tenant_id     = $request->get('tenant_id');
+            $name                    = $request->get('name');
+            $client_id               = $request->get('client_id');
+            $client_secret           = $request->get('client_secret');
+            $icon                    = $request->get('icon');
+            $color                   = $request->get('color');
+            $tenant_id               = $request->get('tenant_id');
+            $tenant_setup_identifier = (string) $request->get('tenant_setup_identifier');
 
             $provider = $this->azure_provider_manager->createAzureADProvider(
                 $name,
@@ -189,7 +214,8 @@ class Controller
                 $client_secret,
                 $icon,
                 $color,
-                $tenant_id
+                $tenant_id,
+                $tenant_setup_identifier
             );
         } catch (ProviderMalformedDataException $ex) {
             $this->redirectAfterFailure(
@@ -300,7 +326,18 @@ class Controller
         $color         = $request->get('color');
         $tenant_id     = $request->get('tenant_id');
 
-        $acceptable_tenant_for_authentication = AcceptableTenantForAuthenticationConfiguration::fromSpecificTenantID($tenant_id);
+        try {
+            $tenant_setup = AzureADTenantSetup::fromIdentifier((string) $request->get('tenant_setup_identifier'));
+        } catch (UnknownAcceptableTenantForAuthenticationIdentifierException $exception) {
+            $this->redirectAfterFailure(
+                dgettext('tuleap-openidconnectclient', 'The data you provided are not valid.')
+            );
+        }
+
+        $acceptable_tenant_for_authentication = AcceptableTenantForAuthenticationConfiguration::fromTenantSetupAndTenantID(
+            $tenant_setup,
+            $tenant_id
+        );
 
         $updated_provider = new AzureADProvider(
             $id,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2011-2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2011-Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -26,12 +26,11 @@ use Tuleap\Layout\IncludeAssets;
 use Tuleap\Tracker\FormElement\Field\ListFields\Bind\BindDecoratorRetriever;
 use Tuleap\Tracker\Report\WidgetAdditionalButtonPresenter;
 
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace,Squiz.Classes.ValidClassName.NotCamelCaps
 class Cardwall_Renderer extends Tracker_Report_Renderer
 {
     /** @var Plugin  */
     protected $plugin;
-
-    private $enable_qr_code;
 
     /** @var Cardwall_OnTop_Config */
     private $config;
@@ -52,7 +51,6 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
      * @param string $description    the description of the renderer
      * @param int    $rank           the rank
      * @param Tracker_FormElement_Field_Selectbox    $field       the field
-     * @param bool   $enable_qr_code Display the QR code to ease usage of tablets
      */
     public function __construct(
         Plugin $plugin,
@@ -62,13 +60,11 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
         $name,
         $description,
         $rank,
-        ?Tracker_FormElement_Field_Selectbox $field = null,
-        $enable_qr_code = false
+        ?Tracker_FormElement_Field_Selectbox $field = null
     ) {
         parent::__construct($id, $report, $name, $description, $rank);
         $this->plugin         = $plugin;
         $this->field          = $field;
-        $this->enable_qr_code = $enable_qr_code;
         $this->config         = $config;
     }
 
@@ -115,13 +111,13 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
     {
         $total_rows = $matching_ids['id'] ? substr_count($matching_ids['id'], ',') + 1 : 0;
         if (!$total_rows) {
-            return '<p>'. $GLOBALS['Language']->getText('plugin_tracker', 'no_artifacts') .'</p>';
+            return '<p>' . $GLOBALS['Language']->getText('plugin_tracker', 'no_artifacts') . '</p>';
         }
 
         $artifact_ids     = explode(',', $matching_ids['id']);
         $presenter = $this->getPresenter($artifact_ids, $user, $form);
 
-        $renderer  = TemplateRendererFactory::build()->getRenderer(dirname(__FILE__).'/../templates');
+        $renderer  = TemplateRendererFactory::build()->getRenderer(dirname(__FILE__) . '/../templates');
 
         return $renderer->renderToString('renderer', $presenter);
     }
@@ -131,7 +127,7 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
      */
     private function getPresenter(array $artifact_ids, PFUser $user, $form = null)
     {
-        $redirect_parameter = 'cardwall[renderer]['. $this->report->id .']='. $this->id;
+        $redirect_parameter = 'cardwall[renderer][' . $this->report->id . ']=' . $this->id;
 
         if ($this->field === null) {
             $board = new Cardwall_Board(array(), new Cardwall_OnTop_Config_ColumnCollection(), new Cardwall_MappingCollection());
@@ -169,7 +165,7 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
             );
             $presenter_builder = new Cardwall_CardInCellPresenterBuilder(
                 new Cardwall_CardInCellPresenterFactory($field_provider, $mapping_collection),
-                new Cardwall_CardFields(UserManager::instance(), Tracker_FormElementFactory::instance()),
+                new Cardwall_CardFields(Tracker_FormElementFactory::instance()),
                 $display_preferences,
                 $user,
                 $background_color_builder,
@@ -203,7 +199,7 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
         if ($renderer_parameters && is_array($renderer_parameters)) {
             //Update the field_id parameter
             if (isset($renderer_parameters['columns'])) {
-                $new_columns_field = (int)$renderer_parameters['columns'];
+                $new_columns_field = (int) $renderer_parameters['columns'];
                 if ($new_columns_field && (
                         ($this->field !== null && ($this->field->getId() !== $new_columns_field))
                     ||
@@ -224,7 +220,6 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
      */
     public function fetchWidget(PFUser $user)
     {
-        $this->enable_qr_code = false;
         $html  = '';
 
         $additional_button_presenter = new WidgetAdditionalButtonPresenter(
@@ -233,7 +228,7 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
             false
         );
 
-        $renderer = TemplateRendererFactory::build()->getRenderer(dirname(__FILE__).'/../templates');
+        $renderer = TemplateRendererFactory::build()->getRenderer(dirname(__FILE__) . '/../templates');
 
         $html .= $renderer->renderToString('additional-button', $additional_button_presenter);
         $html .= $this->fetchCards($this->report->getMatchingIds(), $user);
@@ -313,7 +308,7 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
     public function exportToXml(SimpleXMLElement $root, array $formsMapping)
     {
         parent::exportToXml($root, $formsMapping);
-        if ($this->field !== null && ($mapping = (string)array_search($this->field->getId(), $formsMapping))) {
+        if ($this->field !== null && ($mapping = (string) array_search($this->field->getId(), $formsMapping))) {
             $root->addAttribute('field_id', $mapping);
         }
     }
@@ -328,16 +323,15 @@ class Cardwall_Renderer extends Tracker_Report_Renderer
         return [];
     }
 
-    /** @return CssAssetCollection */
-    public function getStylesheetDependencies()
+    public function getStylesheetDependencies(): CssAssetCollection
     {
         $tracker_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/tracker/themes',
-            '/assets/tracker/themes'
+            __DIR__ . '/../../../src/www/assets/trackers',
+            '/assets/trackers'
         );
         $cardwall_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/cardwall/themes',
-            '/assets/cardwall/themes'
+            __DIR__ . '/../../../src/www/assets/cardwall/',
+            '/assets/cardwall/'
         );
         return new CssAssetCollection([
             new CssAssetWithoutVariantDeclinaisons($tracker_assets, 'style-fp'),

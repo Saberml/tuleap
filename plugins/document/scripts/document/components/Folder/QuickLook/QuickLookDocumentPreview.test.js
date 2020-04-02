@@ -40,7 +40,7 @@ describe("QuickLookDocumentPreview", () => {
             return shallowMount(QuickLookDocumentPreview, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -51,8 +51,8 @@ describe("QuickLookDocumentPreview", () => {
             parent_id: 66,
             type: TYPE_FILE,
             file_properties: {
-                file_type: "image/png"
-            }
+                file_type: "image/png",
+            },
         };
 
         const wrapper = preview_factory();
@@ -68,8 +68,8 @@ describe("QuickLookDocumentPreview", () => {
             parent_id: 66,
             type: TYPE_EMBEDDED,
             embedded_file_properties: {
-                content: "<h1>Hello world!</h1>"
-            }
+                content: "<h1>Hello world!</h1>",
+            },
         };
 
         store.getters.is_item_an_embedded_file = () => true;
@@ -85,7 +85,7 @@ describe("QuickLookDocumentPreview", () => {
         store.state.currently_previewed_item = {
             id: 42,
             parent_id: 66,
-            type: TYPE_LINK
+            type: TYPE_LINK,
         };
 
         const wrapper = preview_factory({ iconClass: "fa-link" });
@@ -96,11 +96,11 @@ describe("QuickLookDocumentPreview", () => {
         expect(wrapper.contains(".document-quick-look-embedded")).toBeFalsy();
     });
 
-    it("Display spinner when embedded file is loaded", () => {
+    it("Display spinner when embedded file is loaded", async () => {
         store.state.currently_previewed_item = {
             id: 42,
             parent_id: 66,
-            type: TYPE_EMBEDDED
+            type: TYPE_EMBEDDED,
         };
         store.state.is_loading_currently_previewed_item = true;
 
@@ -114,10 +114,12 @@ describe("QuickLookDocumentPreview", () => {
             parent_id: 66,
             type: TYPE_EMBEDDED,
             embedded_file_properties: {
-                content: "custom content"
-            }
+                content: "custom content",
+            },
         };
+        await wrapper.vm.$nextTick();
         store.state.is_loading_currently_previewed_item = false;
+        await wrapper.vm.$nextTick();
         expect(wrapper.contains("[data-test=document-preview-spinner]")).toBeFalsy();
         expect(wrapper.contains("[data-test=document-quick-look-embedded]")).toBeTruthy();
     });
@@ -126,7 +128,7 @@ describe("QuickLookDocumentPreview", () => {
         store.state.currently_previewed_item = {
             id: 42,
             parent_id: 66,
-            type: TYPE_FILE
+            type: TYPE_FILE,
         };
         store.state.is_loading_currently_previewed_item = true;
 

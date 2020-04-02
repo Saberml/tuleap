@@ -33,17 +33,17 @@ require_once('lib/plugin/WikiAdminSelect.php');
 
 class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
 {
-    function getName()
+    public function getName()
     {
         return _("WikiAdminSearchReplace");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Search and replace text in selected wiki pages.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -52,7 +52,7 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(),
@@ -64,7 +64,7 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function replaceHelper(&$dbi, $pagename, $from, $to, $case_exact = true, $regex = false)
+    public function replaceHelper(&$dbi, $pagename, $from, $to, $case_exact = true, $regex = false)
     {
         $page = $dbi->getPage($pagename);
         if ($page->exists()) {// don't replace default contents
@@ -72,7 +72,7 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
             $version = $current->getVersion();
             $text = $current->getPackedContent();
             if ($regex) {
-                $newtext = preg_replace('/' . str_replace('/', '\/', $from) . '/' .($case_exact?'':'i'), $to, $text);
+                $newtext = preg_replace('/' . str_replace('/', '\/', $from) . '/' . ($case_exact ? '' : 'i'), $to, $text);
             } else {
                 if ($case_exact) {
                     $newtext = str_replace($from, $to, $text);
@@ -90,7 +90,7 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
         return false;
     }
 
-    function searchReplacePages(&$dbi, &$request, $pages, $from, $to)
+    public function searchReplacePages(&$dbi, &$request, $pages, $from, $to)
     {
         if (empty($from)) {
             return HTML::p(HTML::strong(fmt("Error: Empty search string.")));
@@ -128,7 +128,7 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
         }
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         // no action=replace support yet
         if ($request->getArg('action') != 'browse') {
@@ -238,11 +238,11 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
         );
     }
 
-    function replaceForm(&$header, $post_args)
+    public function replaceForm(&$header, $post_args)
     {
         $header->pushContent(
             HTML::div(
-                array('class'=>'hint'),
+                array('class' => 'hint'),
                 _("Replace all occurences of the given string in the content of all pages.")
             ),
             HTML::br()
@@ -250,7 +250,7 @@ class WikiPlugin_WikiAdminSearchReplace extends WikiPlugin_WikiAdminSelect
         $header->pushContent(_("Replace: "));
         $header->pushContent(HTML::input(array('name' => 'admin_replace[from]',
                                                'value' => $post_args['from'])));
-        $header->pushContent(' '._("by").': ');
+        $header->pushContent(' ' . _("by") . ': ');
         $header->pushContent(HTML::input(array('name' => 'admin_replace[to]',
                                                'value' => $post_args['to'])));
         $checkbox = HTML::input(array('type' => 'checkbox',

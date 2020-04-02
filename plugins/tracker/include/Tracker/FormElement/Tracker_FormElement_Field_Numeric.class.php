@@ -61,7 +61,6 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
 
     /**
      * @param PFUser             $user
-     * @param Tracker_Artifact $artifact
      * @param int              $timestamp
      *
      * @return mixed
@@ -74,7 +73,6 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
 
     /**
      * @param PFUser             $user
-     * @param Tracker_Artifact $artifact
      *
      * @return mixed
      */
@@ -89,9 +87,9 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
 
     public function getQuerySelect()
     {
-        $R1 = 'R1_'. $this->id;
-        $R2 = 'R2_'. $this->id;
-        return "$R2.value AS `". $this->name ."`";
+        $R1 = 'R1_' . $this->id;
+        $R2 = 'R2_' . $this->id;
+        return "$R2.value AS `" . $this->name . "`";
     }
 
     /**
@@ -123,8 +121,8 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
      */
     public function getQuerySelectAggregate($functions)
     {
-        $R1  = 'R1_'. $this->id;
-        $R2  = 'R2_'. $this->id;
+        $R1  = 'R1_' . $this->id;
+        $R2  = 'R2_' . $this->id;
         $same     = array();
         $separate = array();
         foreach ($functions as $f) {
@@ -136,7 +134,7 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
                         'group_by' => "$R2.value",
                     );
                 } else {
-                    $same[] = "$f($R2.value) AS `". $this->name ."_$f`";
+                    $same[] = "$f($R2.value) AS `" . $this->name . "_$f`";
                 }
             }
         }
@@ -161,17 +159,17 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
             $matches = array();
             if (preg_match("/^(<|>|>=|<=)\s*($this->pattern)$/", $criteria_value, $matches)) {
                 // It's < or >,  = and a number then use as is
-                $matches[2] = (string)($this->cast($matches[2]));
-                $expr = $field_name.' '.$matches[1].' '.$matches[2];
+                $matches[2] = (string) ($this->cast($matches[2]));
+                $expr = $field_name . ' ' . $matches[1] . ' ' . $matches[2];
             } elseif (preg_match("/^($this->pattern)$/", $criteria_value, $matches)) {
                 // It's a number so use  equality
                 $matches[1] = $this->cast($matches[1]);
-                $expr = $field_name.' = '.$matches[1];
+                $expr = $field_name . ' = ' . $matches[1];
             } elseif (preg_match("/^($this->pattern)\s*-\s*($this->pattern)$/", $criteria_value, $matches)) {
                 // it's a range number1-number2
-                $matches[1] = (string)($this->cast($matches[1]));
-                $matches[2] = (string)($this->cast($matches[2]));
-                $expr = $field_name.' >= '.$matches[1].' AND '.$field_name.' <= '. $matches[2];
+                $matches[1] = (string) ($this->cast($matches[1]));
+                $matches[2] = (string) ($this->cast($matches[2]));
+                $expr = $field_name . ' >= ' . $matches[1] . ' AND ' . $field_name . ' <= ' . $matches[2];
             } else {
                 // Invalid syntax - no condition
                 $expr = '1';
@@ -183,7 +181,7 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
     protected $pattern = '[+\-]*[0-9]+';
     protected function cast($value)
     {
-        return (int)$value;
+        return (int) $value;
     }
 
     /**
@@ -198,10 +196,10 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
         $value = $this->getValueFromSubmitOrDefault($submitted_values);
         $hp    = Codendi_HTMLPurifier::instance();
         $html .= '<input type="text"
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         name="artifact['. $this->id .']"
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" />';
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         name="artifact[' . $this->id . ']"
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" />';
         return $html;
     }
 
@@ -217,10 +215,10 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
         $value = dgettext('tuleap-tracker', 'Unchanged');
         $hp = Codendi_HTMLPurifier::instance();
         $html .= '<input type="text"
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         name="artifact['. $this->id .']"
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" />';
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         name="artifact[' . $this->id . ']"
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" />';
         return $html;
     }
 
@@ -242,16 +240,16 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
         if (isset($submitted_values[$this->getId()])) {
             $value = $submitted_values[$this->getId()];
         } else {
-            if ($value !=null) {
+            if ($value != null) {
                 $value = $value->getValue();
             }
         }
         $hp = Codendi_HTMLPurifier::instance();
         $html .= '<input type="text"
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         name="artifact['. $this->id .']"
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" />';
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         name="artifact[' . $this->id . ']"
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" />';
         return $html;
     }
 
@@ -353,25 +351,27 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
             $value = $this->getDefaultValue();
         }
         $html .= '<input type="text"
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" autocomplete="off" />';
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" autocomplete="off" />';
         return $html;
     }
 
     /**
      * Fetch the changes that has been made to this field in a followup
-     * @param Tracker_ $artifact
+     * @param Tracker_Artifact $artifact
      * @param array $from the value(s) *before*
      * @param array $to   the value(s) *after*
      */
     public function fetchFollowUp($artifact, $from, $to)
     {
+        assert($from instanceof Tracker_Artifact_ChangesetValue_Numeric);
+        assert($to instanceof Tracker_Artifact_ChangesetValue_Numeric);
         $html = '';
         if (!$from || !($from_value = $from->getNumeric())) {
-            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to').' ';
+            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to') . ' ';
         } else {
-            $html .= ' '.$GLOBALS['Language']->getText('plugin_tracker_artifact', 'changed_from').' '. $from_value .'  '.$GLOBALS['Language']->getText('plugin_tracker_artifact', 'to').' ';
+            $html .= ' ' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'changed_from') . ' ' . $from_value . '  ' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'to') . ' ';
         }
         $html .= $to->getNumeric();
         return $html;
@@ -399,11 +399,11 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
      */
     public function validateValue($value)
     {
-        if ($value !== null && ! is_string($value) &&  ! is_int($value) && ! is_float($value)) {
+        if ($value !== null && ! is_string($value) && ! is_int($value) && ! is_float($value)) {
             $GLOBALS['Response']->addFeedback('error', $this->getValidatorErrorMessage());
             return false;
         }
-        if ($value && ! preg_match('/^'. $this->pattern .'$/', $value)) {
+        if ($value && ! preg_match('/^' . $this->pattern . '$/', $value)) {
             $GLOBALS['Response']->addFeedback('error', $this->getValidatorErrorMessage());
             return false;
         }
@@ -417,7 +417,7 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
     /**
      * Verifies the consistency of the imported Tracker
      *
-     * @return true if Tracler is ok
+     * @return bool true if Tracler is ok
      */
     public function testImport()
     {
@@ -443,9 +443,8 @@ abstract class Tracker_FormElement_Field_Numeric extends Tracker_FormElement_Fie
         return new ArtifactTimeframeHelper(
             $semantic_timeframe_builder,
             new TimeframeBuilder(
-                $form_element_factory,
                 $semantic_timeframe_builder,
-                new \BackendLogger()
+                \BackendLogger::getDefaultLogger()
             )
         );
     }

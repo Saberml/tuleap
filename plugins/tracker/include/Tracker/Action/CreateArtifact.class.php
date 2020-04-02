@@ -24,18 +24,15 @@ class Tracker_Action_CreateArtifact
 {
     private $tracker;
     private $artifact_factory;
-    private $tracker_factory;
     private $formelement_factory;
 
     public function __construct(
-        Tracker                            $tracker,
-        Tracker_ArtifactFactory            $artifact_factory,
-        TrackerFactory                     $tracker_factory,
-        Tracker_FormElementFactory         $formelement_factory
+        Tracker $tracker,
+        Tracker_ArtifactFactory $artifact_factory,
+        Tracker_FormElementFactory $formelement_factory
     ) {
         $this->tracker             = $tracker;
         $this->artifact_factory    = $artifact_factory;
-        $this->tracker_factory     = $tracker_factory;
         $this->formelement_factory = $formelement_factory;
     }
 
@@ -64,7 +61,6 @@ class Tracker_Action_CreateArtifact
     /**
      * Add an artefact in the tracker
      *
-     * @param Tracker_IDisplayTrackerLayout  $layout
      * @param Codendi_Request                $request
      * @param PFUser                         $user
      *
@@ -140,7 +136,7 @@ class Tracker_Action_CreateArtifact
             $art_link    = $this->formelement_factory->getAnArtifactLinkField($current_user, $parent_tracker);
 
             if ($art_link && $this->isParentCreationRequested($request, $current_user)) {
-                $art_link_key = 'artifact['.$art_link->getId().'][new_values]';
+                $art_link_key = 'artifact[' . $art_link->getId() . '][new_values]';
                 $redirect_params = array(
                     'tracker'     => $parent_tracker->getId(),
                     'func'        => 'new-artifact',

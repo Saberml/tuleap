@@ -46,7 +46,8 @@ class AzureADProviderManager
         string $client_secret,
         string $icon,
         string $color,
-        string $tenant_id
+        string $tenant_id,
+        string $tenant_setup_identifier
     ): AzureADProvider {
         $is_unique_authentication_endpoint = false;
         $is_data_valid                     = $this->isAzureProviderDataValid(
@@ -62,7 +63,11 @@ class AzureADProviderManager
             throw new ProviderMalformedDataException();
         }
 
-        $acceptable_tenant_for_authentication = AcceptableTenantForAuthenticationConfiguration::fromSpecificTenantID($tenant_id);
+        try {
+            $tenant_setup = AzureADTenantSetup::fromIdentifier($tenant_setup_identifier);
+        } catch (UnknownAcceptableTenantForAuthenticationIdentifierException $exception) {
+            throw new ProviderMalformedDataException('', 0, $exception);
+        }
 
         $id = $this->azure_provider_dao->create(
             $name,
@@ -71,7 +76,7 @@ class AzureADProviderManager
             $icon,
             $color,
             $tenant_id,
-            $acceptable_tenant_for_authentication->getIdentifier()
+            $tenant_setup_identifier
         );
 
         return new AzureADProvider(
@@ -83,23 +88,26 @@ class AzureADProviderManager
             $icon,
             $color,
             $tenant_id,
-            $acceptable_tenant_for_authentication
+            AcceptableTenantForAuthenticationConfiguration::fromTenantSetupAndTenantID(
+                $tenant_setup,
+                $tenant_id
+            )
         );
     }
 
     public function instantiateAzureProviderFromRow(array $row): AzureADProvider
     {
         return new AzureADProvider(
-            (int)$row['id'],
+            (int) $row['id'],
             $row['name'],
             $row['client_id'],
             $row['client_secret'],
-            (bool)$row['unique_authentication_endpoint'],
+            (bool) $row['unique_authentication_endpoint'],
             $row['icon'],
             $row['color'],
             $row['tenant_id'],
-            AcceptableTenantForAuthenticationConfiguration::fromAcceptableTenantForLoginIdentifierAndTenantID(
-                $row['acceptable_tenant_auth_identifier'],
+            AcceptableTenantForAuthenticationConfiguration::fromTenantSetupAndTenantID(
+                AzureADTenantSetup::fromIdentifier($row['acceptable_tenant_auth_identifier']),
                 $row['tenant_id']
             )
         );
@@ -149,7 +157,8 @@ class AzureADProviderManager
             $provider->getClientSecret(),
             $provider->getIcon(),
             $provider->getColor(),
-            $provider->getTenantId()
+            $provider->getTenantId(),
+            $provider->getTenantSetup()->getIdentifier()
         );
     }
 }

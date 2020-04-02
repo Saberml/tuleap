@@ -34,7 +34,7 @@ use PHPUnit\Framework\TestCase;
 use Tuleap\Git\BigObjectAuthorization\BigObjectAuthorizationManager;
 use Tuleap\InstanceBaseURLBuilder;
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class ProjectSerializerTest extends TestCase
 {
@@ -59,7 +59,7 @@ class ProjectSerializerTest extends TestCase
     {
         parent::setUp();
 
-        $this->fix_dir = __DIR__.'/_fixtures';
+        $this->fix_dir = __DIR__ . '/_fixtures';
 
         $this->http_request = Mockery::spy(\HTTPRequest::class);
         HTTPRequest::setInstance($this->http_request);
@@ -92,7 +92,7 @@ class ProjectSerializerTest extends TestCase
             Mockery::spy(EventManager::class)
         );
 
-        $this->logger = Mockery::spy(\Logger::class);
+        $this->logger = Mockery::spy(\Psr\Log\LoggerInterface::class);
 
         $this->big_object_authorization_manager = Mockery::mock(BigObjectAuthorizationManager::class);
         $this->version_detector                 = Mockery::mock(VersionDetector::class);
@@ -127,7 +127,7 @@ class ProjectSerializerTest extends TestCase
         $repo->setProject($prj);
         $repo->setName('test_default');
         $this->assertSame(
-            file_get_contents($this->fix_dir .'/gitolite-mail-config/mailhook-rev.txt'),
+            file_get_contents($this->fix_dir . '/gitolite-mail-config/mailhook-rev.txt'),
             $this->project_serializer->fetchMailHookConfig($prj, $repo)
         );
 
@@ -138,7 +138,7 @@ class ProjectSerializerTest extends TestCase
         $repo->setName('test_default');
         $repo->setMailPrefix('[KOIN] ');
         $this->assertSame(
-            file_get_contents($this->fix_dir .'/gitolite-mail-config/mailhook-rev-mail-prefix.txt'),
+            file_get_contents($this->fix_dir . '/gitolite-mail-config/mailhook-rev-mail-prefix.txt'),
             $this->project_serializer->fetchMailHookConfig($prj, $repo)
         );
 
@@ -149,7 +149,7 @@ class ProjectSerializerTest extends TestCase
         $repo->setName('test_default');
         $repo->setMailPrefix('["\_o<"] \t');
         $this->assertSame(
-            file_get_contents($this->fix_dir .'/gitolite-mail-config/mailhook-rev-mail-prefix-quote.txt'),
+            file_get_contents($this->fix_dir . '/gitolite-mail-config/mailhook-rev-mail-prefix-quote.txt'),
             $this->project_serializer->fetchMailHookConfig($prj, $repo)
         );
     }
@@ -198,7 +198,7 @@ class ProjectSerializerTest extends TestCase
 
         // Ensure file is correct
         $result     = $this->project_serializer->dumpProjectRepoConf($prj);
-        $expected   = file_get_contents($this->fix_dir .'/perms/project1-full.conf');
+        $expected   = file_get_contents($this->fix_dir . '/perms/project1-full.conf');
 
         $this->assertSame($expected, $result);
     }
@@ -243,7 +243,7 @@ class ProjectSerializerTest extends TestCase
 
         // Ensure file is correct
         $result     = $this->project_serializer->dumpProjectRepoConf($prj);
-        $expected = file_get_contents($this->fix_dir .'/perms/migrated_to_gerrit.conf');
+        $expected = file_get_contents($this->fix_dir . '/perms/migrated_to_gerrit.conf');
 
         $this->assertSame($expected, $result);
     }
@@ -350,7 +350,7 @@ EOS;
 
         // Ensure file is correct
         $result     = $this->project_serializer->dumpProjectRepoConf($prj);
-        $expected   = file_get_contents($this->fix_dir .'/perms/bigobject.conf');
+        $expected   = file_get_contents($this->fix_dir . '/perms/bigobject.conf');
 
         $this->assertSame($expected, $result);
     }
@@ -394,7 +394,7 @@ EOS;
 
         // Ensure file is correct
         $result     = $this->project_serializer->dumpProjectRepoConf($prj);
-        $expected   = file_get_contents($this->fix_dir .'/perms/notgitolite3.conf');
+        $expected   = file_get_contents($this->fix_dir . '/perms/notgitolite3.conf');
 
         $this->assertSame($expected, $result);
     }

@@ -26,7 +26,7 @@ declare(strict_types=1);
 
 namespace Tuleap\Tracker\Semantic\Timeframe;
 
-use Logger;
+use Psr\Log\LoggerInterface;
 use PFUser;
 use TimePeriodWithoutWeekEnd;
 use Tracker_Artifact;
@@ -34,30 +34,22 @@ use Tracker_Artifact_ChangesetValue_Date;
 use Tracker_Artifact_ChangesetValue_Numeric;
 use Tracker_FormElement_Chart_Field_Exception;
 use Tracker_FormElement_Field_Date;
-use Tracker_FormElementFactory;
 
 class TimeframeBuilder
 {
-    /**
-     * @var Tracker_FormElementFactory
-     */
-    private $formelement_factory;
-
     /**
      * @var SemanticTimeframeBuilder
      */
     private $semantic_timeframe_builder;
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     private $logger;
 
     public function __construct(
-        Tracker_FormElementFactory $formelement_factory,
         SemanticTimeframeBuilder $semantic_timeframe_builder,
-        Logger $logger
+        LoggerInterface $logger
     ) {
-        $this->formelement_factory        = $formelement_factory;
         $this->semantic_timeframe_builder = $semantic_timeframe_builder;
         $this->logger                     = $logger;
     }
@@ -260,6 +252,6 @@ class TimeframeBuilder
 
         assert($last_changeset_value instanceof Tracker_Artifact_ChangesetValue_Date);
 
-        return  (int) $last_changeset_value->getTimestamp();
+        return (int) $last_changeset_value->getTimestamp();
     }
 }

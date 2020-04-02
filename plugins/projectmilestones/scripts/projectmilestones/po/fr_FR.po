@@ -20,6 +20,11 @@ msgid_plural "%{ nb_backlog_items } items in the backlog."
 msgstr[0] "%{nb_backlog_items} item dans le backlog."
 msgstr[1] "%{nb_backlog_items} items dans le backlog."
 
+msgid "%{nb_past} past %{label_tracker}"
+msgid_plural "%{nb_past} past %{label_tracker}"
+msgstr[0] "%{nb_past} %{label_tracker} passé(e)"
+msgstr[1] "%{nb_past} %{label_tracker} passé(e)s"
+
 msgid "%{nb_upcoming_releases} upcoming %{label_tracker}."
 msgid_plural "%{nb_upcoming_releases} upcoming %{label_tracker}."
 msgstr[0] "%{nb_upcoming_releases} prochain(e) %{label_tracker}."
@@ -39,6 +44,13 @@ msgstr "Burndown"
 msgid "Burndown is under calculation. It will be available in a few minutes."
 msgstr ""
 "Le burndown est en cours de calcul. Il sera disponible dans quelques minutes."
+
+msgid "Burnup"
+msgstr "Burnup"
+
+msgid "Burnup is under calculation. It will be available in a few minutes."
+msgstr ""
+"Le burn-up est en cours de calcul. Il sera disponible dans quelques minutes."
 
 msgid "Capacity: %{capacity}"
 msgstr "Capacité : %{capacity}"
@@ -83,6 +95,12 @@ msgstr "Oups, une erreur s'est produite !"
 msgid "Overview"
 msgstr "Résumé"
 
+msgid "Past"
+msgstr "Passé"
+
+msgid "Recently closed"
+msgstr "Récemment fermé(e)"
+
 msgid "What's hot"
 msgstr "En cours"
 
@@ -90,6 +108,11 @@ msgid "day to go"
 msgid_plural "days to go"
 msgstr[0] "jour restant"
 msgstr[1] "jours restants"
+
+msgid "pt done"
+msgid_plural "pts done"
+msgstr[0] "pt terminé"
+msgstr[1] "pts terminés"
 
 msgid "pt to go"
 msgid_plural "pts to go"

@@ -20,7 +20,7 @@
 
 class Tracker_Report_Criteria_PermissionsOnArtifact_ValueDao extends Tracker_Report_Criteria_ValueDao
 {
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->table_name = 'tracker_report_criteria_permissionsonartifact_value';
@@ -45,7 +45,7 @@ class Tracker_Report_Criteria_PermissionsOnArtifact_ValueDao extends Tracker_Rep
                 }
             }
             if (count($new_values)) {
-                $sql = "INSERT INTO $this->table_name(criteria_id, value) VALUES ".implode(',', $new_values);
+                $sql = "INSERT INTO $this->table_name(criteria_id, value) VALUES " . implode(',', $new_values);
             }
             return $this->update($sql);
         }

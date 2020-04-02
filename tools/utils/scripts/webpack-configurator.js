@@ -27,6 +27,8 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const MergeIntoSingleFilePlugin = require("webpack-merge-and-include-globally");
+const { SuppressNullNamedEntryPlugin } = require("./webpack-custom-plugins.js");
 
 const rule_configurations = require("./webpack-rule-configs.js");
 const aliases = require("./webpack-aliases.js");
@@ -35,7 +37,7 @@ function getManifestPlugin() {
     return new WebpackAssetsManifest({
         output: "manifest.json",
         merge: true,
-        writeToDisk: true
+        writeToDisk: true,
     });
 }
 
@@ -47,7 +49,7 @@ function getMomentLocalePlugin() {
 function configureOutput(assets_dir_path, public_path) {
     const output = {
         path: assets_dir_path,
-        filename: "[name]-[chunkhash].js"
+        filename: "[name]-[chunkhash].js",
     };
 
     if (public_path) {
@@ -59,7 +61,7 @@ function configureOutput(assets_dir_path, public_path) {
 
 function getCleanWebpackPlugin() {
     return new CleanWebpackPlugin({
-        cleanAfterEveryBuildPatterns: ["!css-assets/", "!css-assets/**"]
+        cleanAfterEveryBuildPatterns: ["!css-assets/", "!css-assets/**"],
     });
 }
 
@@ -70,7 +72,7 @@ function getVueLoaderPlugin() {
 function getTypescriptCheckerPlugin(use_vue) {
     return new ForkTsCheckerWebpackPlugin({
         vue: use_vue,
-        reportFiles: ["**", "!**/*.test.ts"]
+        reportFiles: ["**", "!**/*.test.ts"],
     });
 }
 
@@ -82,11 +84,11 @@ function getCSSExtractionPlugins() {
     return [
         new FixStyleOnlyEntriesPlugin({
             extensions: ["scss", "css"],
-            silent: true
+            silent: true,
         }),
         new MiniCssExtractPlugin({
-            filename: "[name]-[chunkhash].css"
-        })
+            filename: "[name]-[chunkhash].css",
+        }),
     ];
 }
 
@@ -98,25 +100,32 @@ function getCSSOptimizerPlugin() {
                 "default",
                 {
                     discardComments: {
-                        removeAll: true
-                    }
-                }
-            ]
-        }
+                        removeAll: true,
+                    },
+                },
+            ],
+        },
     });
 }
 
+function getLegacyConcatenatedScriptsPlugins(concatenated_files_configuration) {
+    return [
+        new SuppressNullNamedEntryPlugin(),
+        new MergeIntoSingleFilePlugin({ files: concatenated_files_configuration, hash: true }),
+    ];
+}
+
 function extendDevConfiguration(webpack_configs) {
-    return webpack_configs.map(webpack_config =>
+    return webpack_configs.map((webpack_config) =>
         merge(webpack_config, {
             mode: "development",
-            devtool: "inline-source-map"
+            devtool: "inline-source-map",
         })
     );
 }
 
 function extendProdConfiguration(webpack_configs) {
-    return webpack_configs.map(webpack_config =>
+    return webpack_configs.map((webpack_config) =>
         merge(webpack_config, {
             mode: "production",
             plugins: [getCSSOptimizerPlugin()],
@@ -126,8 +135,8 @@ function extendProdConfiguration(webpack_configs) {
                 errors: true,
                 errorDetails: true,
                 performance: true,
-                timings: true
-            }
+                timings: true,
+            },
         })
     );
 }
@@ -141,8 +150,9 @@ const configurator = {
     getTypescriptCheckerPlugin,
     getCleanWebpackPlugin,
     getCSSExtractionPlugins,
+    getLegacyConcatenatedScriptsPlugins,
     extendDevConfiguration,
-    extendProdConfiguration
+    extendProdConfiguration,
 };
 Object.assign(configurator, rule_configurations, aliases);
 

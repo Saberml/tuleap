@@ -21,7 +21,7 @@
 
 use Tuleap\Tracker\Workflow\WorkflowBackendLogger;
 
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 Mock::generate('Transition');
 
@@ -230,7 +230,7 @@ class WorkflowTest extends TuleapTestCase
 
         $global_rules_manager  = mock('Tracker_RulesManager');
         $trigger_rules_manager = mock('Tracker_Workflow_Trigger_RulesManager');
-        $logger                = new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG);
+        $logger                = new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG);
 
         $workflow = TestHelper::getPartialMock('Workflow', array('getPermissionsManager'));
         $workflow->__construct($global_rules_manager, $trigger_rules_manager, $logger, 1, 2, 103, 1, $transitions);
@@ -250,12 +250,12 @@ class WorkflowTest extends TuleapTestCase
                                    );
         $workflow->exportToXML($root, $array_xml_mapping);
 
-        $this->assertEqual((string)$xml->field_id['REF'], (string)$root->field_id['REF']);
-        $this->assertEqual((int)$xml->is_used, (int)$root->is_used);
+        $this->assertEqual((string) $xml->field_id['REF'], (string) $root->field_id['REF']);
+        $this->assertEqual((int) $xml->is_used, (int) $root->is_used);
         $this->assertEqual(count($xml->transitions), count($root->transitions));
     }
 
-    function testNonTransitionAlwaysExist()
+    public function testNonTransitionAlwaysExist()
     {
         $workflow = new WorkflowTestVersion(1, 2, 3, 1);
         $workflow->expectNever('getTransitions');
@@ -310,7 +310,7 @@ class Workflow_BeforeAfterTest extends TuleapTestCase
             array(
                 mock('Tracker_RulesManager'),
                 $this->trigger_rules_manager,
-                new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG),
+                new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG),
                 $workflow_id,
                 $tracker_id,
                 $field_id,
@@ -327,7 +327,7 @@ class Workflow_BeforeAfterTest extends TuleapTestCase
             array(
                 mock('Tracker_RulesManager'),
                 $this->trigger_rules_manager,
-                new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG),
+                new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG),
                 $workflow_id,
                 $tracker_id,
                 $field_id,
@@ -344,7 +344,7 @@ class Workflow_BeforeAfterTest extends TuleapTestCase
             array(
                 mock('Tracker_RulesManager'),
                 $this->trigger_rules_manager,
-                new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG),
+                new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG),
                 $workflow_id,
                 $tracker_id,
                 $field_id,
@@ -372,7 +372,7 @@ class Workflow_BeforeAfterTest extends TuleapTestCase
         parent::tearDown();
     }
 
-    function testBeforeShouldTriggerTransitionActions()
+    public function testBeforeShouldTriggerTransitionActions()
     {
         $changeset_value_list = new MockTracker_Artifact_ChangesetValue_List();
         $changeset_value_list->setReturnValue('getValue', array($this->open_value_id));
@@ -390,7 +390,7 @@ class Workflow_BeforeAfterTest extends TuleapTestCase
         $this->workflow->before($fields_data, $this->current_user, $this->artifact);
     }
 
-    function testBeforeShouldTriggerTransitionActionsForNewArtifact()
+    public function testBeforeShouldTriggerTransitionActionsForNewArtifact()
     {
         $changeset = new MockTracker_Artifact_Changeset_Null();
         $this->artifact->setReturnValue('getLastChangeset', $changeset);
@@ -453,7 +453,7 @@ class Workflow_BeforeAfterTest extends TuleapTestCase
         $this->workflow->after($fields_data, $new_changeset, $previous_changeset);
     }
 
-    function testAfterShouldTriggerTransitionActionsForNewArtifact()
+    public function testAfterShouldTriggerTransitionActionsForNewArtifact()
     {
         $previous_changeset = null;
         $new_changeset      = mock('Tracker_Artifact_Changeset');
@@ -575,7 +575,7 @@ class Workflow_checkGlobalRulesTest extends TuleapTestCase
         try {
             $workflow->checkGlobalRules($fields_data);
         } catch (Exception $e) {
-            $this->fail('Should not throw an exception: '. get_class($e));
+            $this->fail('Should not throw an exception: ' . get_class($e));
         }
     }
 }
@@ -639,7 +639,7 @@ class Workflow_DisableTest extends TuleapTestCase
         try {
             $workflow->checkGlobalRules($fields_data);
         } catch (Exception $e) {
-            $this->fail('Should not throw an exception: '. get_class($e));
+            $this->fail('Should not throw an exception: ' . get_class($e));
         }
     }
 }

@@ -52,14 +52,14 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
      * @var StreamFactoryInterface
      */
     private $stream_factory;
-    /** @var Logger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
     public function __construct(
         GerritHTTPClientFactory $client_factory,
         RequestFactoryInterface $request_factory,
         StreamFactoryInterface $stream_factory,
-        Logger $logger
+        \Psr\Log\LoggerInterface $logger
     ) {
         $this->client_factory  = $client_factory;
         $this->request_factory = $request_factory;
@@ -76,7 +76,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         $this->logger->info("Gerrit REST driver: Create project $gerrit_project_name");
         $request = $this->request_factory->createRequest(
             'PUT',
-            $this->getGerritURL($server, '/projects/'. urlencode($gerrit_project_name))
+            $this->getGerritURL($server, '/projects/' . urlencode($gerrit_project_name))
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
         ->withBody(
             $this->stream_factory->createStream(
@@ -110,7 +110,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
         $request = $this->request_factory->createRequest(
             'PUT',
-            $this->getGerritURL($server, '/projects/'. urlencode($parent_project_name))
+            $this->getGerritURL($server, '/projects/' . urlencode($parent_project_name))
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
         ->withBody(
             $this->stream_factory->createStream(
@@ -146,7 +146,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             $server,
             $this->request_factory->createRequest(
                 'GET',
-                $this->getGerritURL($server, '/projects/'. urlencode($project_name))
+                $this->getGerritURL($server, '/projects/' . urlencode($project_name))
             )
         );
 
@@ -195,7 +195,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
         $request = $this->request_factory->createRequest(
             'PUT',
-            $this->getGerritURL($server, '/groups/'. urlencode($group_name))
+            $this->getGerritURL($server, '/groups/' . urlencode($group_name))
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
             ->withBody(
                 $this->stream_factory->createStream(json_encode(['owner_id' => $this->getGroupUUID($server, $owner)], JSON_THROW_ON_ERROR))
@@ -285,7 +285,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             $server,
             $this->request_factory->createRequest(
                 'PUT',
-                $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/members/'. urlencode($user->getSSHUserName()))
+                $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/members/' . urlencode($user->getSSHUserName()))
             )
         );
 
@@ -307,7 +307,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             $server,
             $this->request_factory->createRequest(
                 'DELETE',
-                $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/members/'. urlencode($user->getSSHUserName()))
+                $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/members/' . urlencode($user->getSSHUserName()))
             )
         );
 
@@ -328,7 +328,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         $this->logger->info("Gerrit REST driver: Remove all group members from $group_name");
         $request = $this->request_factory->createRequest(
             'POST',
-            $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/members.delete')
+            $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/members.delete')
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
             ->withBody(
                 $this->stream_factory->createStream(json_encode(['members' => $existing_members], JSON_THROW_ON_ERROR))
@@ -351,7 +351,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             $server,
             $this->request_factory->createRequest(
                 'PUT',
-                $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/groups/'. urlencode($included_group_name))
+                $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/groups/' . urlencode($included_group_name))
             )
         );
 
@@ -374,7 +374,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
         $request = $this->request_factory->createRequest(
             'POST',
-            $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/groups.delete')
+            $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/groups.delete')
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
         ->withBody(
             $this->stream_factory->createStream(json_encode(['groups' => $exiting_groups], JSON_THROW_ON_ERROR))
@@ -399,12 +399,12 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         Git_Driver_Gerrit_User $user,
         $ssh_key
     ) {
-        $this->logger->info("Gerrit REST driver: Add ssh key for user ". $user->getSSHUserName());
+        $this->logger->info("Gerrit REST driver: Add ssh key for user " . $user->getSSHUserName());
         $response = $this->sendRequest(
             $server,
             $this->request_factory->createRequest(
                 'POST',
-                $this->getGerritURL($server, '/accounts/'. urlencode($user->getSSHUserName()) .'/sshkeys')
+                $this->getGerritURL($server, '/accounts/' . urlencode($user->getSSHUserName()) . '/sshkeys')
             )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_TEXT)
             ->withBody($this->stream_factory->createStream($this->escapeSSHKey($ssh_key)))
         );
@@ -419,12 +419,12 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         Git_Driver_Gerrit_User $user,
         $ssh_key
     ) {
-        $this->logger->info("Gerrit REST driver: Remove ssh key for user ". $user->getSSHUserName());
+        $this->logger->info("Gerrit REST driver: Remove ssh key for user " . $user->getSSHUserName());
 
         $ssh_keys           = $this->getAllSSHKeysForUser($server, $user);
         $gerrit_ssh_key_ids = $this->getUserSSHKeyId($ssh_keys, $ssh_key);
 
-        $this->logger->info("Gerrit REST driver: Found this ssh key ". count($gerrit_ssh_key_ids). " time(s)");
+        $this->logger->info("Gerrit REST driver: Found this ssh key " . count($gerrit_ssh_key_ids) . " time(s)");
 
         foreach ($gerrit_ssh_key_ids as $gerrit_key_id) {
             $this->actionRemoveSSHKey($server, $user, $gerrit_key_id);
@@ -433,8 +433,6 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
     /**
      *
-     * @param Git_RemoteServer_GerritServer $server
-     * @param Git_Driver_Gerrit_User $user
      *
      * @return array
      */
@@ -442,12 +440,12 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         Git_RemoteServer_GerritServer $server,
         Git_Driver_Gerrit_User $user
     ) {
-        $this->logger->info("Gerrit REST driver: Get all ssh keys for user ". $user->getSSHUserName());
+        $this->logger->info("Gerrit REST driver: Get all ssh keys for user " . $user->getSSHUserName());
         $response = $this->sendRequest(
             $server,
             $this->request_factory->createRequest(
                 'GET',
-                $this->getGerritURL($server, '/accounts/'. urlencode($user->getSSHUserName()) .'/sshkeys')
+                $this->getGerritURL($server, '/accounts/' . urlencode($user->getSSHUserName()) . '/sshkeys')
             )
         );
 
@@ -468,7 +466,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         $this->logger->info("Gerrit REST driver: Set project $parent_project_name as parent of $project_name");
         $request = $this->request_factory->createRequest(
             'PUT',
-            $this->getGerritURL($server, '/projects/'. urlencode($project_name) .'/parent')
+            $this->getGerritURL($server, '/projects/' . urlencode($project_name) . '/parent')
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
         ->withBody($this->stream_factory->createStream(json_encode(['parent' => $parent_project_name], JSON_THROW_ON_ERROR)));
 
@@ -518,11 +516,16 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             $server,
             $this->request_factory->createRequest(
                 'POST',
-                $this->getGerritURL($server, '/projects/'. urlencode($gerrit_project_full_name) . '/delete-project~delete')
+                $this->getGerritURL($server, '/projects/' . urlencode($gerrit_project_full_name) . '/delete-project~delete')
             )
         );
 
         $response_status_code = $response->getStatusCode();
+
+        if ($response_status_code === 404) {
+            $this->logger->info('Gerrit REST driver: Project does not exist maybe it has already been deleted?');
+            return;
+        }
 
         if ($response_status_code >= 400 && $response_status_code < 500) {
             $this->logger->error('Gerrit REST driver: Cannot delete project ' . $gerrit_project_full_name . ': There are open changes');
@@ -545,7 +548,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
         $request = $this->request_factory->createRequest(
             'PUT',
-            $this->getGerritURL($server, '/projects/'. urlencode($gerrit_project_full_name) .'/config')
+            $this->getGerritURL($server, '/projects/' . urlencode($gerrit_project_full_name) . '/config')
         )->withHeader(self::HEADER_CONTENT_TYPE, self::MIME_JSON)
         ->withBody($this->stream_factory->createStream(json_encode(['state' => 'READ_ONLY'], JSON_THROW_ON_ERROR)));
 
@@ -564,7 +567,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
     ) {
         $response = $this->sendRequest(
             $server,
-            $this->request_factory->createRequest('GET', $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/members'))
+            $this->request_factory->createRequest('GET', $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/members'))
         );
 
         if ($response->getStatusCode() !== 200) {
@@ -572,7 +575,12 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         }
 
         $members = $this->decodeGerritResponse($response->getBody()->getContents());
-        return array_map(array($this, 'pluckUsername'), $members);
+        return array_map(
+            static function ($member) {
+                return $member['username'];
+            },
+            $members
+        );
     }
 
     private function getAllIncludedGroups(
@@ -581,7 +589,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
     ) {
         $response = $this->sendRequest(
             $server,
-            $this->request_factory->createRequest('GET', $this->getGerritURL($server, '/groups/'. urlencode($group_name) .'/groups'))
+            $this->request_factory->createRequest('GET', $this->getGerritURL($server, '/groups/' . urlencode($group_name) . '/groups'))
         );
 
         if ($response->getStatusCode() !== 200) {
@@ -590,14 +598,19 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
         $members = $this->decodeGerritResponse($response->getBody()->getContents());
 
-        return array_map(array($this, 'pluckGroupname'), $members);
+        return array_map(
+            function ($member) {
+                return $member['name'];
+            },
+            $members
+        );
     }
 
     private function getGroupInfoFromGerrit(Git_RemoteServer_GerritServer $server, $group_name)
     {
         $response = $this->sendRequest(
             $server,
-            $this->request_factory->createRequest('GET', $this->getGerritURL($server, '/groups/'. urlencode($group_name)))
+            $this->request_factory->createRequest('GET', $this->getGerritURL($server, '/groups/' . urlencode($group_name)))
         );
 
         if ($response->getStatusCode() !== 200) {
@@ -615,7 +628,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             if ($ssh_key_info['encoded_key'] === $this->getKeyPartFromSSHKey($expected_ssh_key)) {
                 $gerrit_ssh_key_id = $ssh_key_info['seq'];
                 $this->logger->info("Gerrit REST driver: Key found ($gerrit_ssh_key_id)");
-                $matching_keys[] = $gerrit_ssh_key_id ;
+                $matching_keys[] = $gerrit_ssh_key_id;
             }
         }
 
@@ -631,7 +644,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             $server,
             $this->request_factory->createRequest(
                 'DELETE',
-                $this->getGerritURL($server, '/accounts/'. urlencode($user->getSSHUserName()) .'/sshkeys/'. urlencode($gerrit_key_id))
+                $this->getGerritURL($server, '/accounts/' . urlencode($user->getSSHUserName()) . '/sshkeys/' . urlencode($gerrit_key_id))
             )
         );
         if ($response->getStatusCode() !== 204) {
@@ -663,17 +676,6 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
         throw new Git_Driver_Gerrit_Exception($message);
     }
 
-
-    private function pluckUsername($member)
-    {
-        return $member['username'];
-    }
-
-    private function pluckGroupname($member)
-    {
-        return $member['name'];
-    }
-
     /**
      * Strip magic prefix
      *
@@ -689,7 +691,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
 
     private function getGerritURL(Git_RemoteServer_GerritServer $server, $url)
     {
-        $full_url = $server->getBaseUrl().'/a'. $url;
+        $full_url = $server->getBaseUrl() . '/a' . $url;
 
         return $full_url;
     }
@@ -702,7 +704,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
             return $client->sendRequest($request);
         } catch (\Psr\Http\Client\ClientExceptionInterface $e) {
             $message = sprintf('Unable to send HTTP query %s %s', $request->getMethod(), (string) $request->getUri());
-            $this->logger->error($message);
+            $this->logger->error($message, ['exception' => $e]);
             throw new Git_Driver_Gerrit_Exception('Gerrit REST driver: ' . $message);
         }
     }
@@ -713,7 +715,7 @@ class Git_Driver_GerritREST implements Git_Driver_Gerrit
     ) {
         $response = $this->sendRequest(
             $server,
-            $this->request_factory->createRequest('DELETE', $this->getGerritURL($server, '/accounts/'. urlencode($user->getUserName()) .'/active'))
+            $this->request_factory->createRequest('DELETE', $this->getGerritURL($server, '/accounts/' . urlencode($user->getUserName()) . '/active'))
         );
 
         $response_status_code = $response->getStatusCode();

@@ -29,12 +29,14 @@ use Tuleap\Mediawiki\ForgeUserGroupPermission\MediawikiAdminAllProjects;
 use Tuleap\Mediawiki\Maintenance\CleanUnused;
 use Tuleap\Mediawiki\Maintenance\CleanUnusedDao;
 use Tuleap\Mediawiki\MediawikiDataDir;
+use Tuleap\MediaWiki\MediawikiMaintenanceWrapper;
 use Tuleap\Mediawiki\Migration\MoveToCentralDbDao;
 use Tuleap\Mediawiki\PermissionsPerGroup\PermissionPerGroupPaneBuilder;
+use Tuleap\MediaWiki\XMLMediaWikiExporter;
 use Tuleap\Project\Admin\Navigation\NavigationDropdownItemPresenter;
 use Tuleap\Project\Admin\Navigation\NavigationDropdownQuickLinksCollector;
-use Tuleap\Project\Admin\PermissionsPerGroup\PermissionPerGroupUGroupFormatter;
 use Tuleap\Project\Admin\PermissionsPerGroup\PermissionPerGroupPaneCollector;
+use Tuleap\Project\Admin\PermissionsPerGroup\PermissionPerGroupUGroupFormatter;
 use Tuleap\Project\Admin\ProjectUGroup\UserAndProjectUGroupRelationshipEvent;
 use Tuleap\Project\Admin\ProjectUGroup\UserBecomesForumAdmin;
 use Tuleap\Project\Admin\ProjectUGroup\UserBecomesNewsAdministrator;
@@ -46,8 +48,6 @@ use Tuleap\Project\Admin\ProjectUGroup\UserIsNoLongerNewsAdministrator;
 use Tuleap\Project\Admin\ProjectUGroup\UserIsNoLongerNewsWriter;
 use Tuleap\Project\Admin\ProjectUGroup\UserIsNoLongerProjectAdmin;
 use Tuleap\Project\Admin\ProjectUGroup\UserIsNoLongerWikiAdmin;
-use Tuleap\MediaWiki\MediawikiMaintenanceWrapper;
-use Tuleap\MediaWiki\XMLMediaWikiExporter;
 use Tuleap\Project\DelegatedUserAccessForProject;
 use Tuleap\Request\RestrictedUsersAreHandledByPluginEvent;
 use Tuleap\User\User_ForgeUserGroupPermissionsFactory;
@@ -64,7 +64,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
     {
         parent::__construct($id);
         $this->setName("mediawiki");
-        $this->text = "Mediawiki" ; // To show in the tabs, use...
+        $this->text = "Mediawiki"; // To show in the tabs, use...
         $this->addHook('cssfile');
         $this->addHook(Event::SERVICES_ALLOWED_FOR_PROJECT);
         $this->addHook(Event::PROCCESS_SYSTEM_CHECK);
@@ -151,11 +151,6 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
         }
     }
 
-    private function getMediaWikiDataDir()
-    {
-        return forge_get_config('mwdata_path', 'mediawiki');
-    }
-
     public function exportXmlProject(ExportXmlProject $event): void
     {
         if (! isset($event->getOptions()['all']) || $event->getOptions()['all'] === false) {
@@ -177,7 +172,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
             ProjectManager::instance()->getProject($group_id),
             new MediawikiManager(new MediawikiDao()),
             new UGroupManager(),
-            new ProjectXMLExporterLogger(),
+            ProjectXMLExporter::getLogger(),
             new MediawikiMaintenanceWrapper($sys_command),
             new MediawikiLanguageManager(new MediawikiLanguageDao()),
             new MediawikiDataDir()
@@ -240,7 +235,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
 
     private function getMediawikiSearchURI(Project $project, $words)
     {
-        return $this->getPluginPath().'/wiki/'. $project->getUnixName() .'/index.php?title=Special%3ASearch&search=' . urlencode($words) . '&go=Go';
+        return $this->getPluginPath() . '/wiki/' . $project->getUnixName() . '/index.php?title=Special%3ASearch&search=' . urlencode($words) . '&go=Go';
     }
 
     private function isSearchEntryAvailable(?Project $project = null)
@@ -258,7 +253,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
 
     private function isMediawikiUrl()
     {
-        return preg_match('%'.$this->getPluginPath().'/wiki/.*%', $_SERVER['REQUEST_URI']);
+        return preg_match('%' . $this->getPluginPath() . '/wiki/.*%', $_SERVER['REQUEST_URI']);
     }
 
         /**
@@ -268,7 +263,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
     private function getProjectFromRequest()
     {
         $matches = array();
-        preg_match('%'.$this->getPluginPath().'/wiki/([^/]+)/.*%', $_SERVER['REQUEST_URI'], $matches);
+        preg_match('%' . $this->getPluginPath() . '/wiki/([^/]+)/.*%', $_SERVER['REQUEST_URI'], $matches);
         if (isset($matches[1])) {
             $project = ProjectManager::instance()->getProjectByUnixName($matches[1]);
 
@@ -283,18 +278,24 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
         return null;
     }
 
-    public function cssFile($params)
+    public function cssFile($params): void
     {
         // Only show the stylesheet if we're actually in the Mediawiki pages.
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0 ||
             strpos($_SERVER['REQUEST_URI'], '/widgets/') === 0) {
-            $asset = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/mediawiki/themes',
-                '/assets/mediawiki/themes'
-            );
-
-            echo '<link rel="stylesheet" type="text/css" href="'. $asset->getFileURL('style.css') .'" />';
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getAssets()->getFileURL('style.css') . '" />';
         }
+    }
+
+    /**
+     * @psalm-mutation-free
+     */
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/mediawiki',
+            '/assets/mediawiki'
+        );
     }
 
     public function showImage(Codendi_Request $request)
@@ -315,19 +316,19 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
             exit;
         }
 
-        preg_match('%'.$this->getPluginPath().'/wiki/[^/]+/images(.*)%', $_SERVER['REQUEST_URI'], $matches);
+        preg_match('%' . $this->getPluginPath() . '/wiki/[^/]+/images(.*)%', $_SERVER['REQUEST_URI'], $matches);
         $file_location = $matches[1];
 
         $folder_location = '';
         if (is_dir('/var/lib/tuleap/mediawiki/projects/' . $project->getUnixName())) {
-            $folder_location = '/var/lib/tuleap/mediawiki/projects/' . $project->getUnixName().'/images';
+            $folder_location = '/var/lib/tuleap/mediawiki/projects/' . $project->getUnixName() . '/images';
         } elseif (is_dir('/var/lib/tuleap/mediawiki/projects/' . $project->getId())) {
-            $folder_location = '/var/lib/tuleap/mediawiki/projects/' . $project->getId().'/images';
+            $folder_location = '/var/lib/tuleap/mediawiki/projects/' . $project->getId() . '/images';
         } else {
             exit;
         }
 
-        $file = $folder_location.$file_location;
+        $file = $folder_location . $file_location;
         if (! file_exists($file)) {
             exit;
         }
@@ -336,8 +337,8 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
         $fp   = fopen($file, 'r');
 
         if ($size and $fp) {
-            header('Content-Type: '.$size['mime']);
-            header('Content-Length: '.filesize($file));
+            header('Content-Type: ' . $size['mime']);
+            header('Content-Length: ' . filesize($file));
 
             readfile($file);
             exit;
@@ -361,8 +362,8 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
     public function service_replace_template_name_in_link($params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $params['link'] = preg_replace(
-            '#/plugins/mediawiki/wiki/'.preg_quote($params['template']['name'], '#').'(/|$)#',
-            '/plugins/mediawiki/wiki/'. $params['project']->getUnixName().'$1',
+            '#/plugins/mediawiki/wiki/' . preg_quote($params['template']['name'], '#') . '(/|$)#',
+            '/plugins/mediawiki/wiki/' . $params['project']->getUnixName() . '$1',
             $params['link']
         );
     }
@@ -370,6 +371,11 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
 
     public function register_project_creation($params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
+        if (! $params['project_creation_data']->projectShouldInheritFromTemplate()
+            && ! $this->serviceIsUsedInTemplate($params['group_id'])) {
+            return;
+        }
+
         if ($this->serviceIsUsedInTemplate($params['template_id'])) {
             $mediawiki_instantiater = $this->getInstantiater($params['group_id']);
             if ($mediawiki_instantiater) {
@@ -594,7 +600,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
     {
         $project         = $params['project'];
         $project_manager = ProjectManager::instance();
-        $new_link        = '/plugins/mediawiki/wiki/'. $params['new_name'];
+        $new_link        = '/plugins/mediawiki/wiki/' . $params['new_name'];
 
         if (! $project_manager->renameProjectPluginServiceLink($project->getID(), self::SERVICE_SHORTNAME, $new_link)) {
             $params['success'] = false;
@@ -607,8 +613,8 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
 
     private function updateMediawikiDirectory(Project $project)
     {
-        $logger         = new BackendLogger();
-        $project_id_dir = forge_get_config('projects_path', 'mediawiki') . "/". $project->getID() ;
+        $logger         = BackendLogger::getDefaultLogger();
+        $project_id_dir = forge_get_config('projects_path', 'mediawiki') . "/" . $project->getID();
 
         if (is_dir($project_id_dir)) {
             return true;
@@ -620,7 +626,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
             return true;
         }
 
-        $logger->error('Project Rename: Can\'t find mediawiki directory for project: '.$project->getID());
+        $logger->error('Project Rename: Can\'t find mediawiki directory for project: ' . $project->getID());
         return false;
     }
 
@@ -630,7 +636,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
 
         $delete = $this->getDao()->clearPageCacheForProject($project);
         if (! $delete) {
-            $logger->error('Project Clear cache: Can\'t delete mediawiki cache for schema: '.$project->getID());
+            $logger->error('Project Clear cache: Can\'t delete mediawiki cache for schema: ' . $project->getID());
         }
     }
 
@@ -663,7 +669,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
         $project_for_parth = $this->getMediawikiManager()->instanceUsesProjectID($project) ?
             $row['group_id'] : $row['unix_group_name'];
 
-        $path = $GLOBALS['sys_data_dir']. '/mediawiki/projects/'. $project_for_parth;
+        $path = $GLOBALS['sys_data_dir'] . '/mediawiki/projects/' . $project_for_parth;
 
         $size = $params['DiskUsageManager']->getDirSize($path);
 
@@ -706,7 +712,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
 
     public function burningParrotCompatiblePage(BurningParrotCompatiblePageEvent $event)
     {
-        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath().'/forge_admin.php?action=site_index') === 0) {
+        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath() . '/forge_admin.php?action=site_index') === 0) {
             $event->setIsInBurningParrotCompatiblePage();
         }
     }
@@ -838,7 +844,7 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
         $params['plugins_permission'][MediawikiAdminAllProjects::ID] = $permission;
     }
 
-    public function getCleanUnused(Logger $logger)
+    public function getCleanUnused(\Psr\Log\LoggerInterface $logger)
     {
         return new CleanUnused(
             $logger,
@@ -882,9 +888,6 @@ class MediaWikiPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaratio
         );
     }
 
-    /**
-     * @param PermissionPerGroupPaneCollector $event
-     */
     public function permissionPerGroupPaneCollector(PermissionPerGroupPaneCollector $event)
     {
         if (! $event->getProject()->usesService(self::SERVICE_SHORTNAME)) {

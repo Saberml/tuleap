@@ -24,7 +24,8 @@ namespace Tuleap\Request;
 use Backend;
 use FastRoute;
 use HTTPRequest;
-use Logger;
+use PluginManager;
+use Psr\Log\LoggerInterface;
 use ThemeManager;
 use Tuleap\Layout\ErrorRendering;
 use URLVerificationFactory;
@@ -40,7 +41,7 @@ class FrontRouter
      */
     private $route_collector;
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     private $logger;
     /**
@@ -52,17 +53,23 @@ class FrontRouter
      */
     private $theme_manager;
     /**
-     * @var \PluginManager
+     * @var PluginManager
      */
     private $plugin_manager;
+    /**
+     * @var RequestInstrumentation
+     */
+    private $request_instrumentation;
+
 
     public function __construct(
         RouteCollector $route_collector,
         URLVerificationFactory $url_verification_factory,
-        Logger $logger,
+        LoggerInterface $logger,
         ErrorRendering $error_rendering,
         ThemeManager $theme_manager,
-        \PluginManager $plugin_manager
+        PluginManager $plugin_manager,
+        RequestInstrumentation $request_instrumentation
     ) {
         $this->route_collector          = $route_collector;
         $this->url_verification_factory = $url_verification_factory;
@@ -70,6 +77,7 @@ class FrontRouter
         $this->error_rendering          = $error_rendering;
         $this->theme_manager            = $theme_manager;
         $this->plugin_manager           = $plugin_manager;
+        $this->request_instrumentation  = $request_instrumentation;
     }
 
     public function route(HTTPRequest $request)
@@ -81,7 +89,7 @@ class FrontRouter
                     throw new NotFoundException(_('The page you are looking for does not exist'));
                     break;
                 case FastRoute\Dispatcher::METHOD_NOT_ALLOWED:
-                    throw new \RuntimeException('This route does not support '.$_SERVER['REQUEST_METHOD'], 405);
+                    throw new \RuntimeException('This route does not support ' . $_SERVER['REQUEST_METHOD'], 405);
                     break;
                 case FastRoute\Dispatcher::FOUND:
                     if (is_callable($route_info[1])) {
@@ -107,9 +115,11 @@ class FrontRouter
                     }
                     break;
             }
-            RequestInstrumentation::increment(http_response_code());
+            $http_response_code = http_response_code();
+            assert(is_int($http_response_code));
+            $this->request_instrumentation->increment($http_response_code);
         } catch (NotFoundException $exception) {
-            RequestInstrumentation::increment(404);
+            $this->request_instrumentation->increment(404);
             $this->error_rendering->rendersError(
                 $this->getBurningParrotTheme($request),
                 $request,
@@ -118,7 +128,7 @@ class FrontRouter
                 $exception->getMessage()
             );
         } catch (ForbiddenException $exception) {
-            RequestInstrumentation::increment(403);
+            $this->request_instrumentation->increment(403);
             $this->error_rendering->rendersError(
                 $this->getBurningParrotTheme($request),
                 $request,
@@ -128,11 +138,12 @@ class FrontRouter
             );
         } catch (\Exception $exception) {
             $code = 500;
-            if ($exception->getCode() !== 0) {
-                $code = $exception->getCode();
+            $exception_code = (int) $exception->getCode();
+            if ($exception_code !== 0) {
+                $code = $exception_code;
             }
-            RequestInstrumentation::increment($code);
-            $this->logger->error('Caught exception', $exception);
+            $this->request_instrumentation->increment($code);
+            $this->logger->error('Caught exception', ['exception' => $exception]);
             $this->error_rendering->rendersErrorWithException(
                 $this->getBurningParrotTheme($request),
                 $request,
@@ -189,10 +200,10 @@ class FrontRouter
         return \ForgeConfig::getCacheDir() . '/web_routes.php';
     }
 
-    public static function restoreOwnership(Logger $logger, Backend $backend): void
+    public static function restoreOwnership(LoggerInterface $logger, Backend $backend): void
     {
         if (file_exists(self::getCacheFile())) {
-            $logger->debug('Restore ownership on '.self::getCacheFile());
+            $logger->debug('Restore ownership on ' . self::getCacheFile());
             $backend->changeOwnerGroupMode(
                 self::getCacheFile(),
                 \ForgeConfig::getApplicationUserLogin(),
@@ -203,7 +214,6 @@ class FrontRouter
     }
 
     /**
-     * @param HTTPRequest $request
      * @param             $handler
      * @param array       $route_info
      * @throws ForbiddenException

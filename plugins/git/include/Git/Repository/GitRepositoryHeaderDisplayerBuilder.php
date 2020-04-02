@@ -34,7 +34,6 @@ use Git_PermissionsDao;
 use Git_RemoteServer_Dao;
 use Git_RemoteServer_GerritServerFactory;
 use Git_SystemEventManager;
-use GitBackendLogger;
 use GitDao;
 use GitPermissionsManager;
 use GitRepositoryFactory;
@@ -63,7 +62,7 @@ class GitRepositoryHeaderDisplayerBuilder
         return new GitRepositoryHeaderDisplayer(
             $this->getHeaderRenderer($git_plugin),
             $this->getRepositoryHeaderPresenterBuilder($git_plugin, $selected_tab),
-            $this->getIncludeAssets($git_plugin),
+            $this->getIncludeAssets(),
             EventManager::instance()
         );
     }
@@ -153,7 +152,7 @@ class GitRepositoryHeaderDisplayerBuilder
             new \Tuleap\Git\Driver\GerritHTTPClientFactory(HttpClientFactory::createClient()),
             \Tuleap\Http\HTTPFactoryBuilder::requestFactory(),
             \Tuleap\Http\HTTPFactoryBuilder::streamFactory(),
-            new GitBackendLogger()
+            \BackendLogger::getDefaultLogger(\GitPlugin::LOG_IDENTIFIER),
         );
     }
 
@@ -174,13 +173,12 @@ class GitRepositoryHeaderDisplayerBuilder
         );
     }
 
-    private function getIncludeAssets(Plugin $git_plugin)
+    private function getIncludeAssets(): IncludeAssets
     {
-        $include_assets = new IncludeAssets(
-            __DIR__ . '/../../../www/assets',
-            $git_plugin->getPluginPath() . '/assets'
+        return new IncludeAssets(
+            __DIR__ . '/../../../../../src/www/assets/git',
+            '/assets/git'
         );
-        return $include_assets;
     }
 
     private function getMirrorDataMapper()

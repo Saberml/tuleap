@@ -18,7 +18,7 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class Tracker_Action_CreateArtifact_ProtectedToPublic extends Tracker_Action_CreateArtifact
 {
@@ -60,7 +60,6 @@ abstract class Tracker_Action_CreateArtifactTest extends TuleapTestCase
         $this->action = new Tracker_Action_CreateArtifact_ProtectedToPublic(
             $this->tracker,
             $this->artifact_factory,
-            $this->tracker_factory,
             $this->formelement_factory
         );
     }
@@ -79,7 +78,7 @@ class Tracker_Action_CreateArtifact_RedirectUrlTest extends Tracker_Action_Creat
         $request_data = array();
         $tracker_id   = 20;
         $redirect_uri = $this->getRedirectUrlFor($request_data, $tracker_id, null);
-        $this->assertEqual(TRACKER_BASE_URL."/?tracker=$tracker_id", $redirect_uri->toUrl());
+        $this->assertEqual(TRACKER_BASE_URL . "/?tracker=$tracker_id", $redirect_uri->toUrl());
     }
 
     public function itStaysOnTheCurrentArtifactWhen_submitAndStay_isSpecified()
@@ -87,7 +86,7 @@ class Tracker_Action_CreateArtifact_RedirectUrlTest extends Tracker_Action_Creat
         $request_data = array('submit_and_stay' => true);
         $artifact_id  = 66;
         $redirect_uri = $this->getRedirectUrlFor($request_data, null, $artifact_id);
-        $this->assertEqual(TRACKER_BASE_URL."/?aid=$artifact_id", $redirect_uri->toUrl());
+        $this->assertEqual(TRACKER_BASE_URL . "/?aid=$artifact_id", $redirect_uri->toUrl());
     }
 
     public function itRedirectsToNewArtifactCreationWhen_submitAndContinue_isSpecified()
@@ -127,7 +126,7 @@ class Tracker_Action_CreateArtifact_RedirectToParentCreationTest extends Tracker
     {
         parent::setUp();
         $this->tracker_id   = 999;
-        $this->current_user = aUser()->build();
+        $this->current_user = new PFUser(['language_id' => 'en']);
         $this->new_artifact = aMockArtifact()->withId(123)->build();
 
         $this->hierarchy = \Mockery::spy(\Tracker_Hierarchy::class);

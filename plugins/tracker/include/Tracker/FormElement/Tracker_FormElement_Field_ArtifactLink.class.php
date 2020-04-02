@@ -114,7 +114,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
             $value = $this->getDefaultValue();
         }
         $html .= '<input type="text"
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML) .'" autocomplete="off" />';
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML) . '" autocomplete="off" />';
         $html .= '<br />';
         $html .= '<a href="#">bug #123</a><br />';
         $html .= '<a href="#">bug #321</a><br />';
@@ -125,13 +125,13 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     /**
      * Display the field value as a criteria
      *
-     * @param Tracker_ReportCriteria $criteria
+     * @param Tracker_Report_Criteria $criteria
      *
      * @return string
      */
     public function fetchCriteriaValue($criteria)
     {
-        $html = '<input type="text" name="criteria['. $this->id .']" id="tracker_report_criteria_'. $this->id .'" value="';
+        $html = '<input type="text" name="criteria[' . $this->id . ']" id="tracker_report_criteria_' . $this->id . '" value="';
         if ($criteria_value = $this->getCriteriaValue($criteria)) {
             $hp = Codendi_HTMLPurifier::instance();
             $html .= $hp->purify($criteria_value, CODENDI_PURIFIER_CONVERT_HTML);
@@ -244,7 +244,6 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     /**
      * @see Tracker_FormElement_Field::getFieldDataFromRESTValue()
      * @param array $value
-     * @param Tracker_Artifact $artifact
      * @return array
      * @throws Exception
      */
@@ -287,7 +286,6 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     /**
      * @param array $submitted_ids
      * @param array $submitted_values
-     * @param Tracker_Artifact|null $artifact
      *
      * @return array
      */
@@ -311,7 +309,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         }
 
         $prefill_parent = '';
-        $name           = 'artifact['. $this->id .']';
+        $name           = 'artifact[' . $this->id . ']';
         $current_user   = $this->getCurrentUser();
         $can_create     = false;
 
@@ -321,7 +319,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     public function fetchSubmitForOverlay(array $submitted_values)
     {
         $prefill_parent = '';
-        $name           = 'artifact['. $this->id .']';
+        $name           = 'artifact[' . $this->id . ']';
         $parent_tracker = $this->getTracker()->getParent();
         $current_user   = $this->getCurrentUser();
         $can_create     = false;
@@ -355,7 +353,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
      * You can join on 'c' which is a pseudo table used to retrieve
      * the last changeset of all artifacts.
      *
-     * @param Tracker_ReportCriteria $criteria
+     * @param Tracker_Report_Criteria $criteria
      *
      * @return string
      */
@@ -365,12 +363,12 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         if ($this->isUsed()) {
             //Only filter query if criteria is valuated
             if ($criteria_value = $this->getCriteriaValue($criteria)) {
-                $a = 'A_'. $this->id;
-                $b = 'B_'. $this->id;
+                $a = 'A_' . $this->id;
+                $b = 'B_' . $this->id;
                 return " INNER JOIN tracker_changeset_value AS $a ON ($a.changeset_id = c.id AND $a.field_id = $this->id )
                          INNER JOIN tracker_changeset_value_artifactlink AS $b ON (
                             $b.changeset_value_id = $a.id
-                            AND ". $this->buildMatchExpression("$b.artifact_id", $criteria_value) ."
+                            AND " . $this->buildMatchExpression("$b.artifact_id", $criteria_value) . "
                          ) ";
             }
         }
@@ -379,7 +377,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     protected $pattern = '[+\-]*[0-9]+';
     protected function cast($value)
     {
-        return (int)$value;
+        return (int) $value;
     }
     protected function buildMatchExpression($field_name, $criteria_value)
     {
@@ -387,23 +385,23 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         $matches = array();
         if (preg_match('/\/(.*)\//', $criteria_value, $matches)) {
             // If it is sourrounded by /.../ then assume a regexp
-            $expr = $field_name." RLIKE ".$this->getCriteriaDao()->da->quoteSmart($matches[1]);
+            $expr = $field_name . " RLIKE " . $this->getCriteriaDao()->da->quoteSmart($matches[1]);
         }
         if (!$expr) {
             $matches = array();
             if (preg_match("/^(<|>|>=|<=)\s*($this->pattern)\$/", $criteria_value, $matches)) {
                 // It's < or >,  = and a number then use as is
-                $matches[2] = (string)($this->cast($matches[2]));
-                $expr = $field_name.' '.$matches[1].' '.$matches[2];
+                $matches[2] = (string) ($this->cast($matches[2]));
+                $expr = $field_name . ' ' . $matches[1] . ' ' . $matches[2];
             } elseif (preg_match("/^($this->pattern)\$/", $criteria_value, $matches)) {
                 // It's a number so use  equality
                 $matches[1] = $this->cast($matches[1]);
-                $expr = $field_name.' = '.$matches[1];
+                $expr = $field_name . ' = ' . $matches[1];
             } elseif (preg_match("/^($this->pattern)\s*-\s*($this->pattern)\$/", $criteria_value, $matches)) {
                 // it's a range number1-number2
-                $matches[1] = (string)($this->cast($matches[1]));
-                $matches[2] = (string)($this->cast($matches[2]));
-                $expr = $field_name.' >= '.$matches[1].' AND '.$field_name.' <= '. $matches[2];
+                $matches[1] = (string) ($this->cast($matches[1]));
+                $matches[2] = (string) ($this->cast($matches[2]));
+                $expr = $field_name . ' >= ' . $matches[1] . ' AND ' . $field_name . ' <= ' . $matches[2];
             } else {
                 // Invalid syntax - no condition
                 $expr = '1';
@@ -415,7 +413,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     /**
      * Get the "where" statement to allow search with this field
      *
-     * @param Tracker_ReportCriteria $criteria
+     * @param Tracker_Report_Criteria $criteria
      *
      * @return string
      */
@@ -454,10 +452,10 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         if ($display_selector) {
             $html .= '<label>';
             $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'formelement_artifactlink_choose_parent', $purifier->purify($parent_tracker->getItemName()));
-            $html .= '<select name="'. $purifier->purify($name) .'[parent]">';
-            $html .= '<option value="">'. $GLOBALS['Language']->getText('global', 'please_choose_dashed') .'</option>';
+            $html .= '<select name="' . $purifier->purify($name) . '[parent]">';
+            $html .= '<option value="">' . $GLOBALS['Language']->getText('global', 'please_choose_dashed') . '</option>';
             if ($can_create) {
-                $html .= '<option value="'.self::CREATE_NEW_PARENT_VALUE.'">'. $GLOBALS['Language']->getText('plugin_tracker_artifact', 'formelement_artifactlink_create_new_parent') .'</option>';
+                $html .= '<option value="' . self::CREATE_NEW_PARENT_VALUE . '">' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'formelement_artifactlink_create_new_parent') . '</option>';
             }
             $html .= $this->fetchArtifactParentsOptions($prefill_parent, $label, $possible_parents);
             $html .= '</select>';
@@ -474,13 +472,13 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         $purifier = Codendi_HTMLPurifier::instance();
         $html     = '';
         if ($possible_parents) {
-            $html .= '<optgroup label="'. $purifier->purify($label) .'">';
+            $html .= '<optgroup label="' . $purifier->purify($label) . '">';
             foreach ($possible_parents as $possible_parent) {
                 $selected = '';
                 if ($possible_parent->getId() == $prefill_parent) {
                     $selected = ' selected="selected"';
                 }
-                $html .= '<option value="'. $possible_parent->getId() .'"'.$selected.'>'. $possible_parent->getXRefAndTitle() .'</option>';
+                $html .= '<option value="' . $possible_parent->getId() . '"' . $selected . '>' . $possible_parent->getXRefAndTitle() . '</option>';
             }
             $html .= '</optgroup>';
         }
@@ -539,12 +537,12 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
             )
         );
 
-        $html .= '<h5 class="artifack_link_subtitle">'.$this->getWidgetTitle($reverse_artifact_links).'</h5>';
+        $html .= '<h5 class="artifack_link_subtitle">' . $this->getWidgetTitle($reverse_artifact_links) . '</h5>';
 
         $html_name_new = '';
 
         if ($name) {
-            $html_name_new = 'name="'. $name .'[new_values]"';
+            $html_name_new = 'name="' . $name . '[new_values]"';
         }
 
         $hp              = Codendi_HTMLPurifier::instance();
@@ -556,11 +554,11 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
             $html            .= '<section class="tracker_formelement_read_and_edit_edition_section tracker-form-element-artifactlink-section ' . $hp->purify($classes) . '">';
             $html            .= '<div>';
             $html            .= '<div><span class="input-append" style="display:inline;"><input type="text"
-                             '. $html_name_new .'
+                             ' . $html_name_new . '
                              class="tracker-form-element-artifactlink-new"
                              size="40"
-                             data-preview-label="'. $hp->purify(dgettext('tuleap-tracker', 'Preview')) .'"
-                             value="'.  $hp->purify($prefill_new_values, CODENDI_PURIFIER_CONVERT_HTML)  .'"
+                             data-preview-label="' . $hp->purify(dgettext('tuleap-tracker', 'Preview')) . '"
+                             value="' .  $hp->purify($prefill_new_values, CODENDI_PURIFIER_CONVERT_HTML)  . '"
                              title="' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'formelement_artifactlink_help') . '" />';
             if ($artifact->getTracker()->isProjectAllowedToUseNature()) {
                 $natures        = $this->getNaturePresenterFactory()->getAllUsableTypesInProject($artifact->getTracker()->getProject());
@@ -574,7 +572,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
                 }
                 $html          .= $this->getTemplateRenderer()->renderToString(
                     'artifactlink-nature-selector',
-                    new NatureSelectorPresenter($natures_presenter, $name .'[nature]', 'tracker-form-element-artifactlink-new nature-selector')
+                    new NatureSelectorPresenter($natures_presenter, $name . '[nature]', 'tracker-form-element-artifactlink-new nature-selector')
                 );
             }
             $html .= '</span>';
@@ -591,7 +589,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
             $html .= '</section>'; // end of tracker_formelement_read_and_edit_edition_section
         }
 
-        $html .= '<div class="tracker-form-element-artifactlink-list '.$read_only_class.'">';
+        $html .= '<div class="tracker-form-element-artifactlink-list ' . $read_only_class . '">';
         if ($artifact_links_to_render->hasArtifactLinksToDisplay()) {
             $this_project_id = $this->getTracker()->getProject()->getGroupId();
             foreach ($artifact_links_to_render->getArtifactLinksForPerTrackerDisplay() as $artifact_links_per_tracker) {
@@ -609,11 +607,11 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
 
                 $project_name = '';
                 if ($project->getGroupId() != $this_project_id) {
-                    $project_name = ' (<abbr title="'. $hp->purify($project->getPublicName(), CODENDI_PURIFIER_CONVERT_HTML) .'">';
+                    $project_name = ' (<abbr title="' . $hp->purify($project->getPublicName(), CODENDI_PURIFIER_CONVERT_HTML) . '">';
                     $project_name .= $hp->purify($project->getUnixName(), CODENDI_PURIFIER_CONVERT_HTML);
                     $project_name .= '</abbr>)';
                 }
-                $html   .= '<h2 class="tracker-form-element-artifactlink-tracker_'. $tracker->getId() .'">';
+                $html   .= '<h2 class="tracker-form-element-artifactlink-tracker_' . $tracker->getId() . '">';
                 $html   .= $hp->purify($tracker->getName(), CODENDI_PURIFIER_CONVERT_HTML) . $project_name;
                 $html   .= '</h2>';
 
@@ -757,17 +755,17 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
                             // looking for the first table renderer
                             foreach ($renderers as $renderer) {
                                 if ($renderer->getType() === Tracker_Report_Renderer::TABLE) {
-                                    $key = $this->id .'_'. $report->id .'_'. $renderer->getId();
+                                    $key = $this->id . '_' . $report->id . '_' . $renderer->getId();
                                     $result[$key] = $renderer->fetchAsArtifactLink($matching_ids, $this->getId(), $read_only, $is_reverse, $prefill_removed_values, $prefill_edited_natures, $only_rows);
                                     $head = '<div class="tracker-form-element-artifactlink-trackerpanel">';
 
                                     $project_name = '';
                                     if ($project->getGroupId() != $this_project_id) {
-                                        $project_name = ' (<abbr title="'. $hp->purify($project->getPublicName(), CODENDI_PURIFIER_CONVERT_HTML) .'">';
+                                        $project_name = ' (<abbr title="' . $hp->purify($project->getPublicName(), CODENDI_PURIFIER_CONVERT_HTML) . '">';
                                         $project_name .= $hp->purify($project->getUnixName(), CODENDI_PURIFIER_CONVERT_HTML);
                                         $project_name .= '</abbr>)';
                                     }
-                                    $head .= '<h2 class="tracker-form-element-artifactlink-tracker_'. $tracker->getId() .'">';
+                                    $head .= '<h2 class="tracker-form-element-artifactlink-tracker_' . $tracker->getId() . '">';
                                     $head .= $hp->purify($tracker->getName(), CODENDI_PURIFIER_CONVERT_HTML) . $project_name;
                                     $head .= '</h2>';
                                     //if ($artifact) {
@@ -910,13 +908,13 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         $html = '';
         $html_name_new = '';
         if ($name) {
-            $html_name_new = 'name="'. $name .'[new_values]"';
+            $html_name_new = 'name="' . $name . '[new_values]"';
         }
         $hp = Codendi_HTMLPurifier::instance();
         if (!$read_only) {
             $html .= '<input type="text"
-                             '. $html_name_new .'
-                             value="'.  $hp->purify($prefill_new_values, CODENDI_PURIFIER_CONVERT_HTML)  .'"
+                             ' . $html_name_new . '
+                             value="' .  $hp->purify($prefill_new_values, CODENDI_PURIFIER_CONVERT_HTML)  . '"
                              title="' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'formelement_artifactlink_help') . '" />';
             $html .= '<br />';
         }
@@ -982,7 +980,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         }
 
         $read_only      = false;
-        $name           = 'artifact['. $this->id .']';
+        $name           = 'artifact[' . $this->id . ']';
         $from_aid       = $artifact->getId();
         $prefill_parent = '';
 
@@ -1144,7 +1142,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
             $prefill_edited_natures = $submitted_values[$this->getId()]['natures'];
         }
         $read_only              = false;
-        $name                   = 'artifact['. $this->id .']';
+        $name                   = 'artifact[' . $this->id . ']';
         $prefill_removed_values = array();
         $artifact_links         = array();
 
@@ -1187,7 +1185,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         $html = '';
         $prefill_new_values     = dgettext('tuleap-tracker', 'Unchanged');
         $read_only              = false;
-        $name                   = 'artifact['. $this->id .']';
+        $name                   = 'artifact[' . $this->id . ']';
         $artifact_links         = array();
 
         return $this->fetchHtmlWidgetMasschange($name, $artifact_links, $prefill_new_values, $read_only);
@@ -1197,7 +1195,6 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     /**
      * Fetch the html code to display the field value in tooltip
      *
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue $value The changeset value of the field
      *
      * @return string
@@ -1272,7 +1269,7 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
     /**
      * Fetch the value to display changes in followups
      *
-     * @param Tracker_ $artifact
+     * @param Tracker_Artifact $artifact
      * @param array $from the value(s) *before*
      * @param array $to   the value(s) *after*
      *
@@ -1432,33 +1429,21 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
         return $old_value->hasChanges($submitted_value);
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'artifact_link_label');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'artifact_link_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/artifact-chain.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/artifact-chain--plus.png');
@@ -1517,7 +1502,6 @@ class Tracker_FormElement_Field_ArtifactLink extends Tracker_FormElement_Field
      * if empty new values and not empty last changeset values and not empty removed values have the same size: empty
      *
      * @param array            $submitted_value
-     * @param Tracker_Artifact $artifact
      *
      * @return bool true if the submitted value is empty
      */

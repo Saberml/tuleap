@@ -52,10 +52,10 @@ class SystemEvent_UGROUP_MODIFY extends SystemEvent
         } else {
             list($group_id, $ugroup_id) = $this->getParametersAsArray();
         }
-        $txt .= 'project: '. $this->verbalizeProjectId($group_id, $with_link) .', ugroup: #'. $ugroup_id;
+        $txt .= 'project: ' . $this->verbalizeProjectId($group_id, $with_link) . ', ugroup: #' . $ugroup_id;
 
         if ($ugroup_name) {
-            $txt .= ', rename: '. $ugroup_old_name .' => '. $ugroup_name;
+            $txt .= ', rename: ' . $ugroup_old_name . ' => ' . $ugroup_name;
         }
 
         return $txt;
@@ -101,6 +101,11 @@ class SystemEvent_UGROUP_MODIFY extends SystemEvent
         }
 
         if ($ugroup_name !== null && $ugroup_old_name !== null) {
+            if ($project->usesSVN()) {
+                $backend_svn = $this->getBackend('SVN');
+                assert($backend_svn instanceof BackendSVN);
+                $backend_svn->updateSVNAccess($project_id, $project->getSVNRootPath(), $ugroup_name, $ugroup_old_name);
+            }
             EventManager::instance()->processEvent(
                 Event::UGROUP_RENAME,
                 [

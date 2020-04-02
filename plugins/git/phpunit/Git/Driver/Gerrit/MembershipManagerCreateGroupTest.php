@@ -90,7 +90,7 @@ class MembershipManagerCreateGroupTest extends TestCase
 
         $this->remote_server_factory  = \Mockery::spy(\Git_RemoteServer_GerritServerFactory::class);
         $this->git_repository_factory = \Mockery::spy(\GitRepositoryFactory::class);
-        $this->logger                 = \Mockery::spy(\Logger::class);
+        $this->logger                 = \Mockery::spy(\Psr\Log\LoggerInterface::class);
         $this->dao                    = \Mockery::spy(Git_Driver_Gerrit_MembershipDao::class);
         $this->user1                  = \Mockery::spy(\PFUser::class);
         $this->user2                  = \Mockery::spy(\PFUser::class);
@@ -141,8 +141,14 @@ class MembershipManagerCreateGroupTest extends TestCase
         $this->driver->shouldReceive('createGroup')->with($this->remote_server, 'w3c/coders', 'w3c/project_admins')->once();
         $this->driver->shouldReceive('createGroup')->andReturns('w3c/coders');
 
-        $mary = (new \UserTestBuilder())->withId(12)->build();
-        $bob  = (new \UserTestBuilder())->withId(25)->build();
+        $mary = new PFUser([
+            'language_id' => 'en',
+            'user_id' => 12
+        ]);
+        $bob  = new PFUser([
+            'language_id' => 'en',
+            'user_id' => 25
+        ]);
         $this->ugroup->shouldReceive('getMembers')->andReturns(array($mary, $bob));
 
         $this->membership_manager->shouldReceive('addUserToGroupWithoutFlush')->times(2);

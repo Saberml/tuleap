@@ -21,7 +21,9 @@ import {
     getCurrentMilestones as getAllCurrentMilestones,
     getMilestonesContent as getContent,
     getNbOfClosedSprints,
-    getOpenSprints
+    getOpenSprints,
+    getNbOfPastRelease,
+    getLastRelease as getLast,
 } from "../api/rest-querier";
 
 import { Context, MilestoneContent, MilestoneData, TrackerNumberArtifacts } from "../type";
@@ -35,7 +37,7 @@ async function getCurrentMilestones(context: Context): Promise<void> {
         milestones = await getAllCurrentMilestones({
             project_id,
             limit: context.state.limit,
-            offset: context.state.offset
+            offset: context.state.offset,
         });
     }
     return context.commit("setCurrentMilestones", milestones);
@@ -54,7 +56,7 @@ export function getEnhancedMilestones(
             ...milestone,
             total_sprint,
             total_closed_sprint,
-            open_sprints
+            open_sprints,
         };
     };
     return milestone_data();
@@ -63,11 +65,41 @@ export function getEnhancedMilestones(
 export async function getMilestones(context: Context): Promise<void> {
     try {
         context.commit("setIsLoading", true);
+        await getNumberOfPastRelease(context);
         await getCurrentMilestones(context);
+        await getLastRelease(context);
     } catch (error) {
         await handleErrorMessage(context, error);
     } finally {
         context.commit("setIsLoading", false);
+    }
+}
+
+async function getNumberOfPastRelease(context: Context): Promise<void> {
+    context.commit("resetErrorMessage");
+    const project_id = context.state.project_id;
+    let total = 0;
+    if (project_id !== null) {
+        total = await getNbOfPastRelease({
+            project_id,
+            limit: context.state.limit,
+            offset: context.state.offset,
+        });
+    }
+
+    return context.commit("setNbPastReleases", total);
+}
+
+async function getLastRelease(context: Context): Promise<void> {
+    context.commit("resetErrorMessage");
+    const project_id = context.state.project_id;
+    let last_milestone = null;
+    if (project_id !== null) {
+        last_milestone = await getLast(project_id, context.state.nb_past_releases);
+    }
+
+    if (last_milestone) {
+        context.commit("setLastRelease", last_milestone[0]);
     }
 }
 
@@ -103,16 +135,16 @@ function getNumberArtifactsInTrackerOfAgileDashboard(
 ): void {
     const trackers_with_number_artifacts: TrackerNumberArtifacts[] = [];
 
-    context.state.trackers_agile_dashboard.forEach(tracker => {
+    context.state.trackers_agile_dashboard.forEach((tracker) => {
         trackers_with_number_artifacts.push({
             ...tracker,
-            total_artifact: 0
+            total_artifact: 0,
         });
     });
 
-    milestone_contents.forEach(content => {
+    milestone_contents.forEach((content) => {
         const tracker_with_number_artifacts = trackers_with_number_artifacts.find(
-            tracker => tracker.id === content.artifact.tracker.id
+            (tracker) => tracker.id === content.artifact.tracker.id
         );
 
         if (tracker_with_number_artifacts) {

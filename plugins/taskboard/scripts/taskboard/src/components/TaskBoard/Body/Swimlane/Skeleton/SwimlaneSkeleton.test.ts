@@ -38,17 +38,17 @@ describe("SwimlaneSkeleton", () => {
                                 { label: "Catch a tiger" },
                                 { label: "By the toe" },
                                 { label: "If he hollers" },
-                                { label: "Let him go" }
-                            ]
-                        }
-                    } as RootState
-                })
-            }
+                                { label: "Let him go" },
+                            ],
+                        },
+                    } as RootState,
+                }),
+            },
         });
 
         expect(
             wrapper
-                .find(".taskboard-cell")
+                .get(".taskboard-cell")
                 .contains(".taskboard-card-parent.taskboard-card-skeleton")
         ).toBe(true);
         const skeletons = wrapper.findAll(ColumnsSkeleton);

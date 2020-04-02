@@ -33,7 +33,6 @@ class Tracker_REST_Artifact_ArtifactValidator
 
     /**
      * @param ArtifactValuesRepresentation[] $values
-     * @param Tracker                        $tracker
      */
     public function getFieldsDataOnCreate(array $values, Tracker $tracker)
     {
@@ -72,7 +71,6 @@ class Tracker_REST_Artifact_ArtifactValidator
 
     /**
      * @param ArtifactValuesRepresentation[] $values
-     * @param Tracker_Artifact               $artifact
      */
     public function getFieldsDataOnUpdate(array $values, Tracker_Artifact $artifact)
     {
@@ -99,7 +97,7 @@ class Tracker_REST_Artifact_ArtifactValidator
             throw new Tracker_FormElement_InvalidFieldException('No \'field_id\' or invalid id in submitted value. Field IDs must be integers');
         }
         if (! isset($indexed_fields[$value['field_id']])) {
-            throw new Tracker_FormElement_InvalidFieldException('Unknown field '.$value['field_id']);
+            throw new Tracker_FormElement_InvalidFieldException('Unknown field ' . $value['field_id']);
         }
         return $indexed_fields[$value['field_id']];
     }

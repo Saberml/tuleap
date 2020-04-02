@@ -19,7 +19,7 @@
   -->
 
 <template>
-    <div class="taskboard-body">
+    <div class="taskboard-body" data-test="taskboard-body">
         <template v-for="swimlane of swimlanes">
             <template v-if="swimlane.card.is_open || are_closed_items_displayed">
                 <collapsed-swimlane
@@ -65,8 +65,8 @@ const swimlane = namespace("swimlane");
         InvalidMappingSwimlane,
         SoloSwimlane,
         SwimlaneSkeleton,
-        CollapsedSwimlane
-    }
+        CollapsedSwimlane,
+    },
 })
 export default class TaskBoardBody extends Vue {
     @State

@@ -52,8 +52,6 @@ class ByFieldController implements DispatchableWithRequest
     /**
      * Is able to process a request routed by FrontRouter
      *
-     * @param HTTPRequest $request
-     * @param BaseLayout  $layout
      * @param array       $variables
      * @return void
      * @throws ForbiddenException
@@ -157,6 +155,6 @@ class ByFieldController implements DispatchableWithRequest
 
     public static function getUrl(\Tracker $tracker) : string
     {
-        return TRACKER_BASE_URL.self::URL.'/'.$tracker->getId();
+        return TRACKER_BASE_URL . self::URL . '/' . $tracker->getId();
     }
 }

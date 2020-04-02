@@ -1,5 +1,5 @@
 <!--
-  - Copyright (c) Enalean, 2018. All Rights Reserved.
+  - Copyright (c) Enalean, 2018 - present. All Rights Reserved.
   -
   - This file is a part of Tuleap.
   -
@@ -33,6 +33,7 @@
                 name="project"
                 v-bind:disabled="is_project_select_disabled"
                 v-model="selected_project"
+                data-test="cross-tracker-selector-project"
             >
                 <option v-for="project of projects" v-bind:value="project" v-bind:key="project.id">
                     {{ project.label }}
@@ -54,9 +55,14 @@
                     name="tracker"
                     v-bind:disabled="is_tracker_select_disabled"
                     v-model="selected_tracker"
+                    data-test="cross-tracker-selector-tracker"
                 >
-                    <option v-bind:value="null" class="cross-tracker-please-choose-option">
-                        {{ please_choose_label }}
+                    <option
+                        v-bind:value="null"
+                        class="cross-tracker-please-choose-option"
+                        v-translate
+                    >
+                        Please choose...
                     </option>
                     <option
                         v-for="tracker of tracker_options"
@@ -72,6 +78,7 @@
                     class="tlp-append tlp-button-primary tlp-button-outline"
                     v-bind:disabled="is_add_button_disabled"
                     v-on:click="addTrackerToSelection"
+                    data-test="cross-tracker-selector-tracker-button"
                 >
                     <i
                         v-if="is_loader_shown"
@@ -91,7 +98,7 @@ import { getTrackersOfProject } from "../api/rest-querier.js";
 export default {
     name: "TrackerSelection",
     props: {
-        selectedTrackers: Array
+        selectedTrackers: Array,
     },
     data() {
         return {
@@ -99,13 +106,10 @@ export default {
             selected_tracker: null,
             projects: [],
             trackers: [],
-            is_loader_shown: false
+            is_loader_shown: false,
         };
     },
     computed: {
-        please_choose_label() {
-            return this.$gettext("Please choose...");
-        },
         is_project_select_disabled() {
             return this.projects.length === 0;
         },
@@ -123,17 +127,17 @@ export default {
                 return {
                     id,
                     label,
-                    disabled: is_already_selected !== undefined
+                    disabled: is_already_selected !== undefined,
                 };
             });
-        }
+        },
     },
     watch: {
-        selected_project: function(new_value) {
+        selected_project: function (new_value) {
             this.selected_tracker = null;
             this.trackers = [];
             this.loadTrackers(new_value.id);
-        }
+        },
     },
     mounted() {
         this.loadProjects();
@@ -171,10 +175,10 @@ export default {
         addTrackerToSelection() {
             this.$emit("trackerAdded", {
                 selected_project: this.selected_project,
-                selected_tracker: this.selected_tracker
+                selected_tracker: this.selected_tracker,
             });
             this.selected_tracker = null;
-        }
-    }
+        },
+    },
 };
 </script>

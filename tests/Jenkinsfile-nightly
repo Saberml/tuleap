@@ -21,7 +21,7 @@ pipeline {
                 }
                 script {
                     actions = load 'sources/tests/actions.groovy'
-                    actions.prepareSources('nexus.enalean.com_readonly')
+                    actions.prepareSources('nexus.enalean.com_readonly', 'github-token-composer')
                 }
             }
         }
@@ -36,7 +36,6 @@ pipeline {
                             post {
                                 always {
                                     junit 'results/ut-phpunit/*/phpunit_tests_results.xml'
-                                    step([$class: 'CloverPublisher', cloverReportDir: 'results/ut-phpunit/php-74/coverage/', cloverReportFileName: 'clover.xml'])
                                 }
                             }
                         }
@@ -74,10 +73,30 @@ pipeline {
                     }
                     post { always { junit 'results/api-rest/*/rest_tests.xml' } }
                 }
+                stage('SOAP') {
+                    stages {
+                        stage('SOAP PHP 7.3 MariaDB 10.3') {
+                            steps { script { actions.runSOAPTests('mariadb103', '73') } }
+                        }
+                        stage('SOAP PHP 7.4 MariaDB 10.3') {
+                            steps { script { actions.runSOAPTests('mariadb103', '74') } }
+                        }
+                        stage('SOAP PHP 7.4 MySQL 5.7') {
+                            steps { script { actions.runSOAPTests('mysql57', '74') } }
+                        }
+                    }
+                    post { always { junit 'results/soap/*/soap_tests.xml' } }
+                }
                 stage('DB Integration') {
                     stages {
-                        stage('DB CentOS 6 PHP 7.3 MariaDB 10.3') {
+                        stage('DB PHP 7.3 MariaDB 10.3') {
                             steps { script { actions.runDBTests('mariadb103', '73') } }
+                        }
+                        stage('DB PHP 7.4 MariaDB 10.3') {
+                            steps { script { actions.runDBTests('mariadb103', '74') } }
+                        }
+                        stage('DB PHP 7.4 MySQL 5.7') {
+                            steps { script { actions.runDBTests('mysql57', '74') } }
                         }
                     }
                     post { always { junit 'results/db/*/db_tests.xml' } }

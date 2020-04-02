@@ -27,7 +27,7 @@ describe("StatusMetadataWithCustomBindingForDocumentUpdate", () => {
     let status_metadata, state, store;
     beforeEach(() => {
         state = {
-            is_item_status_metadata_used: false
+            is_item_status_metadata_used: false,
         };
 
         const store_options = { state };
@@ -38,12 +38,12 @@ describe("StatusMetadataWithCustomBindingForDocumentUpdate", () => {
             return shallowMount(StatusMetadataWithCustomBindingForDocumentUpdate, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
 
-    it(`display status selectbox only when status property is enabled for project`, () => {
+    it(`display status selectbox only when status property is enabled for project`, async () => {
         const wrapper = status_metadata({
             currentlyUpdatedItem: {
                 metadata: [
@@ -51,18 +51,19 @@ describe("StatusMetadataWithCustomBindingForDocumentUpdate", () => {
                         short_name: "status",
                         list_value: [
                             {
-                                id: 100
-                            }
-                        ]
-                    }
+                                id: 100,
+                            },
+                        ],
+                    },
                 ],
                 status: 100,
                 type: TYPE_FILE,
-                title: "title"
-            }
+                title: "title",
+            },
         });
 
         store.state.is_item_status_metadata_used = true;
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.contains("[data-test=document-status-for-item-update]")).toBeTruthy();
     });
@@ -75,15 +76,15 @@ describe("StatusMetadataWithCustomBindingForDocumentUpdate", () => {
                         short_name: "status",
                         list_value: [
                             {
-                                id: 100
-                            }
-                        ]
-                    }
+                                id: 100,
+                            },
+                        ],
+                    },
                 ],
                 status: 100,
                 type: TYPE_FILE,
-                title: "title"
-            }
+                title: "title",
+            },
         });
 
         store.state.is_item_status_metadata_used = false;
@@ -91,7 +92,7 @@ describe("StatusMetadataWithCustomBindingForDocumentUpdate", () => {
         expect(wrapper.contains("[data-test=document-status-for-item-update]")).toBeFalsy();
     });
 
-    it(`Given status value is updated Then the props used for document update is updated`, () => {
+    it(`Given status value is updated Then the props used for document update is updated`, async () => {
         const wrapper = status_metadata({
             currentlyUpdatedItem: {
                 metadata: [
@@ -99,19 +100,20 @@ describe("StatusMetadataWithCustomBindingForDocumentUpdate", () => {
                         short_name: "status",
                         list_value: [
                             {
-                                id: 100
-                            }
-                        ]
-                    }
+                                id: 100,
+                            },
+                        ],
+                    },
                 ],
                 type: TYPE_FILE,
-                title: "title"
-            }
+                title: "title",
+            },
         });
 
         store.state.is_item_status_metadata_used = true;
-
+        await wrapper.vm.$nextTick();
         wrapper.vm.status_value = "approved";
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.contains("[data-test=document-status-for-item-update]")).toBeTruthy();
 

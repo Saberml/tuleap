@@ -22,8 +22,6 @@ declare(strict_types=1);
 
 namespace Tuleap\Tracker\Workflow;
 
-use BackendLogger;
-use Logger;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PermissionsManager;
@@ -116,7 +114,7 @@ class WorkflowFactoryTest extends TestCase
         $transition_factory->shouldReceive('getInstanceFromXML')
             ->with(
                 Mockery::on(function (SimpleXMLElement $val) {
-                    return (string)$val->from_id['REF'] === "null";
+                    return (string) $val->from_id['REF'] === "null";
                 }),
                 $mapping,
                 $this->project
@@ -126,7 +124,7 @@ class WorkflowFactoryTest extends TestCase
         $transition_factory->shouldReceive('getInstanceFromXML')
             ->with(
                 Mockery::on(function (SimpleXMLElement $val) {
-                    return (string)$val->from_id['REF'] === "F32-V0";
+                    return (string) $val->from_id['REF'] === "F32-V0";
                 }),
                 $mapping,
                 $this->project
@@ -136,7 +134,7 @@ class WorkflowFactoryTest extends TestCase
         $transition_factory->shouldReceive('getInstanceFromXML')
             ->with(
                 Mockery::on(function (SimpleXMLElement $val) {
-                    return (string)$val->from_id['REF'] === "F32-V1";
+                    return (string) $val->from_id['REF'] === "F32-V1";
                 }),
                 $mapping,
                 $this->project
@@ -148,7 +146,7 @@ class WorkflowFactoryTest extends TestCase
             Mockery::mock(TrackerFactory::class),
             Mockery::mock(Tracker_FormElementFactory::class),
             Mockery::mock(Tracker_Workflow_Trigger_RulesManager::class),
-            new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG),
+            new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG),
             Mockery::mock(FrozenFieldsDao::class),
             Mockery::mock(StateFactory::class)
         );
@@ -207,7 +205,7 @@ class WorkflowFactoryTest extends TestCase
         $transition_factory->shouldReceive('getInstancesFromStateXML')
             ->with(
                 Mockery::on(function (SimpleXMLElement $state) {
-                    return (string)$state->to_id['REF'] === "F32-V0";
+                    return (string) $state->to_id['REF'] === "F32-V0";
                 }),
                 $mapping,
                 $this->project,
@@ -225,7 +223,7 @@ class WorkflowFactoryTest extends TestCase
             Mockery::mock(TrackerFactory::class),
             Mockery::mock(Tracker_FormElementFactory::class),
             Mockery::mock(Tracker_Workflow_Trigger_RulesManager::class),
-            new WorkflowBackendLogger(Mockery::spy(BackendLogger::class), Logger::DEBUG),
+            new WorkflowBackendLogger(Mockery::spy(\Psr\Log\LoggerInterface::class), \Psr\Log\LogLevel::DEBUG),
             Mockery::mock(FrozenFieldsDao::class),
             $state_factory
         );

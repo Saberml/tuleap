@@ -28,7 +28,7 @@ class Tracker_FormElement_Field_List_Bind_Static_ValueDao extends DataAccessObje
     private $cache_canbedeleted_values = array();
     private $cache_canbehidden_values = array();
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->table_name = 'tracker_field_list_bind_static_value';
@@ -49,7 +49,7 @@ class Tracker_FormElement_Field_List_Bind_Static_ValueDao extends DataAccessObje
         $sql = "SELECT *
                 FROM $this->table_name
                 WHERE field_id = $field_id
-                ORDER BY ". ($is_rank_alpha ? 'label' : 'rank');
+                ORDER BY " . ($is_rank_alpha ? 'label' : 'rank');
         return $this->retrieve($sql);
     }
     public function duplicate($from_value_id, $to_field_id, $by_reference)
@@ -75,7 +75,7 @@ class Tracker_FormElement_Field_List_Bind_Static_ValueDao extends DataAccessObje
         $field_id     = $this->da->escapeInt($field_id);
         $label        = $this->da->quoteSmart($label);
         $description  = $this->da->quoteSmart($description);
-        $rank         = $this->da->escapeInt($this->prepareRanking(0, $field_id, $rank, 'id', 'field_id'));
+        $rank         = $this->da->escapeInt($this->prepareRanking('tracker_field_list_bind_static_value', 0, $field_id, $rank, 'id', 'field_id'));
         $is_hidden    = $this->da->escapeInt($is_hidden);
 
         $sql = "INSERT INTO $this->table_name (field_id, label, description, rank, is_hidden)
@@ -129,7 +129,7 @@ class Tracker_FormElement_Field_List_Bind_Static_ValueDao extends DataAccessObje
         $field_id     = $this->da->escapeInt($field_id);
         $label        = $this->da->quoteSmart($label);
         $description  = $this->da->quoteSmart($description);
-        $rank         = $this->da->escapeInt($this->prepareRanking($id, $field_id, $rank, 'id', 'field_id'));
+        $rank         = $this->da->escapeInt($this->prepareRanking('tracker_field_list_bind_static_value', $id, $field_id, $rank, 'id', 'field_id'));
         $is_hidden    = $this->da->escapeInt($is_hidden);
 
         $sql = "UPDATE $this->table_name
@@ -164,7 +164,7 @@ class Tracker_FormElement_Field_List_Bind_Static_ValueDao extends DataAccessObje
                       AND c.changeset_id = $changeset_id
                       AND c.field_id = $field_id
                      )
-                ORDER BY f.". ($is_rank_alpha ? 'label' : 'rank');
+                ORDER BY f." . ($is_rank_alpha ? 'label' : 'rank');
         return $this->retrieve($sql);
     }
 

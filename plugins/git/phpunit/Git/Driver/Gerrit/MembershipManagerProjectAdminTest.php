@@ -21,7 +21,7 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class MembershipManagerProjectAdminTest extends TestCase
@@ -81,7 +81,7 @@ class MembershipManagerProjectAdminTest extends TestCase
             $this->driver_factory,
             $this->gerrit_user_manager,
             $this->remote_server_factory,
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             \Mockery::spy(\UGroupManager::class),
             $this->project_manager
         );
@@ -109,7 +109,7 @@ class MembershipManagerProjectAdminTest extends TestCase
 
         $this->admin_ugroup->shouldReceive('getNormalizedName')->andReturns('project_admins');
 
-        $gerrit_project_project_admins_group_name = $this->project_name.'/'.'project_admins';
+        $gerrit_project_project_admins_group_name = $this->project_name . '/' . 'project_admins';
         $this->driver->shouldReceive('addUserToGroup')->with($this->remote_server, $this->gerrit_user, $gerrit_project_project_admins_group_name)->once();
         $this->driver->shouldReceive('flushGerritCacheAccounts')->once();
 

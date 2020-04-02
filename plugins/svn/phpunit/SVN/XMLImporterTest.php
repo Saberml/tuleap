@@ -28,7 +28,6 @@ use Project;
 use SimpleXMLElement;
 use Tuleap\GlobalSVNPollution;
 use Tuleap\Project\XML\Import\ImportConfig;
-use Tuleap\SVN\AccessControl\AccessFileHistory;
 use Tuleap\SVN\AccessControl\AccessFileHistoryCreator;
 use Tuleap\SVN\Admin\MailNotificationManager;
 use Tuleap\SVN\Migration\RepositoryCopier;
@@ -86,10 +85,6 @@ final class XMLImporterTest extends TestCase
      */
     private $notification_emails_builder;
     /**
-     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|AccessFileHistory
-     */
-    private $access_file;
-    /**
      * @var \BackendSystem|Mockery\LegacyMockInterface|Mockery\MockInterface
      */
     private $backend_system;
@@ -118,7 +113,7 @@ final class XMLImporterTest extends TestCase
         $this->arpath = vfsStream::setup()->url();
 
         $this->user_manager = \Mockery::spy(\UserManager::class);
-        $this->logger       = \Mockery::spy(\Logger::class);
+        $this->logger       = \Mockery::spy(\Psr\Log\LoggerInterface::class);
         $this->user         = \Mockery::spy(\PFUser::class);
         $this->project      = Mockery::mock(Project::class);
 
@@ -127,7 +122,6 @@ final class XMLImporterTest extends TestCase
         $this->repository_manager          = \Mockery::spy(\Tuleap\SVN\Repository\RepositoryManager::class);
         $this->backend_svn                 = Mockery::mock(\BackendSVN::class);
         $this->backend_system              = \Mockery::spy(\BackendSystem::class);
-        $this->access_file                 = \Mockery::spy(\Tuleap\SVN\AccessControl\AccessFileHistory::class);
         $this->notification_emails_builder = new NotificationsEmailsBuilder();
         $this->repository_copier           = \Mockery::spy(\Tuleap\SVN\Migration\RepositoryCopier::class);
         $this->repository_creator          = Mockery::mock(RepositoryCreator::class);

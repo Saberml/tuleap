@@ -29,16 +29,10 @@ use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
-use Symfony\Component\Process\Process;
 
 class SystemControlCommandDockerCentos7Test extends TestCase
 {
     use MockeryPHPUnitIntegration;
-
-    /**
-     * @var MockInterface|Process
-     */
-    private $process;
     /**
      * @var MockInterface|ProcessFactory
      */
@@ -57,13 +51,12 @@ class SystemControlCommandDockerCentos7Test extends TestCase
     protected function setUp() : void
     {
         $this->root            = vfsStream::setup('slash');
-        $this->process         = \Mockery::mock(Process::class, [ 'isSuccessful' => true, 'getExitCode' => 0 ]);
         $this->process_factory = \Mockery::mock(ProcessFactory::class);
         $this->control_command = new SystemControlCommand($this->process_factory, $this->root->url());
         $this->command_tester  = new CommandTester($this->control_command);
 
         putenv('TLP_SYSTEMCTL=docker-centos7');
-        mkdir($this->root->url().'/etc/cron.d', 0755, true);
+        mkdir($this->root->url() . '/etc/cron.d', 0755, true);
     }
 
     protected function tearDown(): void
@@ -118,7 +111,7 @@ class SystemControlCommandDockerCentos7Test extends TestCase
 
     public function testTuleapCronIsEnabled()
     {
-        copy(__DIR__.'/../../../../src/utils/cron.d/codendi', $this->root->url().'/etc/cron.d/tuleap');
+        copy(__DIR__ . '/../../../../src/utils/cron.d/codendi', $this->root->url() . '/etc/cron.d/tuleap');
 
         $this->command_tester->execute(['action' => 'is-enabled', 'targets' => ['tuleap']]);
 
@@ -127,7 +120,7 @@ class SystemControlCommandDockerCentos7Test extends TestCase
 
     public function testTuleapCronIsDisabled()
     {
-        copy(__DIR__.'/../../../../src/utils/cron.d/codendi-stop', $this->root->url().'/etc/cron.d/tuleap');
+        copy(__DIR__ . '/../../../../src/utils/cron.d/codendi-stop', $this->root->url() . '/etc/cron.d/tuleap');
 
         $this->command_tester->execute(['action' => 'is-enabled', 'targets' => ['tuleap']]);
 
@@ -135,7 +128,6 @@ class SystemControlCommandDockerCentos7Test extends TestCase
     }
 
     /**
-     * @param string $action
      *
      * @testWith [ "mask" ]
      *           [ "is-active"]

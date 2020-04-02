@@ -259,7 +259,7 @@ class ProjectDetailsController
         $description_fields = $this->description_fields_factory->getAllDescriptionFields();
 
         for ($i = 0; $i < sizeof($description_fields); $i++) {
-            $current_form = trim($request->get("form_".$description_fields[$i]["group_desc_id"]));
+            $current_form = trim($request->get("form_" . $description_fields[$i]["group_desc_id"]));
 
             if (($description_fields[$i]['desc_required'] == 1) && (! $current_form)) {
                 $GLOBALS['Response']->addFeedback(Feedback::ERROR, _('Missing Information. PLEASE fill in all required information.'));
@@ -419,7 +419,7 @@ class ProjectDetailsController
             return $parent_project_info;
         }
 
-        $parent_project_info['parent_name'] = $parent->getUnconvertedPublicName();
+        $parent_project_info['parent_name'] = $parent->getPublicName();
 
         if ($current_user->isMember($parent->getId(), 'A')) {
             $url = '?group_id=' . urlencode($parent->getID());
@@ -461,7 +461,7 @@ class ProjectDetailsController
             }
 
             $purified_url  = $purifier->purify($url);
-            $purified_name = $purifier->purify($child->getUnconvertedPublicName());
+            $purified_name = $purifier->purify($child->getPublicName());
             $children_projects[] = '<a href="' . $purified_url . '">' . $purified_name . '</a>';
         }
 
@@ -519,7 +519,7 @@ class ProjectDetailsController
         foreach ($project->getProjectsCreatedFrom() as $subproject) {
             $projects[] = array(
                 'unix_group_name' => $subproject['unix_group_name'],
-                'group_name'      => util_unconvert_htmlspecialchars($subproject['group_name'])
+                'group_name'      => $subproject['group_name']
             );
         }
         return $projects;

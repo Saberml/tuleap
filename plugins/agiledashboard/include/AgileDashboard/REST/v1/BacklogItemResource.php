@@ -299,7 +299,7 @@ class BacklogItemResource extends AuthenticatedResource
      *
      * @param int                                                   $id    Id of the Backlog Item
      * @param \Tuleap\AgileDashboard\REST\v1\OrderRepresentation    $order Order of the children {@from body}
-     * @param array                                                 $add   Ids to add to backlog_items content  {@from body} {@type \Tuleap\REST\v1\BacklogAddRepresentation}
+     * @param array                                                 $add   Ids to add to backlog_items content  {@from body} {@type BacklogAddRepresentation}
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -308,7 +308,6 @@ class BacklogItemResource extends AuthenticatedResource
      */
     protected function patch($id, ?OrderRepresentation $order = null, ?array $add = null)
     {
-
         $artifact = $this->getArtifact($id);
         $user     = $this->getCurrentUser();
         $project  = $artifact->getTracker()->getProject();
@@ -350,7 +349,7 @@ class BacklogItemResource extends AuthenticatedResource
                 $order_validator->validate($order);
 
                 $orderer = ArtifactsRankOrderer::build();
-                $orderer->reorder($order, $id, $project);
+                $orderer->reorder($order, (string) $id, $project);
             }
         } catch (IdsFromBodyAreNotUniqueException $exception) {
             throw new RestException(409, $exception->getMessage());

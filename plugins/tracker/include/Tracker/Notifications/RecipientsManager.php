@@ -210,17 +210,15 @@ class RecipientsManager
     }
 
     /**
-     * @param Tracker_Artifact_Changeset $changeset
      *
      * @return bool
      */
     private function isTrackerInStatusUpdateOnlyNotificationsMode(Tracker_Artifact_Changeset $changeset)
     {
-        return (int)$changeset->getTracker()->getNotificationsLevel() === \Tracker::NOTIFICATIONS_LEVEL_STATUS_CHANGE;
+        return (int) $changeset->getTracker()->getNotificationsLevel() === \Tracker::NOTIFICATIONS_LEVEL_STATUS_CHANGE;
     }
 
     /**
-     * @param Tracker_Artifact_Changeset $changeset
      *
      * @return bool
      */
@@ -235,7 +233,6 @@ class RecipientsManager
     }
 
     /**
-     * @param Tracker_Artifact_Changeset $changeset
      * @param array                      $recipients
      *
      * @return array
@@ -310,7 +307,7 @@ class RecipientsManager
             foreach ($recipient_list['recipients'] as $recipient) {
                 $user = $this->getUserFromRecipientName($recipient);
                 if ($user) {
-                    $user_ids[] = (int)$user->getId();
+                    $user_ids[] = (int) $user->getId();
                 }
             }
         }

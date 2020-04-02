@@ -32,7 +32,7 @@ use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
 use Project;
 use ProjectUGroup;
-use ProjectXMLExporterLogger;
+use Psr\Log\LoggerInterface;
 use SimpleXMLElement;
 use Tuleap\Project\XML\Export\ZipArchive;
 use UGroupManager;
@@ -53,7 +53,7 @@ class XMLMediaWikiExporterTest extends TestCase
      */
     private $language_manager;
     /**
-     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|ProjectXMLExporterLogger
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|LoggerInterface
      */
     private $logger;
     /**
@@ -108,7 +108,7 @@ class XMLMediaWikiExporterTest extends TestCase
         $this->maintenance_wrapper = Mockery::mock(MediawikiMaintenanceWrapper::class);
 
         $this->mediawiki_data_dir = Mockery::mock(MediawikiDataDir::class);
-        $this->logger                   = Mockery::mock(ProjectXMLExporterLogger::class);
+        $this->logger                   = Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->exporter           = new XMLMediaWikiExporter(
             $this->project,
             $this->mediawiki_manager,

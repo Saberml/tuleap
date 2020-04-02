@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) STMicroelectronics 2012. All rights reserved
- * Copyright (c) Enalean, 2016 - 2017. All Rights Reserved.
+ * Copyright (c) Enalean, 2016 - Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -19,13 +19,11 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-use Tuleap\SVN\DiskUsage\Collector as SVNCollector;
-use Tuleap\SVN\DiskUsage\Retriever as SVNRetriever;
-use Tuleap\CVS\DiskUsage\Retriever as CVSRetriever;
-use Tuleap\CVS\DiskUsage\Collector as CVSCollector;
-use Tuleap\CVS\DiskUsage\FullHistoryDao;
-
-require_once 'Statistics_ProjectQuotaDao.class.php';
+use Tuleap\Statistics\DiskUsage\Subversion\Collector as SVNCollector;
+use Tuleap\Statistics\DiskUsage\Subversion\Retriever as SVNRetriever;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\Retriever as CVSRetriever;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\Collector as CVSCollector;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\FullHistoryDao;
 
 /**
  * Management of custom quota by project
@@ -126,7 +124,7 @@ class ProjectQuotaManager
         $exceed_percent        = round(($over_quota_disk_space / $allowed_size), 2) * 100;
         $projectRow            = array(
             'project_unix_name'  => $project->getUnixNameMixedCase(),
-            'project_name'       => $project->getUnconvertedPublicName(),
+            'project_name'       => $project->getPublicName(),
             'project_id'         => $project->getGroupId(),
             'exceed'             => $exceed_percent . '%',
             'disk_quota'         => $usage_output->sizeReadable($allowed_size),
@@ -258,7 +256,7 @@ class ProjectQuotaManager
         $historyDao   = new ProjectHistoryDao(CodendiDataAccess::instance());
         if ($this->dao->deleteCustomQuota($project->getId())) {
             $historyDao->groupAddHistory("restore_default_quota", intval($defaultQuota), $project->getId());
-            $GLOBALS['Response']->addFeedback('info', $GLOBALS['Language']->getText('plugin_statistics', 'quota_deleted', $project->getUnconvertedPublicName()));
+            $GLOBALS['Response']->addFeedback('info', $GLOBALS['Language']->getText('plugin_statistics', 'quota_deleted', $project->getPublicName()));
         } else {
             $GLOBALS['Response']->addFeedback('error', $GLOBALS['Language']->getText('plugin_statistics', 'delete_error'));
         }

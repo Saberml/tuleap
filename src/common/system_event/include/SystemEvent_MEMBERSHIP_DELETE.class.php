@@ -43,14 +43,14 @@ class SystemEvent_MEMBERSHIP_DELETE extends SystemEvent
     {
         $txt = '';
         list($group_id, $user_id) = $this->getParametersAsArray();
-        $txt .= 'project: '. $this->verbalizeProjectId($group_id, $with_link) .', user to add: '. $this->verbalizeUserId($user_id, $with_link);
+        $txt .= 'project: ' . $this->verbalizeProjectId($group_id, $with_link) . ', user to add: ' . $this->verbalizeUserId($user_id, $with_link);
         return $txt;
     }
 
     /**
      * Process stored event
      */
-    function process()
+    public function process()
     {
         list($group_id,$user_id) = $this->getParametersAsArray();
 

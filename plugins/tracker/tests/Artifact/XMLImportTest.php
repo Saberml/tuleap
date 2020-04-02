@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2014 - 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2014 - Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -19,9 +19,10 @@
  */
 
 use Tracker\Artifact\XMLArtifactSourcePlatformExtractor;
+use Tuleap\Project\XML\Import\ExternalFieldsExtractor;
 use Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping;
 
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 abstract class Tracker_Artifact_XMLImportBaseTest extends TuleapTestCase
 {
@@ -70,6 +71,10 @@ abstract class Tracker_Artifact_XMLImportBaseTest extends TuleapTestCase
      * @var \Mockery\MockInterface|CreatedFileURLMapping
      */
     protected $url_mapping;
+    /**
+     * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|ExternalFieldsExtractor
+     */
+    protected $external_field_extractor;
 
     public function setUp()
     {
@@ -89,7 +94,11 @@ abstract class Tracker_Artifact_XMLImportBaseTest extends TuleapTestCase
             aStringField()->withId(50)->withProperty('maxchars', 'string', '0')->build()
         );
 
-        $this->john_doe = aUser()->withId(200)->withUserName('john_doe')->build();
+        $this->john_doe = new PFUser([
+            'user_id' => 200,
+            'language_id' => 'en',
+            'user_name' => 'john_doe'
+        ]);
         $this->user_manager = \Mockery::spy(\UserManager::class);
         stub($this->user_manager)->getUserByIdentifier('john_doe')->returns($this->john_doe);
         stub($this->user_manager)->getUserAnonymous()->returns(new PFUser(array('user_id' => 0)));
@@ -104,7 +113,7 @@ abstract class Tracker_Artifact_XMLImportBaseTest extends TuleapTestCase
 
         $this->static_value_dao = \Mockery::spy(\Tracker_FormElement_Field_List_Bind_Static_ValueDao::class);
 
-        $this->logger = \Mockery::spy(\Logger::class);
+        $this->logger = \Mockery::spy(\Psr\Log\LoggerInterface::class);
 
         $this->response = \Mockery::spy(\Response::class);
         $GLOBALS['Response'] = $this->response;
@@ -112,6 +121,9 @@ abstract class Tracker_Artifact_XMLImportBaseTest extends TuleapTestCase
         $this->rng_validator = \Mockery::spy(\XML_RNGValidator::class);
 
         $this->url_mapping = \Mockery::mock(CreatedFileURLMapping::class);
+
+        $this->external_field_extractor = Mockery::mock(ExternalFieldsExtractor::class);
+        $this->external_field_extractor->shouldReceive('extractExternalFieldsFromArtifact');
 
         $this->importer = new Tracker_Artifact_XMLImport(
             $this->rng_validator,
@@ -126,7 +138,8 @@ abstract class Tracker_Artifact_XMLImportBaseTest extends TuleapTestCase
             \Mockery::spy(\Tuleap\Tracker\FormElement\Field\ArtifactLink\Nature\NatureDao::class),
             Mockery::spy(XMLArtifactSourcePlatformExtractor::class),
             Mockery::spy(\Tuleap\Tracker\Artifact\ExistingArtifactSourceIdFromTrackerExtractor::class),
-            Mockery::spy(\Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao::class)
+            Mockery::spy(\Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao::class),
+            $this->external_field_extractor
         );
     }
 }
@@ -156,7 +169,8 @@ class Tracker_Artifact_XMLImport_ZipArchiveTest extends Tracker_Artifact_XMLImpo
                 \Mockery::spy(\Tuleap\Tracker\FormElement\Field\ArtifactLink\Nature\NatureDao::class),
                 Mockery::spy(XMLArtifactSourcePlatformExtractor::class),
                 Mockery::spy(\Tuleap\Tracker\Artifact\ExistingArtifactSourceIdFromTrackerExtractor::class),
-                Mockery::spy(\Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao::class)
+                Mockery::spy(\Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao::class),
+                $this->external_field_extractor
             ]
         )
             ->makePartial()
@@ -521,7 +535,7 @@ class Tracker_Artifact_XMLImport_NoFieldTest extends Tracker_Artifact_XMLImportB
 
         $this->artifact_creator->shouldReceive('createBare')->once()->andReturn($artifact);
 
-        expect($this->logger)->warn()->once();
+        $this->logger->shouldReceive('log')->with(\Psr\Log\LogLevel::WARNING, Mockery::any(), Mockery::any())->once();
 
         $this->importer->importFromXML(
             $this->tracker,
@@ -558,13 +572,14 @@ class Tracker_Artifact_XMLImport_UserTest extends Tracker_Artifact_XMLImportBase
             $this->formelement_factory,
             $this->xml_import_helper,
             $this->static_value_dao,
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             false,
             \Mockery::spy(\Tracker_ArtifactFactory::class),
             \Mockery::spy(\Tuleap\Tracker\FormElement\Field\ArtifactLink\Nature\NatureDao::class),
             Mockery::spy(XMLArtifactSourcePlatformExtractor::class),
             Mockery::spy(\Tuleap\Tracker\Artifact\ExistingArtifactSourceIdFromTrackerExtractor::class),
-            Mockery::spy(\Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao::class)
+            Mockery::spy(\Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao::class),
+            $this->external_field_extractor
         );
 
         $this->xml_mapping = new TrackerXmlFieldsMapping_InSamePlatform();
@@ -1162,7 +1177,7 @@ class Tracker_Artifact_XMLImport_OneArtifactWithAttachementTest extends Tracker_
                 </artifact>
             </artifacts>
         ');
-        touch($this->extraction_path.'/34_File33.png');
+        touch($this->extraction_path . '/34_File33.png');
 
         $this->artifact->shouldReceive('getId')->andReturn(101);
         $this->artifact->shouldReceive('getTracker')->andReturn(Mockery::spy(Tracker::class));
@@ -1329,8 +1344,8 @@ class Tracker_Artifact_XMLImport_OneArtifactWithMultipleAttachementsTest extends
                 </artifact>
             </artifacts>
         ');
-        touch($this->extraction_path.'/34_File33.png');
-        touch($this->extraction_path.'/34_File34.pdf');
+        touch($this->extraction_path . '/34_File33.png');
+        touch($this->extraction_path . '/34_File34.pdf');
 
         $this->xml_mapping = new TrackerXmlFieldsMapping_InSamePlatform();
     }
@@ -1421,8 +1436,8 @@ class Tracker_Artifact_XMLImport_OneArtifactWithMultipleAttachementsAndChangeset
                 </artifact>
             </artifacts>
         ');
-        touch($this->extraction_path.'/34_File33.png');
-        touch($this->extraction_path.'/34_File34.pdf');
+        touch($this->extraction_path . '/34_File33.png');
+        touch($this->extraction_path . '/34_File34.pdf');
 
         $this->xml_mapping = new TrackerXmlFieldsMapping_InSamePlatform();
     }
@@ -1545,7 +1560,7 @@ class Tracker_Artifact_XMLImport_CCListTest extends Tracker_Artifact_XMLImportBa
                 Mockery::any(),
                 Mockery::any(),
                 Mockery::on(function ($data) {
-                    return $data[ $this->cc_field_id] === '!112,!113';
+                    return $data[$this->cc_field_id] === '!112,!113';
                 }),
                 Mockery::any(),
                 Mockery::any(),
@@ -2051,8 +2066,17 @@ class Tracker_Artifact_XMLImport_UserMultiSelectboxTest extends Tracker_Artifact
               </artifact>
             </artifacts>');
 
-        $this->jeanne = aUser()->withId(101)->withUserName('jeanne')->build();
-        $this->serge  = aUser()->withId(102)->withUserName('serge')->build();
+        $this->jeanne = new PFUser([
+            'user_id' => 101,
+            'language_id' => 'en',
+            'user_name' => 'jeanne'
+        ]);
+
+        $this->serge = new PFUser([
+            'user_id' => 102,
+            'language_id' => 'en',
+            'user_name' => 'serge'
+        ]);
 
         stub($this->user_manager)->getUserByIdentifier('jeanne')->returns($this->jeanne);
         stub($this->user_manager)->getUserByIdentifier('serge')->returns($this->serge);
@@ -2247,7 +2271,7 @@ class Tracker_Artifact_XMLImport_ArtifactLinkTest extends Tracker_Artifact_XMLIm
         $artlink_strategy = \Mockery::mock(\Tracker_Artifact_XMLImport_XMLImportFieldStrategyArtifactLink::class)->makePartial()->shouldAllowMockingProtectedMethods();
         stub($artlink_strategy)->getLastChangeset()->returns(false);
 
-        expect($this->logger)->error()->count(1);
+        $this->logger->shouldReceive('log')->with(\Psr\Log\LogLevel::ERROR, Mockery::any(), Mockery::any())->once();
         $this->importer->importFromXML($this->tracker, $xml_element, $this->extraction_path, $this->xml_mapping, $this->url_mapping, $this->config);
     }
 }
@@ -2285,7 +2309,7 @@ class Tracker_Artifact_XMLImport_BadDateTest extends Tracker_Artifact_XMLImportB
     {
         expect($this->artifact_creator)->create()->never();
         expect($this->artifact_creator)->createBare()->never();
-        expect($this->logger)->error()->once();
+        $this->logger->shouldReceive('log')->with(\Psr\Log\LogLevel::ERROR, Mockery::any(), Mockery::any())->once();
 
         $this->importer->importFromXML(
             $this->tracker,

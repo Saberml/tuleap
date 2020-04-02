@@ -18,15 +18,15 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Tuleap\Instrument\Prometheus\Prometheus;
+use Tuleap\Request\RequestInstrumentation;
 use Tuleap\Templating\TemplateCache;
 
 require_once __DIR__ . '/../include/pre.php';
 
-\Tuleap\Request\RequestInstrumentation::incrementSoap();
+(new RequestInstrumentation(Prometheus::instance()))->incrementSoap();
 
-define('CODENDI_WS_API_VERSION', file_get_contents(dirname(__FILE__).'/VERSION'));
-
-define('LOG_SOAP_REQUESTS', false);
+define('CODENDI_WS_API_VERSION', file_get_contents(dirname(__FILE__) . '/VERSION'));
 
 // Check if we the server is in secure mode or not.
 $request = HTTPRequest::instance();
@@ -38,17 +38,17 @@ if ($request->isSecure()) {
 
 $default_domain = ForgeConfig::get('sys_default_domain');
 
-$uri = $protocol.'://'.$default_domain;
+$uri = $protocol . '://' . $default_domain;
 
 if ($request->exist('wsdl')) {
-    header("Location: ".$uri."/soap/codendi.wsdl.php?wsdl");
+    header("Location: " . $uri . "/soap/codendi.wsdl.php?wsdl");
     exit();
 }
 
 $event_manager = EventManager::instance();
 
 try {
-    $server = new TuleapSOAPServer($uri.'/soap/codendi.wsdl.php?wsdl', array('trace' => 1));
+    $server = new TuleapSOAPServer($uri . '/soap/codendi.wsdl.php?wsdl', array('trace' => 1));
 
     require_once __DIR__ .  '/../include/utils_soap.php';
     require_once __DIR__ . '/common/session.php';
@@ -67,10 +67,6 @@ try {
 // if POST was used to send this request, we handle it
 // else, we display a list of available methods
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (LOG_SOAP_REQUESTS) {
-        error_log('SOAP Request :');
-        error_log(file_get_contents('php://input'));
-    }
     $xml_security = new XML_Security();
     $xml_security->enableExternalLoadOfEntities();
     $server->handle();

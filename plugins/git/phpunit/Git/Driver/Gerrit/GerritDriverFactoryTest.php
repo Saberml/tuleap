@@ -24,7 +24,7 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Tuleap\Git\Driver\Gerrit\GerritUnsupportedVersionDriver;
 
-require_once __DIR__ .'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class GerritDriverFactoryTest extends TestCase
@@ -39,7 +39,7 @@ class GerritDriverFactoryTest extends TestCase
     {
         parent::setUp();
 
-        $logger                      = new BackendLogger();
+        $logger                      = BackendLogger::getDefaultLogger();
         $this->gerrit_driver_factory = new Git_Driver_Gerrit_GerritDriverFactory(
             new \Tuleap\Git\Driver\GerritHTTPClientFactory(\Tuleap\Http\HttpClientFactory::createClient()),
             \Tuleap\Http\HTTPFactoryBuilder::requestFactory(),

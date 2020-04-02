@@ -58,8 +58,8 @@ class HistoryValueFormatter
     private $permissions_manager;
 
     public function __construct(
-        PermissionsManager   $permissions_manager,
-        UGroupManager        $ugroup_manager,
+        PermissionsManager $permissions_manager,
+        UGroupManager $ugroup_manager,
         FineGrainedRetriever $fine_grained_retriever,
         DefaultFineGrainedPermissionFactory $default_fine_grained_factory,
         FineGrainedPermissionFactory $fine_grained_factory
@@ -156,15 +156,18 @@ class HistoryValueFormatter
     private function formatUgroups(array $ugroups, $key)
     {
         $value = "$key: ";
-        $value .= implode(', ', array_map(array($this, 'extractUgroupName'), $ugroups));
+        $value .= implode(
+            ', ',
+            array_map(
+                static function (ProjectUGroup $ugroup) {
+                    return NameTranslator::getUserGroupDisplayName($ugroup->getName());
+                },
+                $ugroups
+            )
+        );
         $value .= PHP_EOL;
 
         return $value;
-    }
-
-    private function extractUgroupName(ProjectUGroup $ugroup)
-    {
-        return NameTranslator::getUserGroupDisplayName($ugroup->getName());
     }
 
     /**

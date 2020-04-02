@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) STMicroelectronics, 2009. All Rights Reserved.
- * Copyright (c) Enalean, 2016 - 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2016 - Present. All Rights Reserved.
  *
  * Originally written by Nouha Terzi, 2009
  *
@@ -22,6 +22,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+use Tuleap\Chart\Chart;
+
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace,Squiz.Classes.ValidClassName.NotCamelCaps
 class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
 {
 
@@ -33,7 +36,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
      * @param unknown_type $endDate
      * @param bool $absolute Is y-axis relative to data set or absolute (starting from 0)
      */
-    function displayServiceGraph($services, $groupBy, $startDate, $endDate, $accumulative, $absolute = true)
+    public function displayServiceGraph($services, $groupBy, $startDate, $endDate, $accumulative, $absolute = true)
     {
         $graph = new Chart(750, 450, "auto");
         $graph->SetScale("textint");
@@ -63,7 +66,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
 
                 $color = $this->_dum->getServiceColor($service);
                 $lineplot->SetColor($color);
-                $lineplot->SetFillColor($color.':1.5');
+                $lineplot->SetFillColor($color . ':1.5');
                 $lineplot->SetLegend($servicesList[$service]);
 
                 //$lineplot->value->show();
@@ -83,7 +86,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
                 $graph->Add($accLineplot);
             }
             $graph->legend->SetReverse();
-            $graph->xaxis->title->Set($GLOBALS['Language']->getText('plugin_statistics', $groupBy));
+            $graph->xaxis->title->Set($this->getXaxisTitle($groupBy));
             $graph->xaxis->SetTitleMargin(35);
             $graph->xaxis->SetTickLabels($dates);
 
@@ -101,7 +104,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
      * @param unknown_type $endDate
      * @param bool $absolute Is y-axis relative to data set or absolute (starting from 0)
      */
-    function displayUserGraph($userId, $groupBy, $startDate, $endDate, $absolute = true)
+    public function displayUserGraph($userId, $groupBy, $startDate, $endDate, $absolute = true)
     {
         $graph = new Chart(750, 450, "auto");
         $graph->SetScale("textlin");
@@ -120,7 +123,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
             $ydata = array();
             foreach ($data as $xdate => $values) {
                 $dates[] = $xdate;
-                $ydata[] = (float)$values;
+                $ydata[] = (float) $values;
             }
 
             $lineplot = new BarPlot($ydata);
@@ -130,13 +133,28 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
             $lineplot->value->setFormatCallback(array($this, 'sizeReadable'));
             $graph->Add($lineplot);
 
-            $graph->xaxis->title->Set($GLOBALS['Language']->getText('plugin_statistics', $groupBy));
+            $graph->xaxis->title->Set($this->getXaxisTitle($groupBy));
             $graph->xaxis->SetTitleMargin(35);
             $graph->xaxis->SetTickLabels($dates);
 
             $graph->Stroke();
         } else {
             $this->displayError($GLOBALS['Language']->getText('plugin_statistics', 'no_data_error'));
+        }
+    }
+
+    private function getXaxisTitle($groupBy): string
+    {
+        switch ($groupBy) {
+            case 'day':
+                return $GLOBALS['Language']->getText('plugin_statistics', 'day');
+            case 'month':
+                return $GLOBALS['Language']->getText('plugin_statistics', 'month');
+            case 'year':
+                return $GLOBALS['Language']->getText('plugin_statistics', 'year');
+            case 'week':
+            default:
+                return $GLOBALS['Language']->getText('plugin_statistics', 'week');
         }
     }
 
@@ -149,7 +167,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
      * @param Date    $endDate
      * @param bool $absolute Is y-axis relative to data set or absolute (starting from 0)
      */
-    function displayProjectGraph($groupId, $services, $groupBy, $startDate, $endDate, $absolute = true, $accumulative = true, $siteAdminView = true)
+    public function displayProjectGraph($groupId, $services, $groupBy, $startDate, $endDate, $absolute = true, $accumulative = true, $siteAdminView = true)
     {
         $graph = new Chart(750, 450, "auto");
         $graph->SetScale("textint");
@@ -181,7 +199,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
 
                     $color = $this->_dum->getServiceColor($service);
                     $lineplot->SetColor($color);
-                    $lineplot->SetFillColor($color.':1.5');
+                    $lineplot->SetFillColor($color . ':1.5');
                     $lineplot->SetLegend($serviceName);
 
                     //$lineplot->value->show();
@@ -209,7 +227,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
 
             if ($lineAdded) {
                 $graph->legend->SetReverse();
-                $graph->xaxis->title->Set($GLOBALS['Language']->getText('plugin_statistics', $groupBy));
+                $graph->xaxis->title->Set($this->getXaxisTitle($groupBy));
                 $graph->xaxis->SetTitleMargin(35);
                 $graph->xaxis->SetTickLabels($dates);
                 $graph->Stroke();
@@ -229,7 +247,7 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
      * @param Date    $endDate
      * @param bool $absolute Is y-axis relative to data set or absolute (starting from 0)
      */
-    function displayProjectTotalSizeGraph($groupId, $groupBy, $startDate, $endDate, $absolute = true)
+    public function displayProjectTotalSizeGraph($groupId, $groupBy, $startDate, $endDate, $absolute = true)
     {
         $graph = new Chart(420, 340, "auto");
         $graph->img->SetMargin(70, 50, 30, 70);
@@ -249,14 +267,14 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
             $ydata = array();
             foreach ($data as $xdate => $values) {
                 $dates[] = $xdate;
-                $ydata[] = (float)$values;
+                $ydata[] = (float) $values;
             }
 
             $lineplot = new LinePlot($ydata);
 
             $color = '#6BA132';
             $lineplot->SetColor($color);
-            $lineplot->SetFillColor($color.':1.5');
+            $lineplot->SetFillColor($color . ':1.5');
 
             $lineplot->value->SetFont($graph->getFont(), FS_NORMAL, 8);
             $lineplot->value->setFormatCallback(array($this, 'sizeReadable'));
@@ -272,52 +290,30 @@ class Statistics_DiskUsageGraph extends Statistics_DiskUsageOutput
         }
     }
 
-    function displayError($msg)
+    public function displayError($msg)
     {
-        //ttf from jpgraph
-        $ttf = new TTF();
-        Chart_TTFFactory::setUserFont($ttf);
-
-        //Calculate the baseline
-        // @see http://www.php.net/manual/fr/function.imagettfbbox.php#75333
-        //this should be above baseline
-        $test2="H";
-        //some of these additional letters should go below it
-        $test3="Hjgqp";
-        //get the dimension for these two:
-        $box2 = imageTTFBbox(10, 0, $ttf->File(FF_USERFONT), $test2);
-        $box3 = imageTTFBbox(10, 0, $ttf->File(FF_USERFONT), $test3);
-        $baseline = abs((abs($box2[5]) + abs($box2[1])) - (abs($box3[5]) + abs($box3[1])));
-        $bbox = imageTTFBbox(10, 0, $ttf->File(FF_USERFONT), $msg);
-        if ($im = @imagecreate($bbox[2] - $bbox[6], $bbox[3] - $bbox[5])) {
-            $background_color = imagecolorallocate($im, 255, 255, 255);
-            $text_color       = imagecolorallocate($im, 64, 64, 64);
-            imagettftext($im, 10, 0, 0, $bbox[3] - $bbox[5] - $baseline, $text_color, $ttf->File(FF_USERFONT), $msg);
-            header("Content-type: image/png");
-            imagepng($im);
-            imagedestroy($im);
-        }
+        (new Chart())->displayMessage($msg);
     }
 
     public function applyColorModifierRGB($color)
     {
         $jpgraphRgb = new RGB();
-        $newColor   = $jpgraphRgb->color($color.':1.5');
+        $newColor   = $jpgraphRgb->color($color . ':1.5');
 
         unset($newColor[3]);
 
         $col = implode(',', array_map('floor', $newColor));
-        return 'rgb('.$col.')';
+        return 'rgb(' . $col . ')';
     }
 
     public function applyColorModifierRGBA($color)
     {
         $jpgraphRgb = new RGB();
-        $newColor   = $jpgraphRgb->color($color.':1.5');
+        $newColor   = $jpgraphRgb->color($color . ':1.5');
 
         unset($newColor[3]);
 
         $col = implode(',', array_map('floor', $newColor));
-        return 'rgba('.$col.',0.5)';
+        return 'rgba(' . $col . ',0.5)';
     }
 }

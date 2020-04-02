@@ -133,12 +133,12 @@ class SystemEventManager
         return new SystemEventManager($dao, $followers_dao);
     }
 
-    function _getEventManager()
+    public function _getEventManager()
     {
         return EventManager::instance();
     }
 
-    function _getDao()
+    public function _getDao()
     {
         if (!$this->dao) {
             $this->dao = new SystemEventDao(CodendiDataAccess::instance());
@@ -146,7 +146,7 @@ class SystemEventManager
         return $this->dao;
     }
 
-    function _getFollowersDao()
+    public function _getFollowersDao()
     {
         if (!$this->followers_dao) {
             $this->followers_dao = new SystemEventsFollowersDao(CodendiDataAccess::instance());
@@ -154,7 +154,7 @@ class SystemEventManager
         return $this->followers_dao;
     }
 
-    function _getBackend()
+    public function _getBackend()
     {
         return Backend::instance('Backend');
     }
@@ -162,7 +162,7 @@ class SystemEventManager
     /*
      * Convert selected event into a system event, and store it accordingly
      */
-    function addSystemEvent($event, $params)
+    public function addSystemEvent($event, $params)
     {
         //$event = constant(strtoupper($event));
         switch ($event) {
@@ -558,7 +558,6 @@ class SystemEventManager
                 $klass          = $this->getClassForType($row['type']);
                 $ugroup_manager = new UGroupManager();
                 $klass_params   = [
-                $this->getSVNAuthenticationCacheInvalidator(),
                 new UserRemover(
                     ProjectManager::instance(),
                     EventManager::instance(),
@@ -687,17 +686,17 @@ class SystemEventManager
                 $html .= '<tr>';
 
                 //id
-                $html .= '<td>'. $sysevent->getId() .'</td>';
+                $html .= '<td>' . $sysevent->getId() . '</td>';
 
                 //name of the event
-                $html .= '<td>'. $sysevent->getType() .'</td>';
+                $html .= '<td>' . $sysevent->getType() . '</td>';
 
-                $html .= '<td>'. $sysevent->getOwner() .'</td>';
+                $html .= '<td>' . $sysevent->getOwner() . '</td>';
 
                 //status
-                $html .= '<td class="system_event_status_'. $row['status'] .' system-event-status-'. strtolower($row['status']) .'"';
+                $html .= '<td class="system_event_status_' . $row['status'] . ' system-event-status-' . strtolower($row['status']) . '"';
                 if ($sysevent->getLog()) {
-                    $html .= ' title="'. $purifier->purify($sysevent->getLog(), CODENDI_PURIFIER_CONVERT_HTML) .'" ';
+                    $html .= ' title="' . $purifier->purify($sysevent->getLog(), CODENDI_PURIFIER_CONVERT_HTML) . '" ';
                 }
                 $html .= '>';
                 $html .= $sysevent->getStatus();

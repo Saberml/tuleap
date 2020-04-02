@@ -22,7 +22,7 @@ namespace Tuleap\MediaWiki;
 
 use DirectoryIterator;
 use ForgeConfig;
-use Logger;
+use Psr\Log\LoggerInterface;
 use MediawikiLanguageManager;
 use MediawikiManager;
 use Project;
@@ -31,6 +31,7 @@ use SimpleXMLElement;
 use Tuleap\Project\XML\Export\ArchiveInterface;
 use UGroupManager;
 use Tuleap\Mediawiki\MediawikiDataDir;
+use XML_SimpleXMLCDATAFactory;
 
 class XMLMediaWikiExporter
 {
@@ -50,7 +51,7 @@ class XMLMediaWikiExporter
      */
     private $ugroup_manager;
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     private $logger;
     /**
@@ -70,7 +71,7 @@ class XMLMediaWikiExporter
         Project $project,
         MediawikiManager $manager,
         UGroupManager $ugroup_manager,
-        Logger $logger,
+        LoggerInterface $logger,
         MediawikiMaintenanceWrapper $maintenance_wrapper,
         MediawikiLanguageManager $language_manager,
         MediawikiDataDir $mediawiki_data_dir
@@ -156,13 +157,14 @@ class XMLMediaWikiExporter
 
     private function exportMediawikiPermissions(SimpleXMLElement $xml_content)
     {
+        $cdata = new XML_SimpleXMLCDATAFactory();
         $readers = $this->manager->getReadAccessControl($this->project);
         if ($readers) {
             $reader_node = $xml_content->addChild('read-access');
             foreach ($readers as $reader) {
                 $ugroup = $this->ugroup_manager->getUGroup($this->project, $reader);
                 if ($ugroup) {
-                    $reader_node->addChild('ugroup', $this->getLabelForUgroup($ugroup));
+                    $cdata->insert($reader_node, 'ugroup', $this->getLabelForUgroup($ugroup));
                 }
             }
         }
@@ -173,7 +175,7 @@ class XMLMediaWikiExporter
             foreach ($writers as $writer) {
                 $ugroup = $this->ugroup_manager->getUGroup($this->project, $writer);
                 if ($ugroup) {
-                    $writer_node->addChild('ugroup', $this->getLabelForUgroup($ugroup));
+                    $cdata->insert($writer_node, 'ugroup', $this->getLabelForUgroup($ugroup));
                 }
             }
         }

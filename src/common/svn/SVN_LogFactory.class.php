@@ -35,7 +35,6 @@ class SVN_LogFactory
      * Builds a new SVN_Log object representing the SVN log of the given
      * project.
      *
-     * @param Project $project
      */
     public function __construct(Project $project)
     {
@@ -102,7 +101,6 @@ class SVN_LogFactory
     /**
      * Return SVN path the user is not allowed to see
      *
-     * @param PFUser $user
      *
      * @return string
      */
@@ -111,7 +109,7 @@ class SVN_LogFactory
         $forbidden = svn_utils_get_forbidden_paths($user->getName(), $this->project->getSVNRootPath());
         $where_forbidden = "";
         foreach ($forbidden as $no_access => $v) {
-            $where_forbidden .= " AND svn_dirs.dir not like '".db_es(substr($no_access, 1))."%'";
+            $where_forbidden .= " AND svn_dirs.dir not like '" . db_es(substr($no_access, 1)) . "%'";
         }
         return $where_forbidden;
     }

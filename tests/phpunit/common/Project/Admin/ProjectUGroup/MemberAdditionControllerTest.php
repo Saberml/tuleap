@@ -28,16 +28,22 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tuleap\GlobalLanguageMock;
 use Tuleap\Layout\BaseLayout;
+use Tuleap\Project\Admin\Routing\ProjectAdministratorChecker;
 use Tuleap\Project\UGroups\Membership\MemberAdder;
+use Tuleap\Request\ProjectRetriever;
 
-class MemberAdditionControllerTest extends TestCase
+final class MemberAdditionControllerTest extends TestCase
 {
     use MockeryPHPUnitIntegration, GlobalLanguageMock;
 
     /**
-     * @var M\MockInterface|\ProjectManager
+     * @var M\LegacyMockInterface|M\MockInterface|ProjectRetriever
      */
-    private $project_manager;
+    private $project_retriever;
+    /**
+     * @var M\LegacyMockInterface|M\MockInterface|ProjectAdministratorChecker
+     */
+    private $administrator_checker;
     /**
      * @var M\MockInterface|\UGroupManager
      */
@@ -59,10 +65,6 @@ class MemberAdditionControllerTest extends TestCase
      */
     private $layout;
     /**
-     * @var M\MockInterface|\PFUser
-     */
-    private $a_user;
-    /**
      * @var \CSRFSynchronizerToken|M\MockInterface
      */
     private $csrf;
@@ -73,27 +75,47 @@ class MemberAdditionControllerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->project_manager                = M::mock(\ProjectManager::class);
-        $this->ugroup_manager                 = M::mock(\UGroupManager::class);
-        $this->user_manager                   = M::mock(\UserManager::class);
-        $this->member_adder                   = M::mock(MemberAdder::class);
-        $this->http_request                   = M::mock(\HTTPRequest::class);
-        $this->layout                         = M::mock(BaseLayout::class);
-        $this->a_user                         = M::mock(\PFUser::class);
-        $this->csrf                           = M::mock(\CSRFSynchronizerToken::class);
+        $this->project_retriever = M::mock(ProjectRetriever::class);
+        $this->administrator_checker = M::mock(ProjectAdministratorChecker::class);
+        $this->ugroup_manager    = M::mock(\UGroupManager::class);
+        $this->user_manager      = M::mock(\UserManager::class);
+        $this->member_adder      = M::mock(MemberAdder::class);
+        $this->http_request      = M::mock(\HTTPRequest::class);
+        $this->layout            = M::mock(BaseLayout::class);
+        $this->csrf              = M::mock(\CSRFSynchronizerToken::class);
         $this->csrf->shouldReceive('check')->once();
-        $this->controller = new MemberAdditionController($this->project_manager, $this->ugroup_manager, $this->user_manager, $this->member_adder, $this->csrf);
+        $this->controller = new MemberAdditionController(
+            $this->project_retriever,
+            $this->administrator_checker,
+            $this->ugroup_manager,
+            $this->user_manager,
+            $this->member_adder,
+            $this->csrf
+        );
+    }
+
+    private function checkUserIsProjectAdmin(\Project $project): void
+    {
+        $project_admin = M::mock(\PFUser::class);
+        $this->http_request->shouldReceive('getCurrentUser')
+            ->once()
+            ->andReturn($project_admin);
+        $this->administrator_checker->shouldReceive('checkUserIsProjectAdministrator')
+            ->with($project_admin, $project)
+            ->once();
     }
 
     public function testItAddsUserWithSuccess()
     {
         $project = new \Project(['group_id' => 101]);
-        $this->project_manager->shouldReceive('getProject')->with('101')->andReturn($project);
+        $this->project_retriever->shouldReceive('getProjectFromId')
+            ->with('101')
+            ->once()
+            ->andReturn($project);
 
-        $this->a_user->shouldReceive('isAdmin')->with(101)->andReturnTrue();
-        $this->http_request->shouldReceive('getCurrentUser')->andReturn($this->a_user);
+        $this->checkUserIsProjectAdmin($project);
 
-        $ugroup = M::mock(\ProjectUGroup::class, [ 'getProjectId' => 101, 'getId' => 202, 'isBound' => false]);
+        $ugroup = M::mock(\ProjectUGroup::class, ['getProjectId' => 101, 'getId' => 202, 'isBound' => false]);
         $this->ugroup_manager->shouldReceive('getUGroup')->with($project, '202')->andReturn($ugroup);
 
         $user_to_add = new \PFUser(['user_id' => 303]);
@@ -110,12 +132,14 @@ class MemberAdditionControllerTest extends TestCase
     public function testItDoesntAddInBoundGroups()
     {
         $project = new \Project(['group_id' => 101]);
-        $this->project_manager->shouldReceive('getProject')->with('101')->andReturn($project);
+        $this->project_retriever->shouldReceive('getProjectFromId')
+            ->with('101')
+            ->once()
+            ->andReturn($project);
 
-        $this->a_user->shouldReceive('isAdmin')->with(101)->andReturnTrue();
-        $this->http_request->shouldReceive('getCurrentUser')->andReturn($this->a_user);
+        $this->checkUserIsProjectAdmin($project);
 
-        $ugroup = M::mock(\ProjectUGroup::class, [ 'getProjectId' => 101, 'getId' => 202, 'isBound' => true]);
+        $ugroup = M::mock(\ProjectUGroup::class, ['getProjectId' => 101, 'getId' => 202, 'isBound' => true]);
         $this->ugroup_manager->shouldReceive('getUGroup')->with($project, '202')->andReturn($ugroup);
 
         $this->layout->shouldReceive('redirect')->with(UGroupRouter::getUGroupUrl($ugroup))->once();
@@ -126,12 +150,14 @@ class MemberAdditionControllerTest extends TestCase
     public function testItDoesntAddInvalidUser()
     {
         $project = new \Project(['group_id' => 101]);
-        $this->project_manager->shouldReceive('getProject')->with('101')->andReturn($project);
+        $this->project_retriever->shouldReceive('getProjectFromId')
+            ->with('101')
+            ->once()
+            ->andReturn($project);
 
-        $this->a_user->shouldReceive('isAdmin')->with(101)->andReturnTrue();
-        $this->http_request->shouldReceive('getCurrentUser')->andReturn($this->a_user);
+        $this->checkUserIsProjectAdmin($project);
 
-        $ugroup = M::mock(\ProjectUGroup::class, [ 'getProjectId' => 101, 'getId' => 202, 'isBound' => false]);
+        $ugroup = M::mock(\ProjectUGroup::class, ['getProjectId' => 101, 'getId' => 202, 'isBound' => false]);
         $this->ugroup_manager->shouldReceive('getUGroup')->with($project, '202')->andReturn($ugroup);
 
         $this->http_request->shouldReceive('get')->with('add_user_name')->andReturn('danton');

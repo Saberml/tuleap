@@ -22,7 +22,7 @@
 use Tuleap\User\ForgeUserGroupPermission\RestProjectManagementPermission;
 use Tuleap\User\ForgeUserGroupPermission\RESTReadOnlyAdmin\RestReadOnlyAdminPermission;
 
-require_once __DIR__.'/../../lib/TestDataBuilder.php';
+require_once __DIR__ . '/../../lib/TestDataBuilder.php';
 
 class REST_TestDataBuilder extends TestDataBuilder  // @codingStandardsIgnoreLine
 {
@@ -68,17 +68,8 @@ class REST_TestDataBuilder extends TestDataBuilder  // @codingStandardsIgnoreLin
     public const PHPWIKI_PAGE_ID          = 6097;
     public const PHPWIKI_SPACE_PAGE_ID    = 6100;
 
-    /** @var Tracker_ArtifactFactory */
-    private $tracker_artifact_factory;
-
-    /** @var Tracker_FormElementFactory */
-    private $tracker_formelement_factory;
-
     /** @var TrackerFactory */
     protected $tracker_factory;
-
-    /** @var AgileDashboard_HierarchyChecker */
-    private $hierarchy_checker;
 
     /** @var string */
     protected $template_path;
@@ -90,26 +81,19 @@ class REST_TestDataBuilder extends TestDataBuilder  // @codingStandardsIgnoreLin
     {
         parent::__construct();
 
-        $this->template_path = __DIR__.'/../../rest/_fixtures/';
+        $this->template_path = __DIR__ . '/../../rest/_fixtures/';
     }
 
     public function instanciateFactories()
     {
-        $this->tracker_artifact_factory    = Tracker_ArtifactFactory::instance();
-        $this->tracker_formelement_factory = Tracker_FormElementFactory::instance();
-        $this->tracker_factory             = TrackerFactory::instance();
-        $this->hierarchy_checker           = new AgileDashboard_HierarchyChecker(
-            PlanningFactory::build(),
-            new AgileDashboard_KanbanFactory($this->tracker_factory, new AgileDashboard_KanbanDao()),
-            $this->tracker_factory
-        );
+        $this->tracker_factory = TrackerFactory::instance();
 
         return $this;
     }
 
     public function initPlugins()
     {
-        foreach (glob(__DIR__.'/../../../plugins/*/tests/rest/init_test_data.php') as $init_file) {
+        foreach (glob(__DIR__ . '/../../../plugins/*/tests/rest/init_test_data.php') as $init_file) {
             require_once $init_file;
         }
     }

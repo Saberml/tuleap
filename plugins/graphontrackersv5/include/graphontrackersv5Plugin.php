@@ -54,7 +54,7 @@ class GraphOnTrackersV5Plugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDe
         parent::__construct($id);
         $this->setScope(Plugin::SCOPE_PROJECT);
 
-        bindTextDomain('tuleap-graphontrackersv5', __DIR__. '/../site-content');
+        bindTextDomain('tuleap-graphontrackersv5', __DIR__ . '/../site-content');
 
         // Do not load the plugin if tracker is not installed & active
         if (defined('TRACKER_BASE_URL')) {
@@ -209,7 +209,6 @@ class GraphOnTrackersV5Plugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDe
     /**
      * Search for an instance of a specific widget
      *
-     * @param \Tuleap\Widget\Event\GetWidget $get_widget_event
      */
     public function widgetInstance(\Tuleap\Widget\Event\GetWidget $get_widget_event)
     {
@@ -269,14 +268,10 @@ class GraphOnTrackersV5Plugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDe
         return $this->allowedForProject[$group_id];
     }
 
-    public function cssFile()
+    public function cssFile(): void
     {
         if ($this->canIncludeStylesheets()) {
-            $include_assets = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/graphontrackersv5/themes',
-                '/assets/graphontrackersv5/themes'
-            );
-            echo '<link rel="stylesheet" type="text/css" href="' . $include_assets->getFileURL('style.css') . '" />';
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getAssets()->getFileURL('style.css') . '" />';
         }
     }
 
@@ -333,22 +328,16 @@ class GraphOnTrackersV5Plugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDe
     {
         $tracker_plugin = PluginManager::instance()->getPluginByName('tracker');
         if ($tracker_plugin->currentRequestIsForPlugin()) {
-            $include_assets = $this->getMinifiedAssets();
-
-            echo $include_assets->getHTMLSnippet($this->getName().'.js');
+            echo $this->getAssets()->getHTMLSnippet('graphontrackersv5.js');
         }
     }
 
-    /**
-     * @return IncludeAssets
-     */
-    private function getMinifiedAssets()
+    private function getAssets(): IncludeAssets
     {
-        $include_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/graphontrackersv5/scripts',
-            '/assets/graphontrackersv5/scripts'
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/graphontrackersv5',
+            '/assets/graphontrackersv5'
         );
-        return $include_assets;
     }
 
     public function routeGetChart(): ChartDataController

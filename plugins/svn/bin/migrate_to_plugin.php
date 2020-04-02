@@ -97,7 +97,7 @@ $repository_name = $argv[2];
 $user_name       = $argv[3];
 
 $system_command = new System_Command();
-$logger         = new BackendLogger();
+$logger         = BackendLogger::getDefaultLogger();
 $backend_svn    = Backend::instance('SVN');
 $svn_admin      = new SvnAdmin($system_command, $logger, $backend_svn);
 $dao            = new Dao();
@@ -121,7 +121,6 @@ $repository_creator = new RepositoryCreator(
     SystemEventManager::instance(),
     new ProjectHistoryDao(),
     new SvnPermissionManager(
-        new \User_ForgeUserGroupFactory(new \UserGroupDao()),
         \PermissionsManager::instance()
     ),
     new HookConfigUpdator(
@@ -173,7 +172,6 @@ $svn_creator = new BareRepositoryCreator(
 );
 
 $permission_manager = new SvnPermissionManager(
-    new User_ForgeUserGroupFactory(new UserGroupDao()),
     new PermissionsManager(new PermissionsDao())
 );
 

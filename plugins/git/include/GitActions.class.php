@@ -73,7 +73,7 @@ class GitActions extends PluginActions
     private $mirror_updater;
 
     /**
-     * @var Logger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
@@ -178,7 +178,7 @@ class GitActions extends PluginActions
         ProjectManager $project_manager,
         GitPermissionsManager $git_permissions_manager,
         Git_GitRepositoryUrlManager $url_manager,
-        Logger $logger,
+        \Psr\Log\LoggerInterface $logger,
         Git_Mirror_MirrorDataMapper $mirror_data_mapper,
         ProjectHistoryDao $history_dao,
         GitRepositoryMirrorUpdater $mirror_updater,
@@ -249,7 +249,7 @@ class GitActions extends PluginActions
             if ($repository->canBeDeleted()) {
                 $this->markAsDeleted($repository);
                 $controller->addInfo(sprintf(dgettext('tuleap-git', 'Repository \'%1$s\' will be removed in a few seconds'), $repository->getFullName()));
-                $controller->addInfo(sprintf(dgettext('tuleap-git', 'A repository backup of \'%1$s\' will be available in the backup directory'), $repository->getFullName()).' : '.$controller->getPlugin()->getConfigurationParameter('git_backup_dir'));
+                $controller->addInfo(sprintf(dgettext('tuleap-git', 'A repository backup of \'%1$s\' will be available in the backup directory'), $repository->getFullName()) . ' : ' . $controller->getPlugin()->getConfigurationParameter('git_backup_dir'));
             } else {
                 $this->getController()->addError(dgettext('tuleap-git', 'Unable to delete repository: it has child(ren)'));
                 $this->redirectToRepo($repository);
@@ -258,7 +258,7 @@ class GitActions extends PluginActions
         } else {
             $this->getController()->addError(dgettext('tuleap-git', 'The repository does not exist'));
         }
-        $controller->redirect('/plugins/git/?action=index&group_id='.$projectId);
+        $controller->redirect('/plugins/git/?action=index&group_id=' . $projectId);
     }
 
     private function markAsDeleted(GitRepository $repository)
@@ -297,8 +297,6 @@ class GitActions extends PluginActions
      * Generates a list of GitRepositoryWithPermissions which are migrated to a
      * gerrit server and belong to the project or the project's parent.
      *
-     * @param Project $project
-     * @param PFUser $user
      * @param Project[] $parent_projects
      */
     public function generateGerritRepositoryAndTemplateList(Project $project, PFUser $user)
@@ -325,8 +323,6 @@ class GitActions extends PluginActions
      * (used in AJAX)
      *
      * @param int $repo_id
-     * @param PFUser $user
-     * @param Project $project
      * @return void if error
      */
     public function fetchGitConfig($repo_id, PFUser $user, Project $project)
@@ -337,7 +333,7 @@ class GitActions extends PluginActions
             $this->checkRepoValidity($git_repo, $project);
             $this->checkUserIsAdmin($project, $user);
         } catch (Exception $e) {
-            $GLOBALS['Response']->addFeedback(Feedback::ERROR, get_class($e).$e->getTraceAsString());
+            $GLOBALS['Response']->addFeedback(Feedback::ERROR, get_class($e) . $e->getTraceAsString());
             $GLOBALS['Response']->sendStatusCode($e->getCode());
             return;
         }
@@ -359,8 +355,6 @@ class GitActions extends PluginActions
      * Delete a given template
      *
      * @param int the $template_id
-     * @param Project $project
-     * @param PFUser $user
      */
     public function deleteGerritTemplate($template_id, Project $project, PFUser $user)
     {
@@ -422,8 +416,6 @@ class GitActions extends PluginActions
      * Displays the content of a template (used in AJAX)
      *
      * @param int $template_id
-     * @param PFUser $user
-     * @param Project $project
      * @return void
      */
     public function fetchGitTemplate($template_id, PFUser $user, Project $project)
@@ -432,7 +424,7 @@ class GitActions extends PluginActions
             $template = $this->template_factory->getTemplate($template_id);
             $this->checkTemplateIsAccessible($template, $project, $user);
         } catch (Exception $e) {
-            $GLOBALS['Response']->addFeedback(Feedback::ERROR, get_class($e).$e->getTraceAsString());
+            $GLOBALS['Response']->addFeedback(Feedback::ERROR, get_class($e) . $e->getTraceAsString());
             $GLOBALS['Response']->sendStatusCode($e->getCode());
             return;
         }
@@ -441,8 +433,6 @@ class GitActions extends PluginActions
     }
 
     /**
-     * @param  Project $project
-     * @param  PFUser  $user
      *
      * @throws GitUserNotAdminException
      */
@@ -456,9 +446,6 @@ class GitActions extends PluginActions
     }
 
     /**
-     * @param Git_Driver_Gerrit_Template_Template $template
-     * @param Project $project
-     * @param PFUser $user
      * @throws Git_TemplateNotInProjectHierarchyException
      */
     private function checkTemplateIsAccessible(Git_Driver_Gerrit_Template_Template $template, Project $project, PFUser $user)
@@ -478,8 +465,6 @@ class GitActions extends PluginActions
     }
 
     /**
-     * @param Project $project
-     * @param PFUser $user
      * @param string $template_content
      * @param int $template_id
      * @return void
@@ -519,8 +504,6 @@ class GitActions extends PluginActions
 
     /**
      *
-     * @param Project $project
-     * @param PFUser $user
      * @param string $template_content
      * @param string $template_name
      * @return void
@@ -557,7 +540,7 @@ class GitActions extends PluginActions
         $repository = $this->factory->getRepositoryById($repositoryId);
         if (!$repository) {
             $this->getController()->addError(dgettext('tuleap-git', 'The repository does not exist'));
-            $c->redirect('/plugins/git/?action=index&group_id='.$projectId);
+            $c->redirect('/plugins/git/?action=index&group_id=' . $projectId);
             return;
         }
         $this->addData(array(
@@ -571,7 +554,7 @@ class GitActions extends PluginActions
 
     public function repoManagement(GitRepository $repository)
     {
-        $this->addData(array('repository'=>$repository));
+        $this->addData(array('repository' => $repository));
         $this->displayFeedbacksOnRepoManagement($repository);
         $this->addData(array(
             'gerrit_servers'             => $this->gerrit_server_factory->getServers(),
@@ -676,8 +659,8 @@ class GitActions extends PluginActions
 
         $user_helper = UserHelper::instance();
         $great_success = true;
-        /** @var PFUser $user */
         foreach ($users as $user) {
+            \assert($user instanceof PFUser);
             if ($this->users_to_notify_dao->insert($repository_id, $user->getId())) {
                 $controller->addInfo(
                     sprintf(
@@ -687,7 +670,7 @@ class GitActions extends PluginActions
                 );
                 $this->history_dao->groupAddHistory(
                     "git_repo_update",
-                    $repository->getName() . ': add notification user '. $user->getName(),
+                    $repository->getName() . ': add notification user ' . $user->getName(),
                     $repository->getProjectId()
                 );
             } else {
@@ -714,8 +697,8 @@ class GitActions extends PluginActions
         }
 
         $great_success = true;
-        /** @var ProjectUGroup $ugroup */
         foreach ($ugroups as $ugroup) {
+            \assert($ugroup instanceof ProjectUGroup);
             if ($this->ugroups_to_notify_dao->insert($repository_id, $ugroup->getId())) {
                 $controller->addInfo(
                     sprintf(
@@ -725,7 +708,7 @@ class GitActions extends PluginActions
                 );
                 $this->history_dao->groupAddHistory(
                     "git_repo_update",
-                    $repository->getName() . ': add notification user group '. $ugroup->getNormalizedName(),
+                    $repository->getName() . ': add notification user group ' . $ugroup->getNormalizedName(),
                     $repository->getProjectId()
                 );
             } else {
@@ -794,7 +777,7 @@ class GitActions extends PluginActions
                 $controller->addInfo($feedback);
                 $this->history_dao->groupAddHistory(
                     "git_repo_update",
-                    $repository->getName() . ': remove user '. $user->getName() .' from notifications',
+                    $repository->getName() . ': remove user ' . $user->getName() . ' from notifications',
                     $repository->getProjectId()
                 );
             } else {
@@ -834,7 +817,7 @@ class GitActions extends PluginActions
                 $controller->addInfo($feedback);
                 $this->history_dao->groupAddHistory(
                     "git_repo_update",
-                    $repository->getName() . ': remove user group '. $ugroup->getNormalizedName() .' from notifications',
+                    $repository->getName() . ': remove user group ' . $ugroup->getNormalizedName() . ' from notifications',
                     $repository->getProjectId()
                 );
             } else {
@@ -865,7 +848,7 @@ class GitActions extends PluginActions
 
     public function redirectToRepoManagement($projectId, $repositoryId, $pane)
     {
-        $redirect_url = GIT_BASE_URL .'/?'. http_build_query(
+        $redirect_url = GIT_BASE_URL . '/?' . http_build_query(
             array(
                 'action'   => 'repo_management',
                 'group_id' => $projectId,
@@ -878,7 +861,7 @@ class GitActions extends PluginActions
 
     public function redirectToRepoManagementWithMigrationAccessRightInformation($projectId, $repositoryId, $pane)
     {
-        $redirect_url = GIT_BASE_URL .'/?'. http_build_query(
+        $redirect_url = GIT_BASE_URL . '/?' . http_build_query(
             array(
                 'action'               => 'repo_management',
                 'group_id'             => $projectId,
@@ -953,7 +936,7 @@ class GitActions extends PluginActions
         $controller = $this->getController();
         if (empty($repoId)) {
             $this->getController()->addError(dgettext('tuleap-git', 'Empty required parameter(s)'));
-            $controller->redirect('/plugins/git/?action=index&group_id='.$projectId);
+            $controller->redirect('/plugins/git/?action=index&group_id=' . $projectId);
             return false;
         }
         $repository = $this->factory->getRepositoryById($repoId);
@@ -1098,23 +1081,23 @@ class GitActions extends PluginActions
         return $r->renameProject($project, $newName);
     }
 
-    function _loadRepository($projectId, $repositoryId)
+    public function _loadRepository($projectId, $repositoryId)
     {
         $repository = $this->getGitRepository($repositoryId);
         if ($repository) {
-            $this->addData(array('repository'=>$repository));
+            $this->addData(array('repository' => $repository));
             return $repository;
         } else {
             $c = $this->getController();
             $this->getController()->addError(dgettext('tuleap-git', 'The repository does not exist'));
-            $c->redirect('/plugins/git/?action=index&group_id='.$projectId);
+            $c->redirect('/plugins/git/?action=index&group_id=' . $projectId);
         }
     }
 
     /**
      * Wrapper used for tests to get a new GitRepository
      */
-    function getGitRepository($repositoryId)
+    public function getGitRepository($repositoryId)
     {
         return $this->factory->getRepositoryById($repositoryId);
     }
@@ -1169,7 +1152,7 @@ class GitActions extends PluginActions
         try {
             $this->migration_handler->migrate($repository, $remote_server_id, $gerrit_template_id, $user);
         } catch (Exception $e) {
-            $this->logger->log($e->getMessage(), Feedback::ERROR);
+            $this->logger->error($e->getMessage());
         }
     }
 
@@ -1226,7 +1209,7 @@ class GitActions extends PluginActions
     {
         if (! $this->isUserAdmin($user, $project)) {
             $GLOBALS['Response']->addFeedback(Feedback::INFO, dgettext('tuleap-git', 'Further to an administration permissions update, you no-longer have access to the Git service administration.'));
-            $GLOBALS['HTML']->redirect('/plugins/git/?action=index&group_id='. $project->getId());
+            $GLOBALS['HTML']->redirect('/plugins/git/?action=index&group_id=' . $project->getId());
         }
     }
 
@@ -1350,7 +1333,7 @@ class GitActions extends PluginActions
     public function restoreRepository($repo_id, $project_id)
     {
         $repository = $this->factory->getDeletedRepository($repo_id);
-        $url        = '/admin/show_pending_documents.php?group_id='.$project_id;
+        $url        = '/admin/show_pending_documents.php?group_id=' . $project_id;
         (new CSRFSynchronizerToken($url))->check();
 
         if (! $repository) {
@@ -1363,7 +1346,7 @@ class GitActions extends PluginActions
             $GLOBALS['Response']->addFeedback('error', dgettext('tuleap-git', 'Unable to restore Git repository : repository with the same name already exist'));
         } else {
             $this->git_system_event_manager->queueRepositoryRestore($repository);
-            $GLOBALS['Response']->addFeedback('info', dgettext('tuleap-git', 'System event created to restore repository').' : '.$repository->getName());
+            $GLOBALS['Response']->addFeedback('info', dgettext('tuleap-git', 'System event created to restore repository') . ' : ' . $repository->getName());
         }
         $GLOBALS['Response']->redirect($url . '&focus=git_repository');
     }

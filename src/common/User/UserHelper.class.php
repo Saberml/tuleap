@@ -76,11 +76,11 @@ class UserHelper
         self::$_instance = null;
     }
 
-    function _getCurrentUserUsernameDisplayPreference()
+    public function _getCurrentUserUsernameDisplayPreference()
     {
         return $this->_getUserManager()->getCurrentUser()->getPreference("username_display");
     }
-    function _getUserManager()
+    public function _getUserManager()
     {
         return UserManager::instance();
     }
@@ -98,7 +98,7 @@ class UserHelper
      * @param  user_name  string
      * @param  realname  string
      */
-    function getDisplayName($user_name, $realname)
+    public function getDisplayName($user_name, $realname)
     {
         $name = '';
         switch ($this->_username_display) {
@@ -126,7 +126,7 @@ class UserHelper
      * Username display preference: see getDisplayName()
      *
      */
-    function getDisplayNameSQLQuery()
+    public function getDisplayNameSQLQuery()
     {
         $name = '';
         switch ($this->_username_display) {
@@ -153,14 +153,14 @@ class UserHelper
      *
      * @return string
      */
-    function getUserFilter($by)
+    public function getUserFilter($by)
     {
         $filter       = '';
         $user_manager = $this->_getUserManager();
         $usersIds     = $user_manager->getUserIdsList($by);
         if (count($usersIds) > 0) {
             $user_ids_escaped = $this->_getUserDao()->getDa()->escapeIntImplode($usersIds);
-            $filter .= ' AND user.user_id IN ('. $user_ids_escaped .')';
+            $filter .= ' AND user.user_id IN (' . $user_ids_escaped . ')';
         } else {
             $by      = $this->_getUserDao()->getDa()->quoteLikeValueSurround($by);
             $filter .= ' AND user.user_name LIKE ' . $by;
@@ -176,7 +176,7 @@ class UserHelper
      * Username display preference: see getDisplayName()
      *
      */
-    function getDisplayNameSQLOrder()
+    public function getDisplayNameSQLOrder()
     {
         $order = '';
         switch ($this->_username_display) {
@@ -207,7 +207,7 @@ class UserHelper
      *
      * @see getDisplayName
      */
-    function getDisplayNameFromUser($user)
+    public function getDisplayNameFromUser($user)
     {
         if ($user == null) {
             return null;
@@ -227,7 +227,7 @@ class UserHelper
      * @see getDisplayName
      * @return string
      */
-    function getDisplayNameFromUserId($user_id)
+    public function getDisplayNameFromUserId($user_id)
     {
         $um = $this->_getUserManager();
         if ($um->isUserLoadedById($user_id)) {
@@ -255,7 +255,7 @@ class UserHelper
      * @param string the user_name of the user to display
      * @see getDisplayName
      */
-    function getDisplayNameFromUserName($user_name)
+    public function getDisplayNameFromUserName($user_name)
     {
         if ($this->_isUserNameNone($user_name)) {
             return $user_name;
@@ -303,16 +303,16 @@ class UserHelper
     {
         $hp = Codendi_HTMLPurifier::instance();
         if ($user && !$user->isNone()) {
-            return '<a href="'.$this->getUserUrl($user).'">'.$hp->purify($this->getDisplayNameFromUser($user), CODENDI_PURIFIER_CONVERT_HTML).'</a>';
+            return '<a href="' . $this->getUserUrl($user) . '">' . $hp->purify($this->getDisplayNameFromUser($user), CODENDI_PURIFIER_CONVERT_HTML) . '</a>';
         } else {
             $username = $user ? $user->getName() : '';
-            return  $hp->purify($username, CODENDI_PURIFIER_CONVERT_HTML) ;
+            return  $hp->purify($username, CODENDI_PURIFIER_CONVERT_HTML);
         }
     }
 
     public function getUserUrl(PFUser $user)
     {
-        return "/users/".urlencode($user->getName());
+        return "/users/" . urlencode($user->getName());
     }
 
     public function getAbsoluteUserURL(PFUser $user): string
@@ -325,7 +325,7 @@ class UserHelper
      *
      * @param string  $user_name
      */
-    function _isUserNameNone($user_name)
+    public function _isUserNameNone($user_name)
     {
         return $user_name == $GLOBALS['Language']->getText('global', 'none');
     }
@@ -333,7 +333,7 @@ class UserHelper
     /**
      * Returns the user dao
      */
-    function _getUserDao()
+    public function _getUserDao()
     {
         $dao = new UserDao(CodendiDataAccess::instance());
         return $dao;

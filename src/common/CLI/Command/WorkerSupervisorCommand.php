@@ -116,7 +116,7 @@ class WorkerSupervisorCommand extends Command
 
         $worker_count = $this->getBackendWorkerCount();
         if ($worker_count < 1) {
-            $output->writeln('<info>Platform is not configured to use workers, stopping</info>');
+            $output->writeln('<info>Platform is not configured to use workers</info>');
             return 0;
         }
 
@@ -168,7 +168,7 @@ class WorkerSupervisorCommand extends Command
 
     private function startNewWorker(int $i): Process
     {
-        $worker = $this->process_factory->getProcess(['/usr/share/tuleap/src/utils/worker.php', '-v', '--id='.$i]);
+        $worker = $this->process_factory->getProcess(['/usr/share/tuleap/src/utils/worker.php', '-v', '--id=' . $i]);
         $worker->setTimeout(0);
         $worker->start();
         return $worker;

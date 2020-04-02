@@ -27,7 +27,7 @@ function getFolderContentRowInstance(store, props) {
     return shallowMount(FolderContentRow, {
         localVue,
         propsData: props,
-        mocks: { $store: store }
+        mocks: { $store: store },
     });
 }
 
@@ -40,14 +40,15 @@ describe("FolderContentRow", () => {
             is_uploading: false,
             is_uploading_new_version: false,
             is_uploading_in_collapsed_folder: false,
-            type: TYPE_FILE
+            type: TYPE_FILE,
+            file_type: "text",
         };
 
         store_options = {
             state: {
                 folded_items_ids: [],
-                date_time_format: "YYYY-MM-DD"
-            }
+                date_time_format: "YYYY-MM-DD",
+            },
         };
 
         store = createStoreMock(store_options);
@@ -57,7 +58,7 @@ describe("FolderContentRow", () => {
         it("Should render the quick look button and the dropdown menu when no upload action is in progress", () => {
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: false
+                isQuickLookDisplayed: false,
             });
 
             expect(wrapper.contains("[data-test=quick-look-button]")).toBeTruthy();
@@ -70,7 +71,7 @@ describe("FolderContentRow", () => {
 
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: false
+                isQuickLookDisplayed: false,
             });
 
             expect(wrapper.contains("[data-test=quick-look-button]")).toBeFalsy();
@@ -83,7 +84,7 @@ describe("FolderContentRow", () => {
 
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: false
+                isQuickLookDisplayed: false,
             });
 
             expect(wrapper.contains("[data-test=quick-look-button]")).toBeFalsy();
@@ -96,7 +97,7 @@ describe("FolderContentRow", () => {
 
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: false
+                isQuickLookDisplayed: false,
             });
 
             expect(wrapper.contains("[data-test=quick-look-button]")).toBeFalsy();
@@ -112,7 +113,7 @@ describe("FolderContentRow", () => {
 
                 wrapper = getFolderContentRowInstance(store, {
                     item,
-                    isQuickLookDisplayed: true
+                    isQuickLookDisplayed: true,
                 });
 
                 expect(
@@ -128,7 +129,7 @@ describe("FolderContentRow", () => {
 
                 wrapper = getFolderContentRowInstance(store, {
                     item,
-                    isQuickLookDisplayed: true
+                    isQuickLookDisplayed: true,
                 });
 
                 expect(
@@ -146,7 +147,7 @@ describe("FolderContentRow", () => {
 
                 wrapper = getFolderContentRowInstance(store, {
                     item,
-                    isQuickLookDisplayed: false
+                    isQuickLookDisplayed: false,
                 });
 
                 expect(
@@ -163,7 +164,7 @@ describe("FolderContentRow", () => {
 
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: false
+                isQuickLookDisplayed: false,
             });
 
             expect(
@@ -179,7 +180,7 @@ describe("FolderContentRow", () => {
         it("Should render the user badge and the last update date only when the quick look pane is closed", () => {
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: false
+                isQuickLookDisplayed: false,
             });
 
             expect(wrapper.contains(".document-tree-cell-owner")).toBeTruthy();
@@ -189,7 +190,7 @@ describe("FolderContentRow", () => {
         it("Should not render the user badge and the last update date when the quick look pane is open", () => {
             wrapper = getFolderContentRowInstance(store, {
                 item,
-                isQuickLookDisplayed: true
+                isQuickLookDisplayed: true,
             });
 
             expect(wrapper.contains(".document-tree-cell-owner")).toBeFalsy();

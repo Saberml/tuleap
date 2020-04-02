@@ -17,9 +17,9 @@ DOCKER=$(SUDO) docker
 DOCKER_COMPOSE=$(SUDO) docker-compose $(DOCKER_COMPOSE_FILE)
 
 ifeq ($(MODE),Prod)
-COMPOSER_INSTALL=composer install --classmap-authoritative --no-dev --no-interaction --no-scripts
+COMPOSER_INSTALL=composer --quiet install --classmap-authoritative --no-dev --no-interaction --no-scripts --prefer-dist
 else
-COMPOSER_INSTALL=composer install
+COMPOSER_INSTALL=composer --quiet install --prefer-dist
 endif
 
 PHP=php
@@ -38,12 +38,8 @@ help:
 
 .PHONY: composer
 composer:  ## Install PHP dependencies with Composer
-	@echo "Processing src/composer.json"
-	@$(COMPOSER_INSTALL) --working-dir=src/
-	@echo "Processing tools/Configuration/composer.json"
-	@$(COMPOSER_INSTALL) --working-dir=tools/Configuration/
-	@find plugins/ src/www/themes/ tests/ -mindepth 2 -maxdepth 2 -type f -name 'composer.json' \
-		-exec echo "Processing {}" \; -execdir $(COMPOSER_INSTALL) \;
+	@find . plugins/ src/www/themes/ tools/ tests/ -mindepth 2 -maxdepth 2 -type f -name 'composer.json' -print0 | \
+	    xargs -0 -P"`node ./tools/utils/scripts/max-usable-processors.js`" -L1 -I{} bash -c 'echo "Processing {}" && cd "`dirname "{}"`" && $(COMPOSER_INSTALL)'
 
 ## RNG generation
 
@@ -53,24 +49,27 @@ rnc2rng-docker: clean-rng ## Compile rnc file into rng
 rnc2rng: src/common/xml/resources/project/project.rng \
 	 src/common/xml/resources/users.rng  \
 	 plugins/svn/resources/svn.rng \
+	 plugins/docman/resources/docman.rng \
 	 src/common/xml/resources/ugroups.rng \
-	 plugins/tracker/www/resources/tracker.rng \
-	 plugins/tracker/www/resources/trackers.rng \
-	 plugins/tracker/www/resources/artifacts.rng \
-	 plugins/agiledashboard/www/resources/xml_project_agiledashboard.rng \
-	 plugins/cardwall/www/resources/xml_project_cardwall.rng
+	 plugins/tracker/resources/tracker.rng \
+	 plugins/tracker/resources/trackers.rng \
+	 plugins/tracker/resources/artifacts.rng \
+	 plugins/agiledashboard/resources/xml_project_agiledashboard.rng \
+	 plugins/cardwall/resources/xml_project_cardwall.rng
 
-src/common/xml/resources/project/project.rng: src/common/xml/resources/project/project.rnc plugins/tracker/www/resources/tracker-definition.rnc src/common/xml/resources/ugroups-definition.rnc plugins/svn/resources/svn-definition.rnc src/common/xml/resources/frs-definition.rnc src/common/xml/resources/mediawiki-definition.rnc src/common/xml/resources/project-definition.rnc
+src/common/xml/resources/project/project.rng: src/common/xml/resources/project/project.rnc plugins/tracker/resources/tracker-definition.rnc plugins/docman/resources/docman-definition.rnc src/common/xml/resources/ugroups-definition.rnc plugins/svn/resources/svn-definition.rnc src/common/xml/resources/frs-definition.rnc src/common/xml/resources/mediawiki-definition.rnc src/common/xml/resources/project-definition.rnc
 
 plugins/svn/resources/svn.rng: plugins/svn/resources/svn.rnc plugins/svn/resources/svn-definition.rnc
 
+plugins/docman/resources/docman.rng: plugins/docman/resources/docman.rnc plugins/docman/resources/docman-definition.rnc
+
 src/common/xml/resources/ugroups.rng: src/common/xml/resources/ugroups.rnc src/common/xml/resources/ugroups-definition.rnc
 
-plugins/tracker/www/resources/trackers.rng: plugins/tracker/www/resources/trackers.rnc plugins/tracker/www/resources/tracker-definition.rnc plugins/tracker/www/resources/artifact-definition.rnc plugins/tracker/www/resources/triggers.rnc plugins/tracker/www/resources/workflow.rnc
+plugins/tracker/resources/trackers.rng: plugins/tracker/resources/trackers.rnc plugins/tracker/resources/tracker-definition.rnc plugins/tracker/resources/artifact-definition.rnc plugins/tracker/resources/triggers.rnc plugins/tracker/resources/workflow.rnc
 
-plugins/tracker/www/resources/tracker.rng: plugins/tracker/www/resources/tracker.rnc plugins/tracker/www/resources/tracker-definition.rng
+plugins/tracker/resources/tracker.rng: plugins/tracker/resources/tracker.rnc plugins/tracker/resources/tracker-definition.rng
 
-plugins/tracker/www/resources/artifacts.rng: plugins/tracker/www/resources/artifacts.rnc plugins/tracker/www/resources/artifact-definition.rng
+plugins/tracker/resources/artifacts.rng: plugins/tracker/resources/artifacts.rnc plugins/tracker/resources/artifact-definition.rng
 
 %.rng: %.rnc
 	trang -I rnc -O rng $< $@
@@ -79,10 +78,35 @@ clean-rng:
 	find . -type f -name "*.rng" | xargs rm -f
 
 #
+# Templates generation
+#
+
+generate-templates-docker: ## Generate XML templates
+	@$(DOCKER) run --rm -u "`id -u`":"`id -g`" -v "$(CURDIR):/wrk" enalean/xsltproc make generate-templates
+
+generate-templates:
+	xsltproc tools/utils/setup_templates/generate-templates/generate-scrum_dashboard.xml \
+		-o plugins/agiledashboard/resources/templates/scrum_dashboard_template.xml
+	xsltproc tools/utils/setup_templates/generate-templates/generate-agile_alm.xml \
+		-o tools/utils/setup_templates/agile_alm/agile_alm_template.xml
+	cp -f tools/utils/setup_templates/generate-templates/trackers/bug.xml \
+		plugins/tracker/resources/templates/Tracker_Bugs.xml
+	cp -f tools/utils/setup_templates/generate-templates/trackers/task.xml \
+		plugins/agiledashboard/resources/templates/Tracker_Tasks.xml
+	cp -f tools/utils/setup_templates/generate-templates/trackers/story.xml \
+		plugins/agiledashboard/resources/templates/Tracker_UserStories.xml
+	cp -f tools/utils/setup_templates/generate-templates/trackers/activity.xml \
+		plugins/agiledashboard/resources/templates/Tracker_activity.xml
+	cp -f tools/utils/setup_templates/generate-templates/trackers/rel.xml \
+		plugins/agiledashboard/resources/templates/Tracker_release.xml
+	cp -f tools/utils/setup_templates/generate-templates/trackers/sprint.xml \
+		plugins/agiledashboard/resources/templates/Tracker_sprint.xml
+
+#
 # Tests and all
 #
 
-post-checkout: composer generate-mo dev-clear-cache dev-forgeupgrade npm-build restart-services ## Clear caches, run forgeupgrade, build assets and generate language files
+post-checkout: composer generate-mo dev-clear-cache dev-forgeupgrade generate-templates-docker npm-build restart-services ## Clear caches, run forgeupgrade, build assets and generate language files
 
 npm-build:
 	npm install
@@ -97,7 +121,7 @@ restart-services: redeploy-nginx ## Restart nginx, apache and fpm
 	@$(DOCKER_COMPOSE) exec web service httpd restart
 
 generate-po: ## Generate translatable strings
-	@tools/utils/generate-po.php `pwd`
+	@tools/utils/generate-po.php `pwd` "$(PLUGIN)"
 
 generate-mo: ## Compile translated strings into binary format
 	@tools/utils/generate-mo.sh `pwd`
@@ -114,16 +138,22 @@ tests-rest: ## Run all REST tests. SETUP_ONLY=1 to disable auto run. PHP_VERSION
 	$(eval SETUP_ONLY ?= 0)
 	SETUP_ONLY="$(SETUP_ONLY)" tests/rest/bin/run-compose.sh "$(PHP_VERSION)" "$(DB)"
 
-tests_soap_73: ## Run all SOAP tests in PHP 7.3
-	$(DOCKER) run -ti --rm -v $(CURDIR):/usr/share/tuleap:ro,cached --mount type=tmpfs,destination=/tmp --network none enalean/tuleap-test-soap:5
+tests_soap_73:
+	$(MAKE) tests-rest DB=mysql57
+
+tests-soap: ## Run all SOAP tests. PHP_VERSION to select the version of PHP to use (73, 74). DB to select the database to use (mysql57, mariadb103)
+	$(eval PHP_VERSION ?= 73)
+	$(eval DB ?= mysql57)
+	SETUP_ONLY="$(SETUP_ONLY)" tests/soap/bin/run-compose.sh "$(PHP_VERSION)" "$(DB)"
 
 tests_db_73:
 	$(MAKE) tests-rest DB=mysql57
 
-tests-db: ## Run all DB integration tests with PHP 7.3. SETUP_ONLY=1 to disable auto run. DB to select the database to use (mysql57, mariadb103)
+tests-db: ## Run all DB integration tests with PHP 7.3. SETUP_ONLY=1 to disable auto run. PHP_VERSION to select the version of PHP to use (73, 74). DB to select the database to use (mysql57, mariadb103)
+	$(eval PHP_VERSION ?= 73)
 	$(eval DB ?= mysql57)
 	$(eval SETUP_ONLY ?= 0)
-	SETUP_ONLY="$(SETUP_ONLY)" tests/integration/bin/run-compose.sh "$(DB)"
+	SETUP_ONLY="$(SETUP_ONLY)" tests/integration/bin/run-compose.sh "$(PHP_VERSION)" "$(DB)"
 
 tests_cypress: ## Run Cypress tests
 	@tests/e2e/full/wrap.sh
@@ -139,7 +169,6 @@ phpunit-ci-run:
 		-c tests/phpunit/phpunit.xml \
 		--log-junit /tmp/results/phpunit_tests_results.xml \
 		--coverage-html=/tmp/results/coverage/ \
-		--coverage-clover=/tmp/results/coverage/clover.xml \
 		--random-order \
 		--do-not-cache-result
 
@@ -200,8 +229,7 @@ simpletest-74-file: ## Run SimpleTest with PHP 7.4 on a given file or directory 
 
 
 psalm: ## Run Psalm (PHP static analysis tool). Use FILES variables to execute on a given set of files or directories.
-	$(eval THREADS ?= 2)
-	$(PHP) tests/psalm/psalm-config-plugins-git-ignore.php tests/psalm/psalm.xml ./src/vendor/bin/psalm --show-info=false --threads=$(THREADS) -c={config_path} $(FILES)
+	$(PHP) tests/psalm/psalm-config-plugins-git-ignore.php tests/psalm/psalm.xml ./src/vendor/bin/psalm --show-info=false -c={config_path} $(FILES)
 
 psalm-with-info: ## Run Psalm (PHP static analysis tool) with INFO findings. Use FILES variables to execute on a given set of files or directories.
 	$(eval THREADS ?= 2)
@@ -237,6 +265,10 @@ phpcbf: ## Execute PHPCBF with the "strict" ruleset enforced on all the codebase
 	$(eval FILES ?= .)
 	@$(PHP) -d memory_limit=512M ./src/vendor/bin/phpcbf --extensions=php --encoding=utf-8 --standard=tests/phpcs/tuleap-ruleset-minimal.xml -p $(FILES)
 
+deptrac: ## Execute deptrac. Use CONFIG to choose the configuration file to evaluate (default to tests/deptrac/core_on_plugins.yml).
+	$(eval CONFIG ?= tests/deptrac/core_on_plugins.yml)
+	@$(PHP) ./src/vendor/bin/deptrac analyze --no-banner -- $(CONFIG)
+
 eslint: ## Execute eslint. Use FILES parameter to execute on specific file or directory.
 	$(eval FILES ?= .)
 	@npm run eslint -- --quiet $(FILES)
@@ -244,14 +276,6 @@ eslint: ## Execute eslint. Use FILES parameter to execute on specific file or di
 eslint-fix: ## Execute eslint with --fix to try to fix problems automatically. Use FILES parameter to execute on specific file or directory.
 	$(eval FILES ?= .)
 	@npm run eslint -- --fix --quiet $(FILES)
-
-prettier: ## Execute prettier. Use FILES parameter to execute on specific file/glob.
-	$(eval FILES ?= "**/*.{js,ts,vue}")
-	@npm run prettier -- --list-different $(FILES)
-
-prettier-fix: ## Execute prettier in write mode (things might break!). Use FILES parameter to execute on specific file/glob.
-	$(eval FILES ?= "**/*.{js,ts,vue}")
-	@npm run prettier -- --write $(FILES)
 
 bash-web: ## Give a bash on web container
 	@docker exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" -ti `docker-compose ps -q web` bash

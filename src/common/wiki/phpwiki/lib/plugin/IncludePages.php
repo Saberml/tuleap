@@ -31,17 +31,17 @@ include_once("lib/plugin/IncludePage.php");
 
 class WikiPlugin_IncludePages extends WikiPlugin_IncludePage
 {
-    function getName()
+    public function getName()
     {
         return _("IncludePages");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Include multiple pages.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -50,7 +50,7 @@ class WikiPlugin_IncludePages extends WikiPlugin_IncludePage
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             array( 'pages'   => false,  // the pages to include
@@ -59,7 +59,7 @@ class WikiPlugin_IncludePages extends WikiPlugin_IncludePage
         );
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         $html = HTML();
@@ -83,12 +83,12 @@ class WikiPlugin_IncludePages extends WikiPlugin_IncludePage
 
         foreach ($args['pages'] as $page) {
             if (empty($args['exclude']) or !in_array($page, $args['exclude'])) {
-                $html = HTML($html, $include->run($dbi, "page='$page' ".$argstr, $request, $basepage));
+                $html = HTML($html, $include->run($dbi, "page='$page' " . $argstr, $request, $basepage));
             }
         }
         return $html;
     }
-};
+}
 
 // $Log: IncludePages.php,v $
 // Revision 1.2  2005/09/30 18:41:39  uckelman

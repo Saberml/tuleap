@@ -21,7 +21,7 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class GitViewsRepositoriesTraversalStrategySelectboxTest extends TestCase
@@ -47,7 +47,7 @@ class GitViewsRepositoriesTraversalStrategySelectboxTest extends TestCase
         $expectedPattern = $this->getExpectedPattern($repositories);
 
         $strategy->__construct($view);
-        $this->assertRegExp('`'. $expectedPattern .'`', $strategy->fetch($repositories, $user));
+        $this->assertRegExp('`' . $expectedPattern . '`', $strategy->fetch($repositories, $user));
     }
 
     public function getExpectedPattern($repositories): string
@@ -74,7 +74,7 @@ class GitViewsRepositoriesTraversalStrategySelectboxTest extends TestCase
         $a_repository_id = 4;
 
         $strategy->__construct($view);
-        $this->assertRegExp('`value="'. $a_repository_id .'"`', $strategy->fetch($repositories, $user));
+        $this->assertRegExp('`value="' . $a_repository_id . '"`', $strategy->fetch($repositories, $user));
     }
 
     private function getFlatTree($strategy): array
@@ -82,8 +82,8 @@ class GitViewsRepositoriesTraversalStrategySelectboxTest extends TestCase
         //go find the variable $repositories
         $repositories = $this->getFLatTreeOfRepositories();
         foreach ($repositories as $row) {
-            /** @var GitRepository $repository */
             $repository = \Mockery::mock(\GitRepository::class)->makePartial()->shouldAllowMockingProtectedMethods();
+            \assert($repository instanceof GitRepository);
             $repository->setId($row['repository_id']);
             $repository->setName($row['repository_name']);
             $repository->setDescription($row['repository_description']);

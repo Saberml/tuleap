@@ -56,7 +56,7 @@ class VersionUploadFinisherTest extends TestCase
 
     protected function setUp() : void
     {
-        $this->logger                        = Mockery::mock(\Logger::class);
+        $this->logger                        = Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->item_factory                  = Mockery::mock(Docman_ItemFactory::class);
         $this->version_factory               = Mockery::mock(Docman_VersionFactory::class);
         $this->event_manager                 = Mockery::mock(\EventManager::class);
@@ -169,7 +169,7 @@ class VersionUploadFinisherTest extends TestCase
             ->with('copy')
             ->andReturn(true);
 
-        $this->approval_table_updater->shouldReceive('updateApprovalTable')->withArgs([$item,$user,'copy'])->once();
+        $this->approval_table_updater->shouldReceive('updateApprovalTable')->withArgs([$item, $user, 'copy'])->once();
 
         $upload_finisher->finishUpload($file_information);
 

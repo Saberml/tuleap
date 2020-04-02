@@ -62,12 +62,13 @@ class Tracker_FormElement_Field_SubmittedOn extends Tracker_FormElement_Field_Da
                 'artifact.submitted_on'
             );
         }
+        return '';
     }
 
     public function getQuerySelect()
     {
         // SubmittedOn is stored in the artifact
-        return "a.submitted_on AS `" .$this->name ."`";
+        return "a.submitted_on AS `" . $this->name . "`";
     }
 
     public function getQueryFrom()
@@ -112,33 +113,21 @@ class Tracker_FormElement_Field_SubmittedOn extends Tracker_FormElement_Field_Da
         return $artifact_field_value_full_representation;
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'submittedon_label');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'submittedon_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('calendar/cal.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('calendar/cal--plus.png');
@@ -256,7 +245,6 @@ class Tracker_FormElement_Field_SubmittedOn extends Tracker_FormElement_Field_Da
     /**
      * Fetch the html code to display the field value in tooltip
      *
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue $value The changeset value for this field
      * @return string
      */
@@ -288,8 +276,8 @@ class Tracker_FormElement_Field_SubmittedOn extends Tracker_FormElement_Field_Da
         if ($last_changeset_value === null && $submitted_value === null && $this->isRequired()) {
             $is_valid = false;
             $this->setHasErrors(true);
-            $GLOBALS['Response']->addFeedback('error', $GLOBALS['Language']->getText('plugin_tracker_common_artifact', 'err_required', $this->getLabel(). ' ('. $this->getName() .')'));
-        } elseif ($submitted_value !== null &&  ! $this->userCanUpdate()) {
+            $GLOBALS['Response']->addFeedback('error', $GLOBALS['Language']->getText('plugin_tracker_common_artifact', 'err_required', $this->getLabel() . ' (' . $this->getName() . ')'));
+        } elseif ($submitted_value !== null && ! $this->userCanUpdate()) {
             $is_valid = true;
             $GLOBALS['Response']->addFeedback('warning', $GLOBALS['Language']->getText('plugin_tracker_admin_import', 'field_not_taken_account', array($this->getName())));
         }
@@ -353,7 +341,7 @@ class Tracker_FormElement_Field_SubmittedOn extends Tracker_FormElement_Field_Da
     protected function fetchAdminFormElement()
     {
         $html = '';
-        $html .= '<div>'. $this->formatDateTime(time()) . '</div>';
+        $html .= '<div>' . $this->formatDateTime(time()) . '</div>';
         $html .= '<span class="tracker-admin-form-element-help">';
         $html .= $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'submittedon_help');
         $html .= '</span>';

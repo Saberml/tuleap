@@ -21,17 +21,19 @@
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
+use Tuleap\ForgeConfigSandbox;
+use Tuleap\GlobalLanguageMock;
 use Tuleap\TemporaryTestDirectory;
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 class Rule_FileTest extends TestCase
 {
-    use MockeryPHPUnitIntegration, TemporaryTestDirectory;
+    use MockeryPHPUnitIntegration, TemporaryTestDirectory, GlobalLanguageMock, ForgeConfigSandbox;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $tmpName = $this->getTmpDir().'/_unit_tests_rules_file.txt';
+        $tmpName = $this->getTmpDir() . '/_unit_tests_rules_file.txt';
         $fd = fopen($tmpName, 'w');
         fwrite($fd, 'A test file');
         fclose($fd);
@@ -44,66 +46,79 @@ class Rule_FileTest extends TestCase
 
     public function testOk(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('1000');
-        $r->shouldReceive('geti18nError')->andReturns('');
+        ForgeConfig::set('sys_max_size_upload', 1000);
+        $r = new Rule_File();
         $this->assertTrue($r->isValid($this->file));
     }
 
     public function testErrorIniSize(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('1000');
-        $r->shouldReceive('geti18nError')->with('error_upload_size', UPLOAD_ERR_INI_SIZE)->once()->andReturns(UPLOAD_ERR_INI_SIZE);
+        ForgeConfig::set('sys_max_size_upload', 1000);
+        $r = new Rule_File();
+        $GLOBALS['Language']
+            ->shouldReceive('getText')
+            ->with('rule_file', 'error_upload_size', UPLOAD_ERR_INI_SIZE)
+            ->andReturn(UPLOAD_ERR_INI_SIZE);
         $this->file['error'] = UPLOAD_ERR_INI_SIZE;
         $this->assertFalse($r->isValid($this->file));
-        $this->assertRegExp('/'.UPLOAD_ERR_INI_SIZE.'/', $r->error);
+        $this->assertRegExp('/' . UPLOAD_ERR_INI_SIZE . '/', $r->error);
     }
 
     public function testErrorFormSize(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('1000');
-        $r->shouldReceive('geti18nError')->with('error_upload_size', UPLOAD_ERR_FORM_SIZE)->once()->andReturns(UPLOAD_ERR_FORM_SIZE);
+        ForgeConfig::set('sys_max_size_upload', 1000);
+        $r = new Rule_File();
+        $GLOBALS['Language']
+            ->shouldReceive('getText')
+            ->with('rule_file', 'error_upload_size', UPLOAD_ERR_FORM_SIZE)
+            ->andReturn(UPLOAD_ERR_FORM_SIZE);
         $this->file['error'] = UPLOAD_ERR_FORM_SIZE;
         $this->assertFalse($r->isValid($this->file));
-        $this->assertRegExp('/'.UPLOAD_ERR_FORM_SIZE.'/', $r->error);
+        $this->assertRegExp('/' . UPLOAD_ERR_FORM_SIZE . '/', $r->error);
     }
 
     public function testErrorPartial(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('1000');
-        $r->shouldReceive('geti18nError')->with('error_upload_partial', UPLOAD_ERR_PARTIAL)->once()->andReturns(UPLOAD_ERR_PARTIAL);
+        ForgeConfig::set('sys_max_size_upload', 1000);
+        $r = new Rule_File();
+        $GLOBALS['Language']
+            ->shouldReceive('getText')
+            ->with('rule_file', 'error_upload_partial', UPLOAD_ERR_PARTIAL)
+            ->andReturn(UPLOAD_ERR_PARTIAL);
         $this->file['error'] = UPLOAD_ERR_PARTIAL;
         $this->assertFalse($r->isValid($this->file));
-        $this->assertRegExp('/'.UPLOAD_ERR_PARTIAL.'/', $r->error);
+        $this->assertRegExp('/' . UPLOAD_ERR_PARTIAL . '/', $r->error);
     }
 
     public function testErrorNoFile(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('1000');
-        $r->shouldReceive('geti18nError')->with('error_upload_nofile', UPLOAD_ERR_NO_FILE)->once()->andReturns(UPLOAD_ERR_NO_FILE);
+        ForgeConfig::set('sys_max_size_upload', 1000);
+        $r = new Rule_File();
+        $GLOBALS['Language']
+            ->shouldReceive('getText')
+            ->with('rule_file', 'error_upload_nofile', UPLOAD_ERR_NO_FILE)
+            ->andReturn(UPLOAD_ERR_NO_FILE);
         $this->file['error'] = UPLOAD_ERR_NO_FILE;
         $this->assertFalse($r->isValid($this->file));
-        $this->assertRegExp('/'.UPLOAD_ERR_NO_FILE.'/', $r->error);
+        $this->assertRegExp('/' . UPLOAD_ERR_NO_FILE . '/', $r->error);
     }
 
     public function testErrorMaxSize(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('5');
-        $r->shouldReceive('geti18nError')->with('error_upload_size', UPLOAD_ERR_INI_SIZE)->once()->andReturns(UPLOAD_ERR_INI_SIZE);
+        ForgeConfig::set('sys_max_size_upload', 5);
+        $r = new Rule_File();
+        $GLOBALS['Language']
+            ->shouldReceive('getText')
+            ->with('rule_file', 'error_upload_size', UPLOAD_ERR_INI_SIZE)
+            ->andReturn(UPLOAD_ERR_INI_SIZE);
         $this->assertFalse($r->isValid($this->file));
-        $this->assertRegExp('/'.UPLOAD_ERR_INI_SIZE.'/', $r->error);
+        $this->assertRegExp('/' . UPLOAD_ERR_INI_SIZE . '/', $r->error);
     }
 
     public function testNoName(): void
     {
-        $r = \Mockery::mock(\Rule_File::class)->makePartial()->shouldAllowMockingProtectedMethods();
-        $r->setMaxSize('1000');
-        $r->shouldReceive('geti18nError')->andReturns('');
+        ForgeConfig::set('sys_max_size_upload', 1000);
+        $r = new Rule_File();
         $this->file['name'] = '';
         $this->assertFalse($r->isValid($this->file));
     }

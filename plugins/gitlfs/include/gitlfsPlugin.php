@@ -68,7 +68,7 @@ class gitlfsPlugin extends \Plugin // phpcs:ignore
     {
         parent::__construct($id);
         $this->setScope(self::SCOPE_PROJECT);
-        bindtextdomain('tuleap-gitlfs', __DIR__.'/../site-content');
+        bindtextdomain('tuleap-gitlfs', __DIR__ . '/../site-content');
     }
 
     public function getPluginInfo()
@@ -478,7 +478,7 @@ class gitlfsPlugin extends \Plugin // phpcs:ignore
         );
     }
 
-    private function getUserRetriever(Logger $logger) : \Tuleap\GitLFS\HTTP\UserRetriever
+    private function getUserRetriever(\Psr\Log\LoggerInterface $logger) : \Tuleap\GitLFS\HTTP\UserRetriever
     {
         return new \Tuleap\GitLFS\HTTP\UserRetriever(
             $this->getLFSAPIHTTPAuthorization(),

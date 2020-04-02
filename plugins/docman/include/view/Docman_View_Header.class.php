@@ -22,7 +22,7 @@
 /* abstract */ class Docman_View_Header extends Docman_View_View
 {
 
-    function _header($params)
+    public function _header($params)
     {
         if (!headers_sent()) {
             header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
@@ -46,8 +46,8 @@
         } else {
             $project = $this->getProjectFromParams($params);
             if ($project) {
-                /** @var Tuleap\Docman\ServiceDocman $service */
                 $service = $project->getService($htmlParams['service_name']);
+                \assert($service instanceof Tuleap\Docman\ServiceDocman);
                 if ($service) {
                     $service->displayHeader($htmlParams['title'], [], $this->getToolbar($params));
                 } else {
@@ -66,14 +66,14 @@
         return array();
     }
 
-    /* protected */ function _getTitle($params)
+    /* protected */ public function _getTitle($params)
     {
         $title = '';
         $project = $this->getProjectFromParams($params);
         if ($project) {
-            $title .= $project->getPublicName().' - ';
+            $title .= Codendi_HTMLPurifier::instance()->purify($project->getPublicName()) . ' - ';
         }
-        $title .= $GLOBALS['Language']->getText('plugin_docman', 'title');
+        $title .= dgettext('tuleap-docman', 'Project Documentation');
 
         return $title;
     }
@@ -83,14 +83,14 @@
         $title   = '';
         $project = $this->getProjectFromParams($params);
         if ($project) {
-            $title .= $project->getUnconvertedPublicName() . ' - ';
+            $title .= $project->getPublicName() . ' - ';
         }
-        $title .= $GLOBALS['Language']->getText('plugin_docman', 'title');
+        $title .= dgettext('tuleap-docman', 'Project Documentation');
 
         return $title;
     }
 
-    /* protected */ function _footer($params)
+    /* protected */ public function _footer($params)
     {
         if (isset($params['pv']) && $params['pv'] > 0) {
             $GLOBALS['HTML']->pv_footer(array());
@@ -99,12 +99,12 @@
         }
     }
 
-    /* protected */ function _getAdditionalHtmlParams($params)
+    /* protected */ public function _getAdditionalHtmlParams($params)
     {
         return  array();
     }
 
-    /* protected */ function _feedback($params)
+    /* protected */ public function _feedback($params)
     {
         //$this->_controller->feedback->display();
     }

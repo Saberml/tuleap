@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2018-Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -28,6 +28,7 @@ use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
 use PFUser;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LogLevel;
 use Response;
 use Tracker;
 use Tracker\Artifact\XMLArtifactSourcePlatformExtractor;
@@ -40,12 +41,12 @@ use Tracker_Artifact_XMLImport;
 use Tracker_ArtifactCreator;
 use Tracker_ArtifactFactory;
 use Tracker_FormElement_Field;
-use Tracker_FormElement_Field_Integer;
 use Tracker_FormElement_Field_List_Bind_Static_ValueDao;
 use Tracker_FormElement_Field_String;
 use Tracker_FormElementFactory;
 use Tracker_XML_Importer_ArtifactImportedMapping;
 use TrackerXmlFieldsMapping_FromAnotherPlatform;
+use Tuleap\Project\XML\Import\ExternalFieldsExtractor;
 use Tuleap\Project\XML\Import\ImportConfig;
 use Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao;
 use Tuleap\Tracker\FormElement\Field\ArtifactLink\Nature\NatureDao;
@@ -113,11 +114,6 @@ class XmlImportTest extends TestCase
     private $logger;
 
     /**
-     * @var Response
-     */
-    private $response;
-
-    /**
      * @var XML_RNGValidator
      */
     private $rng_validator;
@@ -126,11 +122,6 @@ class XmlImportTest extends TestCase
      * @var Tracker_Artifact_XMLImport
      */
     private $importer;
-
-    /**
-     * @var Tracker_XML_Importer_ArtifactImportedMapping
-     */
-    private $artifacts_id_mapping;
 
     /**
      * @var TrackerXmlFieldsMapping_FromAnotherPlatform
@@ -158,16 +149,6 @@ class XmlImportTest extends TestCase
     private $tracker_formelement_field_string;
 
     /**
-     * @var Tracker_FormElement_Field_Integer
-     */
-    private $tracker_formelement_field_source_id;
-
-    /**
-     * @var Tracker_FormElement_Field_Integer
-     */
-    private $tracker_formelement_field_effort;
-
-    /**
      * @var XMLArtifactSourcePlatformExtractor
      */
     private $xml_artifact_source_platform_extractor;
@@ -180,6 +161,10 @@ class XmlImportTest extends TestCase
      * @var Mockery\MockInterface|CreatedFileURLMapping
      */
     private $url_mapping;
+    /**
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|ExternalFieldsExtractor
+     */
+    private $external_field_extractor;
 
     public function setUp() : void
     {
@@ -192,8 +177,6 @@ class XmlImportTest extends TestCase
         $this->formelement_factory                    = Mockery::mock(Tracker_FormElementFactory::class);
         $this->tracker_artifact_factory               = Mockery::mock(Tracker_ArtifactFactory::class);
         $this->existing_artifact_source_id_extractor  = Mockery::mock(ExistingArtifactSourceIdFromTrackerExtractor::class);
-        $this->tracker_formelement_field_source_id    = Mockery::mock(Tracker_FormElement_Field_Integer::class);
-        $this->tracker_formelement_field_effort       = Mockery::mock(Tracker_FormElement_Field_Integer::class);
         $this->static_value_dao                       = Mockery::mock(Tracker_FormElement_Field_List_Bind_Static_ValueDao::class);
         $this->xml_artifact_source_platform_extractor = Mockery::mock(XMLArtifactSourcePlatformExtractor::class);
         $this->response                               = Mockery::mock(Response::class);
@@ -223,12 +206,14 @@ class XmlImportTest extends TestCase
 
         $this->extraction_path = $this->getTmpDir();
 
-        $this->logger = Mockery::mock(Logger::class);
-        $this->logger->shouldReceive('info');
-        $this->logger->shouldReceive('debug');
+        $this->logger = Mockery::mock(\Psr\Log\LoggerInterface::class);
+        $this->logger->shouldReceive('log')->with(LogLevel::INFO, Mockery::any(), Mockery::any());
+        $this->logger->shouldReceive('log')->with(LogLevel::DEBUG, Mockery::any(), Mockery::any());
 
         $this->rng_validator =  Mockery::mock(XML_RNGValidator::class);
         $this->rng_validator->shouldReceive('validate');
+
+        $this->external_field_extractor = Mockery::mock(ExternalFieldsExtractor::class);
 
         $this->importer = new Tracker_Artifact_XMLImport(
             $this->rng_validator,
@@ -243,7 +228,8 @@ class XmlImportTest extends TestCase
             Mockery::mock(NatureDao::class),
             $this->xml_artifact_source_platform_extractor,
             $this->existing_artifact_source_id_extractor,
-            $this->artifact_source_id_dao
+            $this->artifact_source_id_dao,
+            $this->external_field_extractor
         );
     }
 
@@ -259,7 +245,7 @@ class XmlImportTest extends TestCase
 
         $artifact = $this->mockAnArtifact(101, $this->tracker, $this->tracker_id, []);
 
-        $xml_field_mapping = file_get_contents(__DIR__.'/_fixtures/testImportChangesetInNewArtifact.xml');
+        $xml_field_mapping = file_get_contents(__DIR__ . '/_fixtures/testImportChangesetInNewArtifact.xml');
         $xml_input = simplexml_load_string($xml_field_mapping);
 
         $data = array(
@@ -328,6 +314,8 @@ class XmlImportTest extends TestCase
 
         $this->artifact_source_id_dao->shouldReceive('save')->withArgs([101, 4918, "https://web/"])->once();
 
+        $this->external_field_extractor->shouldReceive('extractExternalFieldsFromArtifact')->once();
+
         $this->importer->importFromXML(
             $this->tracker,
             $xml_input,
@@ -356,7 +344,7 @@ class XmlImportTest extends TestCase
 
         $this->artifact_creator->shouldReceive('createBare')->once()->andReturn($artifact);
 
-        $xml_field_mapping = file_get_contents(__DIR__.'/_fixtures/testImportChangesetInNewArtifact.xml');
+        $xml_field_mapping = file_get_contents(__DIR__ . '/_fixtures/testImportChangesetInNewArtifact.xml');
         $xml_input = simplexml_load_string($xml_field_mapping);
 
         $data = array(
@@ -416,6 +404,9 @@ class XmlImportTest extends TestCase
             ->once();
 
         $this->formelement_factory->shouldReceive('getUsedFieldByName')->withArgs([$this->tracker_id, 'summary'])->andReturn($this->tracker_formelement_field_string);
+
+        $this->external_field_extractor->shouldReceive('extractExternalFieldsFromArtifact')->once();
+
 
         $this->importer->importFromXML(
             $this->tracker,
@@ -445,7 +436,7 @@ class XmlImportTest extends TestCase
 
         $this->artifact_creator->shouldReceive('createBare')->once()->andReturn($artifact);
 
-        $xml_field_mapping = file_get_contents(__DIR__.'/_fixtures/testImportChangesetInArtifactWithoutSourcePlatformAttribute.xml');
+        $xml_field_mapping = file_get_contents(__DIR__ . '/_fixtures/testImportChangesetInArtifactWithoutSourcePlatformAttribute.xml');
         $xml_input = simplexml_load_string($xml_field_mapping);
 
         $data = array(
@@ -506,6 +497,8 @@ class XmlImportTest extends TestCase
 
         $this->formelement_factory->shouldReceive('getUsedFieldByName')->withArgs([$this->tracker_id, 'summary'])->andReturn($this->tracker_formelement_field_string);
 
+        $this->external_field_extractor->shouldReceive('extractExternalFieldsFromArtifact')->once();
+
         $this->importer->importFromXML(
             $this->tracker,
             $xml_input,
@@ -532,7 +525,7 @@ class XmlImportTest extends TestCase
 
         $this->artifact_creator->shouldReceive('createBare')->once()->andReturn($artifact);
 
-        $xml_field_mapping = file_get_contents(dirname(__FILE__).'/_fixtures/testImportChangesetInArtifactWithWrongSourcePlatformAttribute.xml');
+        $xml_field_mapping = file_get_contents(dirname(__FILE__) . '/_fixtures/testImportChangesetInArtifactWithWrongSourcePlatformAttribute.xml');
         $xml_input = simplexml_load_string($xml_field_mapping);
 
         $data = array(
@@ -597,6 +590,8 @@ class XmlImportTest extends TestCase
 
         $this->logger->shouldReceive('warn')->with("[XML import] No correspondence between artifact_id and source_artifact_id. New artifact created.", null);
 
+        $this->external_field_extractor->shouldReceive('extractExternalFieldsFromArtifact')->once();
+
         $this->importer->importFromXML(
             $this->tracker,
             $xml_input,
@@ -617,7 +612,7 @@ class XmlImportTest extends TestCase
 
         $artifact = $this->mockAnArtifact(101, $this->tracker, $this->tracker_id, [$changeset]);
 
-        $xml_field_mapping = file_get_contents(dirname(__FILE__).'/_fixtures/testImportChangesetInNewArtifact.xml');
+        $xml_field_mapping = file_get_contents(dirname(__FILE__) . '/_fixtures/testImportChangesetInNewArtifact.xml');
         $xml_input = simplexml_load_string($xml_field_mapping);
 
         $this->tracker_artifact_factory->shouldReceive('getArtifactById')->andReturn($artifact)->times(2);
@@ -688,6 +683,8 @@ class XmlImportTest extends TestCase
             )
             ->andReturn($changeset_3)
             ->once();
+
+        $this->external_field_extractor->shouldReceive('extractExternalFieldsFromArtifact')->once();
 
         $this->importer->importFromXML(
             $this->tracker,

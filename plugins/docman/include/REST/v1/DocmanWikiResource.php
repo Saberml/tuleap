@@ -211,10 +211,10 @@ class DocmanWikiResource extends AuthenticatedResource
         $this->createNewWikiVersion(
             $representation,
             $item_request,
-            (int)$item->getStatus(),
-            (int)$item->getObsolescenceDate(),
-            (string)$item->getTitle(),
-            (string)$item->getDescription()
+            (int) $item->getStatus(),
+            (int) $item->getObsolescenceDate(),
+            (string) $item->getTitle(),
+            (string) $item->getDescription()
         );
     }
 
@@ -251,7 +251,6 @@ class DocmanWikiResource extends AuthenticatedResource
         int $id,
         PUTMetadataRepresentation $representation
     ): void {
-
         $this->checkAccess();
         $this->setMetadataHeaders();
 
@@ -444,9 +443,7 @@ class DocmanWikiResource extends AuthenticatedResource
     /**
      * @param              $project
      * @param              $current_user
-     * @param \Docman_Item $item
      *
-     * @return DocumentBeforeModificationValidatorVisitor
      */
     private function getValidator(Project $project, \PFUser $current_user, \Docman_Item $item): DocumentBeforeModificationValidatorVisitor
     {
@@ -458,9 +455,6 @@ class DocmanWikiResource extends AuthenticatedResource
         );
     }
 
-    /**
-     * @param \Project $project
-     */
     private function addAllEvent(\Project $project): void
     {
         $event_adder = $this->getDocmanItemsEventAdder();

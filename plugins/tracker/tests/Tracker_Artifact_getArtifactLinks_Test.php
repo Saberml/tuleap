@@ -34,7 +34,7 @@ class Tracker_Artifact_getArtifactLinks_Test extends TuleapTestCase
         parent::setUp();
         $this->setUpGlobalsMockery();
 
-        $this->user      = aUser()->build();
+        $this->user      = new PFUser(['language_id' => 'en']);
         $this->tracker   = aTracker()->withId($this->current_id)->build();
         $this->factory   = \Mockery::spy(\Tracker_FormElementFactory::class);
         $this->changeset = \Mockery::spy(\Tracker_Artifact_Changeset::class);
@@ -43,8 +43,7 @@ class Tracker_Artifact_getArtifactLinks_Test extends TuleapTestCase
             ->withTracker($this->tracker)
             ->withFormElementFactory($this->factory)
             ->withChangesets(array($this->changeset))
-            ->build()
-        ;
+            ->build();
         $hierarchy_factory = \Mockery::spy(\Tracker_HierarchyFactory::class);
         stub($hierarchy_factory)->getChildren()->returns(array());
         $this->artifact->setHierarchyFactory($hierarchy_factory);
@@ -282,7 +281,6 @@ class Tracker_Artifact_getArtifactLinks_Test extends TuleapTestCase
             ->withFormElementFactory($this->factory)
             ->withChangesets(array($changeset))
             ->withHierarchyFactory($hierarchy_factory)
-            ->build()
-        ;
+            ->build();
     }
 }

@@ -19,6 +19,7 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Psr\Log\LoggerInterface;
 use Tuleap\Layout\IncludeAssets;
 
 /**
@@ -26,14 +27,17 @@ use Tuleap\Layout\IncludeAssets;
  */
 class Plugin implements PFO_Plugin
 {
-    /** @var BackendLogger */
+    /** @var LoggerInterface */
     private $backend_logger;
 
     public $id;
     public $pluginInfo;
     /** @var Map */
     public $hooks;
-    protected $_scope;
+    /**
+     * @var int
+     */
+    private $scope;
 
     /** @var bool */
     private $is_custom = false;
@@ -48,7 +52,6 @@ class Plugin implements PFO_Plugin
 
     public const SCOPE_SYSTEM  = 0;
     public const SCOPE_PROJECT = 1;
-    public const SCOPE_USER    = 2;
 
     /**
      * @var bool True if the plugin should be disabled for all projects on installation
@@ -62,12 +65,15 @@ class Plugin implements PFO_Plugin
      */
     protected $allowedForProject = array();
 
+    /**
+     * @param int|null $id
+     */
     public function __construct($id = -1)
     {
         $this->id            = $id;
         $this->hooks         = new Map();
 
-        $this->_scope = Plugin::SCOPE_SYSTEM;
+        $this->scope = self::SCOPE_SYSTEM;
     }
 
     /**
@@ -148,7 +154,7 @@ class Plugin implements PFO_Plugin
     public function addHook($hook, $callback = null, $recallHook = false)
     {
         if ($this->hooks->containsKey($hook)) {
-            throw new RuntimeException('A plugin cannot listen to the same hook several time. Please check '.$hook);
+            throw new RuntimeException('A plugin cannot listen to the same hook several time. Please check ' . $hook);
         }
         $value = array();
         $value['hook']       = $hook;
@@ -185,19 +191,22 @@ class Plugin implements PFO_Plugin
         return $hook;
     }
 
-    public function getScope()
+    public function getScope(): int
     {
-        return $this->_scope;
+        return $this->scope;
     }
 
-    public function setScope($s)
+    /**
+     * @psalm-param self::SCOPE_* $s
+     */
+    public function setScope(int $s): void
     {
-        $this->_scope = $s;
+        $this->scope = $s;
     }
 
     public function getPluginEtcRoot()
     {
-        return $GLOBALS['sys_custompluginsroot'] . '/' . $this->getName() .'/etc';
+        return $GLOBALS['sys_custompluginsroot'] . '/' . $this->getName() . '/etc';
     }
 
     public function getEtcTemplatesPath()
@@ -208,7 +217,7 @@ class Plugin implements PFO_Plugin
     public function _getPluginPath()
     {
         $trace = debug_backtrace();
-        trigger_error("Plugin->_getPluginPath() is deprecated. Please use Plugin->getPluginPath() instead in ". $trace[0]['file'] ." at line ". $trace[0]['line'], E_USER_WARNING);
+        trigger_error("Plugin->_getPluginPath() is deprecated. Please use Plugin->getPluginPath() instead in " . $trace[0]['file'] . " at line " . $trace[0]['line'], E_USER_WARNING);
         return $this->getPluginPath();
     }
 
@@ -225,18 +234,18 @@ class Plugin implements PFO_Plugin
         if (isset($GLOBALS['sys_pluginspath'])) {
             $path = $GLOBALS['sys_pluginspath'];
         } else {
-            $path="";
+            $path = "";
         }
         if ($pm->pluginIsCustom($this)) {
             $path = $GLOBALS['sys_custompluginspath'];
         }
-        return $path .'/'. $this->getName();
+        return $path . '/' . $this->getName();
     }
 
     public function _getThemePath()
     {
         $trace = debug_backtrace();
-        trigger_error("Plugin->_getThemePath() is deprecated. Please use Plugin->getThemePath() instead in ". $trace[0]['file'] ." at line ". $trace[0]['line'], E_USER_WARNING);
+        trigger_error("Plugin->_getThemePath() is deprecated. Please use Plugin->getThemePath() instead in " . $trace[0]['file'] . " at line " . $trace[0]['line'], E_USER_WARNING);
         return $this->getThemePath();
     }
 
@@ -250,14 +259,14 @@ class Plugin implements PFO_Plugin
 
         $paths  = array($GLOBALS['sys_custompluginspath'], $GLOBALS['sys_pluginspath']);
         $roots  = array($GLOBALS['sys_custompluginsroot'], $GLOBALS['sys_pluginsroot']);
-        $dir    = '/'. $pluginName .'/www/themes/';
-        $dirs   = array($dir.$GLOBALS['sys_user_theme'], $dir.'default');
-        $dir    = '/'. $pluginName .'/themes/';
-        $themes = array($dir.$GLOBALS['sys_user_theme'], $dir.'default');
+        $dir    = '/' . $pluginName . '/www/themes/';
+        $dirs   = array($dir . $GLOBALS['sys_user_theme'], $dir . 'default');
+        $dir    = '/' . $pluginName . '/themes/';
+        $themes = array($dir . $GLOBALS['sys_user_theme'], $dir . 'default');
         foreach ($dirs as $kd => $dir) {
             foreach ($roots as $kr => $root) {
-                if (is_dir($root.$dir) && $paths[$kr].$themes[$kd]) {
-                    return $paths[$kr].$themes[$kd];
+                if (is_dir($root . $dir) && $paths[$kr] . $themes[$kd]) {
+                    return $paths[$kr] . $themes[$kd];
                 }
             }
         }
@@ -280,7 +289,7 @@ class Plugin implements PFO_Plugin
             } else {
                 $path = $GLOBALS['sys_pluginsroot'];
             }
-            if ($path[strlen($path) -1 ] != '/') {
+            if ($path[strlen($path) - 1] != '/') {
                 $path .= '/';
             }
             $this->filesystem_path = $path . $this->getName();
@@ -355,7 +364,7 @@ class Plugin implements PFO_Plugin
      */
     public function getReadme()
     {
-        return $this->getFilesystemPath().'/README';
+        return $this->getFilesystemPath() . '/README';
     }
 
     /**
@@ -386,13 +395,10 @@ class Plugin implements PFO_Plugin
         return '';
     }
 
-    /**
-     * @return BackendLogger
-     */
-    protected function getBackendLogger()
+    protected function getBackendLogger(): LoggerInterface
     {
         if (! $this->backend_logger) {
-            $this->backend_logger = new BackendLogger();
+            $this->backend_logger = BackendLogger::getDefaultLogger();
         }
         return $this->backend_logger;
     }
@@ -403,7 +409,7 @@ class Plugin implements PFO_Plugin
             $this->getFilesystemPath() . '/www/assets',
             $this->getPluginPath() . '/assets'
         );
-        return $include_assets->getHTMLSnippet($this->getName().'.js');
+        return $include_assets->getHTMLSnippet($this->getName() . '.js');
     }
 
     public function currentRequestIsForPlugin()

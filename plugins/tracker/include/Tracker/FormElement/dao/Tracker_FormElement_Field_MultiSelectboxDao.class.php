@@ -25,7 +25,7 @@
 class Tracker_FormElement_Field_MultiSelectboxDao extends Tracker_FormElement_SpecificPropertiesDao
 {
 
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->table_name = 'tracker_field_msb';
@@ -35,7 +35,7 @@ class Tracker_FormElement_Field_MultiSelectboxDao extends Tracker_FormElement_Sp
     {
         $field_id  = $this->da->escapeInt($field_id);
 
-        if (isset($row['size']) && (int)$row['size']) {
+        if (isset($row['size']) && (int) $row['size']) {
             $size = $this->da->escapeInt($row['size']);
         } else {
             $size = 7;

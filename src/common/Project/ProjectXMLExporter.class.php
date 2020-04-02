@@ -28,6 +28,8 @@ class ProjectXMLExporter
 {
     public const UGROUPS_MODE_SYNCHRONIZED = 'synchronized';
 
+    public const LOG_IDENTIFIER = 'project_xml_export_syslog';
+
     /** @var EventManager */
     private $event_manager;
 
@@ -40,7 +42,7 @@ class ProjectXMLExporter
     /** @var UserXMLExporter */
     private $user_xml_exporter;
 
-    /** @var Logger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
     /**
      * @var SynchronizedProjectMembershipDetector
@@ -53,7 +55,7 @@ class ProjectXMLExporter
         XML_RNGValidator $xml_validator,
         UserXMLExporter $user_xml_exporter,
         SynchronizedProjectMembershipDetector $synchronized_project_membership_detector,
-        Logger $logger
+        \Psr\Log\LoggerInterface $logger
     ) {
         $this->event_manager                            = $event_manager;
         $this->ugroup_manager                           = $ugroup_manager;
@@ -61,6 +63,11 @@ class ProjectXMLExporter
         $this->user_xml_exporter                        = $user_xml_exporter;
         $this->synchronized_project_membership_detector = $synchronized_project_membership_detector;
         $this->logger                                   = $logger;
+    }
+
+    public static function getLogger(): \Psr\Log\LoggerInterface
+    {
+        return BackendLogger::getDefaultLogger('project_xml_export_syslog');
     }
 
     private function exportProjectInfo(Project $project, SimpleXMLElement $project_node)
@@ -105,7 +112,7 @@ class ProjectXMLExporter
             $this->exportProjectUgroup($ugroups_node, $ugroup);
         }
 
-        $rng_path = realpath(dirname(__FILE__).'/../xml/resources/ugroups.rng');
+        $rng_path = realpath(dirname(__FILE__) . '/../xml/resources/ugroups.rng');
         $this->xml_validator->validate($ugroups_node, $rng_path);
     }
 
@@ -134,7 +141,6 @@ class ProjectXMLExporter
     ) {
         $this->logger->info("Export plugins");
 
-
         $event = new ExportXmlProject(
             $project,
             $options,
@@ -142,7 +148,8 @@ class ProjectXMLExporter
             $user,
             $this->user_xml_exporter,
             $archive,
-            $temporary_dump_path_on_filesystem
+            $temporary_dump_path_on_filesystem,
+            $this->logger
         );
 
         $this->event_manager->processEvent($event);
@@ -165,7 +172,6 @@ class ProjectXMLExporter
     }
 
     /**
-     * @param SimpleXMLElement $xml_element
      *
      * @return String
      */

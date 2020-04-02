@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2014. All Rights Reserved.
+ * Copyright (c) Enalean, 2014 - Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
-require_once __DIR__.'/../../../../bootstrap.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
 class Tracker_XML_Exporter_ChangesetValue_ChangesetValueListXMLExporterTest extends TuleapTestCase
 {
@@ -46,8 +46,16 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValueListXMLExporterTest exte
         $this->artifact_xml  = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><artifact />');
         $this->changeset_xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><changeset />');
 
+        $bind_static = new Tracker_FormElement_Field_List_Bind_Static(
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+
         $this->field = aMultiSelectBoxField()
-            ->withBind(aBindStatic()->build())
+            ->withBind($bind_static)
             ->withName('status')
             ->build();
 
@@ -69,10 +77,10 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValueListXMLExporterTest exte
         );
 
         $field_change = $this->changeset_xml->field_change;
-        $this->assertEqual((string)$field_change['type'], 'list');
-        $this->assertEqual((string)$field_change['bind'], 'static');
-        $this->assertEqual((string)$field_change->value, '101');
-        $this->assertEqual((string)$field_change->value['format'], 'id');
+        $this->assertEqual((string) $field_change['type'], 'list');
+        $this->assertEqual((string) $field_change['bind'], 'static');
+        $this->assertEqual((string) $field_change->value, '101');
+        $this->assertEqual((string) $field_change->value['format'], 'id');
     }
 
     public function itCreatesFieldChangeNodeWithMultipleValuesInChangesetNode()
@@ -90,11 +98,11 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValueListXMLExporterTest exte
         );
 
         $field_change = $this->changeset_xml->field_change;
-        $this->assertEqual((string)$field_change['type'], 'list');
-        $this->assertEqual((string)$field_change['bind'], 'static');
-        $this->assertEqual((string)$field_change->value[0], '101');
-        $this->assertEqual((string)$field_change->value[0]['format'], 'id');
-        $this->assertEqual((string)$field_change->value[1], '102');
-        $this->assertEqual((string)$field_change->value[1]['format'], 'id');
+        $this->assertEqual((string) $field_change['type'], 'list');
+        $this->assertEqual((string) $field_change['bind'], 'static');
+        $this->assertEqual((string) $field_change->value[0], '101');
+        $this->assertEqual((string) $field_change->value[0]['format'], 'id');
+        $this->assertEqual((string) $field_change->value[1], '102');
+        $this->assertEqual((string) $field_change->value[1]['format'], 'id');
     }
 }

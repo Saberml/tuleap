@@ -22,7 +22,7 @@ import Vuex, { Store } from "vuex";
 import mutations from "./mutations";
 import * as getters from "./getters";
 import * as actions from "./actions";
-import { State, TrackerAgileDashboard } from "../type";
+import { BurnupMode, State, TrackerAgileDashboard } from "../type";
 
 Vue.use(Vuex);
 
@@ -35,7 +35,8 @@ export function createStore(
     is_timeframe_duration: boolean,
     label_start_date: string,
     label_timeframe: string,
-    user_can_view_sub_milestones_planning: boolean
+    user_can_view_sub_milestones_planning: boolean,
+    burnup_mode: BurnupMode
 ): Store<State> {
     const state: State = {
         project_id,
@@ -51,13 +52,16 @@ export function createStore(
         is_timeframe_duration,
         label_start_date,
         label_timeframe,
-        user_can_view_sub_milestones_planning
+        user_can_view_sub_milestones_planning,
+        burnup_mode,
+        nb_past_releases: 0,
+        last_release: null,
     };
 
     return new Vuex.Store({
         getters,
         actions,
         state,
-        mutations
+        mutations,
     });
 }

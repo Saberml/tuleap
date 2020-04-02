@@ -389,8 +389,8 @@ h1, h2, h3 {
 }
 
 .git_webhook {
-
   > .hooks-desc {
+    max-width: 920px;
     margin: 10px 0 20px;
   }
 
@@ -426,6 +426,18 @@ h1, h2, h3 {
     p {
       font-size: 13px;
     }
+  }
+}
+
+#modal-add-jenkins-server,
+#modal-create-jenkins,
+#modal-create-webhook {
+  .fa-asterisk {
+    position: absolute;
+    margin: 0 0 0 3px;
+    color: #da5353;
+    font-size: 10px;
+    vertical-align: text-top;
   }
 }
 
@@ -467,27 +479,37 @@ h1, h2, h3 {
 }
 
 .hooks-jobs-list {
-  > tbody {
-    font-size: 12px;
-
     > tr:first-child > td {
-      white-space: nowrap;
+        white-space: nowrap;
     }
 
     > tr > td:last-child {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      max-width: 383px;
-      width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        max-width: 383px;
+        width: 100%;
     }
-  }
+
+    .hooks-jobs-triggered-jobs-list,
+    .hooks-jobs-branch-source-status {
+        > h4 {
+            margin: 0;
+            font-size: 12px;
+        }
+    }
+
+    .jenkins-server-branch-source-status {
+        margin: 10px 0 0;
+    }
 }
 
-.modal-webhook {
-  > .modal-header {
-    border-bottom: 2px solid #888888;
+.hook-logs-modal {
+  width: 1000px;
+  margin: 0;
+  transform: translateX(-50%);
 
+  > .modal-header {
     > .close {
       margin-left: 10px;
     }
@@ -498,22 +520,35 @@ h1, h2, h3 {
       text-overflow: ellipsis;
     }
   }
+}
 
-  .modal-body {
+table.hook-logs > tbody > tr {
+  > td.hook-log-repository {
+    vertical-align: top;
+  }
 
-    > p:first-child {
-      margin-bottom: 30px;
-    }
+  > td.hook-log-date {
+    width: 10px;
+    vertical-align: top;
+    white-space: nowrap;
+  }
 
-    input[type=url] {
-      width: 100%;
-      height: 30px;
-      box-sizing: border-box;
-    }
+  > td > .hook-log-triggered-jobs > h4,
+  > td > .hook-log-branch-source-status > h4 {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  > td > .hook-log-branch-source-status {
+    margin: 10px 0 0;
   }
 }
 
-.remove-webhook-popover {
+.create-hook-url {
+  width: calc(100% - 20px);
+}
+
+.remove-hook-popover {
   display: none;
 }
 

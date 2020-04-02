@@ -24,7 +24,7 @@ class Bootstrap_FeedbackFormatter extends FeedbackFormatter
     /**
      * @return string html
      */
-    function format(array $logs)
+    public function format(array $logs)
     {
         $hp        = Codendi_HTMLPurifier::instance();
         $html      = '';
@@ -54,10 +54,10 @@ class Bootstrap_FeedbackFormatter extends FeedbackFormatter
                         $additional_classname = '';
                         $title                = 'Warning!';
                 }
-                $html .= '<div class="alert fade in alert-block '. $additional_classname .'">';
-                $html .= '<h4 class="alert-heading">'. $title .'</h4>';
+                $html .= '<div class="alert fade in alert-block ' . $additional_classname . '">';
+                $html .= '<h4 class="alert-heading">' . $title . '</h4>';
             }
-            $html .= $hp->purify($log['msg'], $log['purify']) .'<br />';
+            $html .= $hp->purify($log['msg'], $log['purify']) . '<br />';
         }
         if (!is_null($old_level)) {
             $html .= '</div>';

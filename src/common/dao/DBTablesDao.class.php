@@ -27,28 +27,28 @@ class DBTablesDao extends DataAccessObject
     * Gets a log files
     * @return object a result object
     */
-    function searchAll()
+    public function searchAll()
     {
-        $sql="SHOW TABLES";
+        $sql = "SHOW TABLES";
         return $this->retrieve($sql);
     }
 
-    function analyzeTable($name)
+    public function analyzeTable($name)
     {
-        $sql = "ANALYZE TABLE ".$name;
+        $sql = "ANALYZE TABLE " . $name;
         return $this->retrieve($sql);
     }
 
-    function checkTable($name)
+    public function checkTable($name)
     {
-        $sql = "CHECK TABLE ".$name;
+        $sql = "CHECK TABLE " . $name;
         return $this->retrieve($sql);
     }
 
-    function convertToUTF8($name)
+    public function convertToUTF8($name)
     {
         $field_changes = array();
-        $sql = "SHOW FULL COLUMNS FROM ".$name;
+        $sql = "SHOW FULL COLUMNS FROM " . $name;
         foreach ($this->retrieve($sql) as $field) {
             if ($field['Collation']) {
                 if (preg_match('/_bin$/', $field['Collation'])) {
@@ -56,16 +56,16 @@ class DBTablesDao extends DataAccessObject
                 } else {
                     $collate = 'general_ci';
                 }
-                $field_changes[] = " CHANGE ". $field['Field'] ." ".
-                        $field['Field'] ." ".
-                        $field['Type'] ." CHARACTER SET utf8 COLLATE utf8_". $collate ." ".
-                        (strtolower($field['Null']) == 'no' ? 'NOT NULL' : 'NULL') ." ".
-                        ($field['Default'] ? "DEFAULT '". $field['Default'] ."'" : '');
+                $field_changes[] = " CHANGE " . $field['Field'] . " " .
+                        $field['Field'] . " " .
+                        $field['Type'] . " CHARACTER SET utf8 COLLATE utf8_" . $collate . " " .
+                        (strtolower($field['Null']) == 'no' ? 'NOT NULL' : 'NULL') . " " .
+                        ($field['Default'] ? "DEFAULT '" . $field['Default'] . "'" : '');
             }
         }
-        $sql = "ALTER TABLE ". $name ." ";
+        $sql = "ALTER TABLE " . $name . " ";
         if (count($field_changes)) {
-            $sql .= implode(",\n", $field_changes).",\n";
+            $sql .= implode(",\n", $field_changes) . ",\n";
         }
         $sql .= " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;";
         return $this->update($sql);
@@ -75,13 +75,13 @@ class DBTablesDao extends DataAccessObject
     * Gets a log files
     * @return object a result object
     */
-    function searchByName($name)
+    public function searchByName($name)
     {
-        $sql = "DESC ".$name;
+        $sql = "DESC " . $name;
         return $this->retrieve($sql);
     }
 
-    function updateFromFile($filename)
+    public function updateFromFile($filename)
     {
         $file_content = file($filename);
         $query = "";

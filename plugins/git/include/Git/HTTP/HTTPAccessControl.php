@@ -21,7 +21,7 @@
 
 namespace Tuleap\Git\HTTP;
 
-use Logger;
+use Psr\Log\LoggerInterface;
 use PermissionsManager;
 use PFUser;
 use Tuleap\Cryptography\ConcealedString;
@@ -32,7 +32,7 @@ use UserDao;
 class HTTPAccessControl
 {
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     private $logger;
 
@@ -69,7 +69,7 @@ class HTTPAccessControl
     private $ask_basic_authentication_challenge;
 
     public function __construct(
-        Logger $logger,
+        LoggerInterface $logger,
         \ForgeAccess $forge_access,
         User_LoginManager $login_manager,
         ReplicationHTTPUserAuthenticator $replication_http_user_authenticator,
@@ -95,7 +95,7 @@ class HTTPAccessControl
     {
         $user = null;
         if ($this->needAuthentication($repository, $git_operation)) {
-            $this->logger->debug('Repository '.$repository->getFullName().' need authentication');
+            $this->logger->debug('Repository ' . $repository->getFullName() . ' need authentication');
             $user = $this->authenticate($repository);
         }
         return $user;
@@ -134,7 +134,6 @@ class HTTPAccessControl
     }
 
     /**
-     * @param \GitRepository $repository
      * @return \PFO_User
      */
     private function authenticate(\GitRepository $repository)

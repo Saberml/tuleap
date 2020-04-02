@@ -25,7 +25,7 @@ class LDAP_SyncNotificationManager
     private $retentionPeriod;
     private $projectManager;
 
-    function __construct(ProjectManager $projectManager, $retentionPeriod)
+    public function __construct(ProjectManager $projectManager, $retentionPeriod)
     {
         $this->ldapSyncMail    = new LDAP_SyncMail($projectManager);
         $this->retentionPeriod = $retentionPeriod;
@@ -62,9 +62,9 @@ class LDAP_SyncNotificationManager
     private function getBody($unixProjectName, $user)
     {
         $server_url       = HTTPRequest::instance()->getServerUrl();
-        $project_url      = $server_url.'/projects/'.urlencode($unixProjectName);
+        $project_url      = $server_url . '/projects/' . urlencode($unixProjectName);
         $project = $this->projectManager->getProjectByUnixName($unixProjectName);
-        $publicProjectName = $project->getUnconvertedPublicName();
+        $publicProjectName = $project->getPublicName();
         $purifiedPublicProjectName = Codendi_HTMLPurifier::instance()->purify($publicProjectName, CODENDI_PURIFIER_LIGHT);
         return $GLOBALS['Language']->getText('plugin_ldap', 'ldap_sync_mail_notification_body', array($user->getRealName(), $user->getEmail(), $project_url, $purifiedPublicProjectName, $this->retentionPeriod, ForgeConfig::get('sys_name')));
     }

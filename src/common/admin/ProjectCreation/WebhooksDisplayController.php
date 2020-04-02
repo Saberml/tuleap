@@ -44,8 +44,6 @@ class WebhooksDisplayController implements DispatchableWithRequest
     /**
      * Is able to process a request routed by FrontRouter
      *
-     * @param HTTPRequest $request
-     * @param BaseLayout $layout
      * @param array $variables
      * @throws NotFoundException
      * @throws ForbiddenException
@@ -91,7 +89,7 @@ class WebhooksDisplayController implements DispatchableWithRequest
         $admin_page = new AdminPageRenderer();
         $admin_page->renderANoFramedPresenter(
             $title,
-            ForgeConfig::get('codendi_dir') .'/src/templates/admin/projects/',
+            ForgeConfig::get('codendi_dir') . '/src/templates/admin/projects/',
             'configuration',
             $presenter
         );

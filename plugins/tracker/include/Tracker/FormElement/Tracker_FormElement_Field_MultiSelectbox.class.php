@@ -60,33 +60,21 @@ class Tracker_FormElement_Field_MultiSelectbox extends Tracker_FormElement_Field
         return $this->getproperty('size') ? $this->getproperty('size') : parent::getMaxSize();
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'multiselectbox');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'multiselectbox_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-list-box.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-list-box--plus.png');
@@ -138,7 +126,6 @@ class Tracker_FormElement_Field_MultiSelectbox extends Tracker_FormElement_Field
 
     private function canAugmentData($fields_data)
     {
-
         /* When updating or massupdate an artifact, we do not want this method to reset the selected options.
          *
          * This method is in iteself somewhat of a hack. Its aim is to set default values for multiselect fields
@@ -169,9 +156,14 @@ class Tracker_FormElement_Field_MultiSelectbox extends Tracker_FormElement_Field
     public function getFieldDataFromRESTValue(array $value, ?Tracker_Artifact $artifact = null)
     {
         if (array_key_exists('bind_value_ids', $value) && is_array($value['bind_value_ids'])) {
+            $submitted_bind_value_ids = array_filter(array_unique($value['bind_value_ids']));
+            if (empty($submitted_bind_value_ids)) {
+                return [Tracker_FormElement_Field_List::NONE_VALUE];
+            }
+
             return array_unique(
                 array_map(
-                    array($this->getBind(), 'getFieldDataFromRESTValue'),
+                    array($this, 'getBindValueIdFromSubmittedBindValueId'),
                     $value['bind_value_ids']
                 )
             );

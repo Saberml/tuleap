@@ -52,13 +52,13 @@ class CompanyTemplate implements ProjectTemplate
     {
         $this->template_id = $project->getGroupId();
         $this->description = $project->getDescription();
-        $this->title       = $project->getUnconvertedPublicName();
+        $this->title       = $project->getPublicName();
         $this->glyph       = $glyph_finder->get(self::NAME);
     }
 
     public function getId(): string
     {
-        return (string)$this->template_id;
+        return (string) $this->template_id;
     }
 
     public function getTitle(): string

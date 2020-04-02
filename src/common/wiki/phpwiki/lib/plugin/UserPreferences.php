@@ -34,12 +34,12 @@ class WikiPlugin_UserPreferences extends WikiPlugin
 {
     public $bool_args;
 
-    function getName()
+    public function getName()
     {
         return _("UserPreferences");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -48,7 +48,7 @@ class WikiPlugin_UserPreferences extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         global $request;
         $pagename = $request->getArg('pagename');
@@ -68,7 +68,7 @@ class WikiPlugin_UserPreferences extends WikiPlugin
         return $prefs;
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         $user = $request->_user;
@@ -163,7 +163,7 @@ class WikiPlugin_UserPreferences extends WikiPlugin
                             }
                         }
                         if (!$num) {
-                            $errmsg .= " " ._("No changes.");
+                            $errmsg .= " " . _("No changes.");
                         } else {
                             $request->_setUser($user);
                             $pref = $user->_prefs;
@@ -183,7 +183,7 @@ class WikiPlugin_UserPreferences extends WikiPlugin
             //return $user->PrintLoginForm ($request, $args, false, false);
         }
     }
-};
+}
 
 // $Log: UserPreferences.php,v $
 // Revision 1.35  2004/10/13 14:13:55  rurban

@@ -19,7 +19,7 @@
   -->
 
 <template>
-    <form class="taskboard-add-card-form">
+    <form class="taskboard-add-card-form" data-test="add-in-place-form">
         <div class="taskboard-add-card-form-editor-container" v-if="is_in_add_mode">
             <label-editor
                 v-model="label"
@@ -54,7 +54,7 @@ import CancelSaveButtons from "../EditMode/CancelSaveButtons.vue";
 const swimlane = namespace("swimlane");
 
 @Component({
-    components: { LabelEditor, AddButton, CancelSaveButtons }
+    components: { LabelEditor, AddButton, CancelSaveButtons },
 })
 export default class AddCard extends Vue {
     @Prop({ required: true })
@@ -97,7 +97,7 @@ export default class AddCard extends Vue {
         const payload: NewCardPayload = {
             swimlane: this.swimlane,
             column: this.column,
-            label: this.label
+            label: this.label,
         };
         this.addCard(payload);
         this.deferResetOfLabel();

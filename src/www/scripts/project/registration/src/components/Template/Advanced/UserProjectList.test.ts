@@ -36,7 +36,7 @@ describe("UserProjectList", () => {
         const state: State = {} as State;
 
         const store_options = {
-            state
+            state,
         };
         store = createStoreMock(store_options);
 
@@ -45,7 +45,7 @@ describe("UserProjectList", () => {
             description: "",
             id: "101",
             glyph: "",
-            is_built_in: false
+            is_built_in: false,
         };
 
         const project_b: TemplateData = {
@@ -53,7 +53,7 @@ describe("UserProjectList", () => {
             description: "",
             id: "102",
             glyph: "",
-            is_built_in: false
+            is_built_in: false,
         };
 
         project_list = [project_a, project_b];
@@ -63,7 +63,7 @@ describe("UserProjectList", () => {
         wrapper = shallowMount(UserProjectList, {
             localVue: await createProjectRegistrationLocalVue(),
             propsData: { projectList: project_list },
-            mocks: { $store: store }
+            mocks: { $store: store },
         });
 
         expect(wrapper).toMatchSnapshot();
@@ -73,12 +73,14 @@ describe("UserProjectList", () => {
         wrapper = shallowMount(UserProjectList, {
             localVue: await createProjectRegistrationLocalVue(),
             propsData: { projectList: project_list },
-            mocks: { $store: store }
+            mocks: { $store: store },
         });
 
         wrapper.vm.$data.selected_project = project_a;
+        await wrapper.vm.$nextTick();
 
-        wrapper.find("[data-test=from-another-project]").trigger("change");
+        wrapper.get("[data-test=from-another-project]").trigger("change");
+        await wrapper.vm.$nextTick();
 
         expect(store.dispatch).toHaveBeenCalledWith("setSelectedTemplate", project_a);
     });
@@ -87,7 +89,7 @@ describe("UserProjectList", () => {
         wrapper = shallowMount(UserProjectList, {
             localVue: await createProjectRegistrationLocalVue(),
             propsData: { projectList: [] },
-            mocks: { $store: store }
+            mocks: { $store: store },
         });
 
         expect(wrapper.find("[data-test=from-another-project]").exists()).toBeFalsy();

@@ -43,17 +43,17 @@ class WikiPlugin_HelloWorld extends WikiPlugin
 {
     // Five required functions in a WikiPlugin.
 
-    function getName()
+    public function getName()
     {
         return _("HelloWorld");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Simple Sample Plugin");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -63,13 +63,13 @@ class WikiPlugin_HelloWorld extends WikiPlugin
     }
 
     // Establish default values for each of this plugin's arguments.
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('salutation' => "Hello,",
                      'name'       => "World");
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         extract($this->getArgs($argstr, $request));
 
@@ -81,7 +81,7 @@ class WikiPlugin_HelloWorld extends WikiPlugin
         );
         return $html;
     }
-};
+}
 
 // $Log: HelloWorld.php,v $
 // Revision 1.13  2004/02/17 12:11:36  rurban

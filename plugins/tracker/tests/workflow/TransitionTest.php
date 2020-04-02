@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Codendi. If not, see <http://www.gnu.org/licenses/>.
  */
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 Mock::generate('Tracker_FormElement_Field_List_Value');
 Mock::generate('Transition_PostAction');
 Mock::generate('PFUser');
@@ -33,8 +33,21 @@ class Transition_baseTest extends TuleapTestCase
     public function setUp()
     {
         parent::setUp();
-        $this->from = aFieldListStaticValue()->withId(123)->build();
-        $this->to   = aFieldListStaticValue()->withId(456)->build();
+        $this->from = new Tracker_FormElement_Field_List_Bind_StaticValue(
+            123,
+            null,
+            null,
+            null,
+            null
+        );
+
+        $this->to   = new Tracker_FormElement_Field_List_Bind_StaticValue(
+            456,
+            null,
+            null,
+            null,
+            null
+        );
         PermissionsManager::setInstance(mock('PermissionsManager'));
     }
 
@@ -50,7 +63,6 @@ class Transition_equalsTest extends Transition_baseTest
 
     public function testEquals()
     {
-
         $field_value_new = new MockTracker_FormElement_Field_List_Value();
         $field_value_new->setReturnValue('getId', 2066);
         //'old_id' => null,
@@ -98,7 +110,7 @@ class Transition_equalsTest extends Transition_baseTest
 class Transition_beforeTest extends Transition_baseTest
 {
 
-    function testBeforeShouldTriggerActions()
+    public function testBeforeShouldTriggerActions()
     {
         $current_user = mock('PFUser');
 
@@ -128,7 +140,7 @@ class Transition_beforeTest extends Transition_baseTest
 class Transition_AfterTest extends Transition_baseTest
 {
 
-    function testAfterShouldTriggerActions()
+    public function testAfterShouldTriggerActions()
     {
         $field_value_new = new MockTracker_FormElement_Field_List_Value();
         $field_value_new->setReturnValue('getId', 2066);

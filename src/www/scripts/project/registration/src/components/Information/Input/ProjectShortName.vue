@@ -26,6 +26,7 @@
             v-on:click="is_in_edit_mode = true"
             data-test="project-shortname-slugified-section"
         >
+            ↳&nbsp;
             <span v-translate>Project shortname:</span>
             <div class="project-shortname-slugified">{{ slugified_project_name }}</div>
             <i class="fa fa-pencil project-shortname-edit-icon"></i>
@@ -34,7 +35,7 @@
             class="tlp-form-element"
             v-bind:class="[
                 has_slug_error ? 'tlp-form-element-error' : '',
-                should_user_correct_shortname
+                should_user_correct_shortname,
             ]"
             data-test="project-shortname-edit-section"
         >
@@ -119,14 +120,29 @@ export default class ProjectShortName extends Vue {
         this.has_slug_error = false;
         this.project_name = value;
 
-        this.slugified_project_name = slugify(value);
+        slugify.extend({
+            "+": "-",
+            ".": "-",
+            "~": "-",
+            "(": "-",
+            ")": "-",
+            "!": "-",
+            ":": "-",
+            "@": "-",
+            '"': "-",
+            "'": "-",
+            "*": "-",
+            "©": "-",
+            "®": "-",
+        });
+        this.slugified_project_name = slugify(value, { lower: true });
         this.checkValidity(this.slugified_project_name);
 
         this.$refs.shortname.value = this.slugified_project_name;
 
         EventBus.$emit("update-project-name", {
             slugified_name: this.slugified_project_name,
-            name: this.project_name
+            name: this.project_name,
         });
     }
 
@@ -136,7 +152,7 @@ export default class ProjectShortName extends Vue {
 
         EventBus.$emit("update-project-name", {
             slugified_name: value,
-            name: this.project_name
+            name: this.project_name,
         });
     }
 

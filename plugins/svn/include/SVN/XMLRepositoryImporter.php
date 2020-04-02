@@ -23,7 +23,7 @@ namespace Tuleap\SVN;
 use Backend;
 use Event;
 use EventManager;
-use Logger;
+use Psr\Log\LoggerInterface;
 use Project;
 use SimpleXMLElement;
 use SVN_AccessFile_Writer;
@@ -111,12 +111,12 @@ class XMLRepositoryImporter
         XMLUserChecker $xml_user_checker
     ) {
         $attrs      = $xml_repo->attributes();
-        $this->name = $attrs['name'];
+        $this->name = (string) $attrs['name'];
         if (isset($attrs['dump-file'])) {
             $this->dump_file_path = $extraction_path . '/' . $attrs['dump-file'];
         }
 
-        $this->access_file_contents = (string)$xml_repo->{"access-file"};
+        $this->access_file_contents = (string) $xml_repo->{"access-file"};
 
         $this->subscriptions = array();
         foreach ($xml_repo->notification as $notif) {
@@ -141,7 +141,7 @@ class XMLRepositoryImporter
 
     public function import(
         ImportConfig $configuration,
-        Logger $logger,
+        LoggerInterface $logger,
         Project $project,
         AccessFileHistoryCreator $accessfile_history_creator,
         MailNotificationManager $mail_notification_manager,
@@ -211,7 +211,7 @@ class XMLRepositoryImporter
         }
     }
 
-    private function importCommits(Logger $logger, Repository $repo)
+    private function importCommits(LoggerInterface $logger, Repository $repo)
     {
         $rootpath_arg = escapeshellarg($repo->getSystemPath());
         $dumpfile_arg = escapeshellarg($this->dump_file_path);
@@ -238,7 +238,7 @@ class XMLRepositoryImporter
     }
 
     private function importAccessFile(
-        Logger $logger,
+        LoggerInterface $logger,
         Repository $repo,
         AccessFileHistoryCreator $accessfile_history_creator
     ) {
@@ -260,7 +260,7 @@ class XMLRepositoryImporter
     }
 
     private function importSubscriptions(
-        Logger $logger,
+        LoggerInterface $logger,
         Repository $repo,
         MailNotificationManager $mail_notification_manager
     ) {
@@ -278,7 +278,7 @@ class XMLRepositoryImporter
         }
     }
 
-    private function importReferences(ImportConfig $configuration, Logger $logger, Repository $repo)
+    private function importReferences(ImportConfig $configuration, LoggerInterface $logger, Repository $repo)
     {
         EventManager::instance()->processEvent(
             Event::IMPORT_COMPAT_REF_XML,

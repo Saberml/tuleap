@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2017 - 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2017 - present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -21,7 +21,7 @@
 namespace Tuleap\SVN\DiskUsage;
 
 use DateTime;
-use Logger;
+use Psr\Log\LoggerInterface;
 use Project;
 use Statistics_DiskUsageManager;
 use SvnPlugin;
@@ -49,7 +49,7 @@ class DiskUsageRetriever
      */
     private $dao;
     /**
-     * @var Logger
+     * @var LoggerInterface
      */
     private $logger;
 
@@ -58,7 +58,7 @@ class DiskUsageRetriever
         Statistics_DiskUsageManager $disk_usage_manager,
         DiskUsageDao $disk_usage_dao,
         \Statistics_DiskUsageDao $dao,
-        Logger $logger
+        LoggerInterface $logger
     ) {
         $this->repository_manager = $repository_manager;
         $this->disk_usage_manager = $disk_usage_manager;
@@ -68,7 +68,6 @@ class DiskUsageRetriever
     }
 
     /**
-     * @param Project $project
      *
      * @return int
      */
@@ -76,7 +75,9 @@ class DiskUsageRetriever
     {
         $this->logger->info("Collecting statistics for project " . $project->getUnixName());
         $yesterday = new DateTime("yesterday midnight");
-        if (! $this->hasRepositoriesUpdatedAfterGivenDate($project, $yesterday->getTimestamp())) {
+
+        if (! $this->hasRepositoriesUpdatedAfterGivenDate($project, $yesterday->getTimestamp())
+            && $this->disk_usage_dao->hasRepositories($project->getID())) {
             $this->logger->info("No new commit made on this project since yesterday, duplicate value from DB.");
 
             return $this->getLastSizeForProject($project);
@@ -97,7 +98,6 @@ class DiskUsageRetriever
     }
 
     /**
-     * @param Repository $repository
      *
      * @return bool
      */

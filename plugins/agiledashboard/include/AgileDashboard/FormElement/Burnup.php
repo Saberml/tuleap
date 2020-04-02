@@ -23,6 +23,7 @@ namespace Tuleap\AgileDashboard\FormElement;
 use AgileDashboard_Semantic_InitialEffortFactory;
 use EventManager;
 use PFUser;
+use Psr\Log\LoggerInterface;
 use SystemEventManager;
 use TemplateRendererFactory;
 use Tracker_Artifact;
@@ -160,20 +161,15 @@ class Burnup extends Tracker_FormElement_Field implements Tracker_FormElement_Fi
             $warning = $e->getMessage();
         }
 
-        $burnup_chart_include_assets = new IncludeAssets(
-            __DIR__ . '/../../../www/assets',
-            AGILEDASHBOARD_BASE_URL . '/assets'
+        $include_assets = new IncludeAssets(
+            __DIR__ . '/../../../../../src/www/assets/agiledashboard',
+            '/assets/agiledashboard'
         );
-        $GLOBALS['HTML']->includeFooterJavascriptFile($burnup_chart_include_assets->getFileURL('burnup-chart.js'));
-
-        $theme_include_assets = new IncludeAssets(
-            __DIR__ . '/../../../../../src/www/assets/agiledashboard/themes',
-            '/assets/agiledashboard/themes'
-        );
+        $GLOBALS['HTML']->includeFooterJavascriptFile($include_assets->getFileURL('burnup-chart.js'));
 
         $capacity                  = $this->getConfigurationValueRetriever()->getCapacity($artifact, $user);
         $burnup_representation     = new BurnupRepresentation($capacity, $burnup_data);
-        $css_file_url              = $theme_include_assets->getFileURL('burnup-chart.css');
+        $css_file_url              = $include_assets->getFileURL('burnup-chart.css');
 
         return new BurnupFieldPresenter(
             $this->getCountElementsModeChecker(),
@@ -438,12 +434,9 @@ class Burnup extends Tracker_FormElement_Field implements Tracker_FormElement_Fi
         );
     }
 
-    /**
-     * @return BurnupLogger
-     */
-    private function getLogger()
+    private function getLogger(): LoggerInterface
     {
-        return new BurnupLogger();
+        return \BackendLogger::getDefaultLogger('burnup_syslog');
     }
 
     /**
@@ -456,7 +449,6 @@ class Burnup extends Tracker_FormElement_Field implements Tracker_FormElement_Fi
         return new ChartConfigurationValueRetriever(
             $this->getConfigurationFieldRetriever(),
             new TimeframeBuilder(
-                $form_element_factory,
                 new SemanticTimeframeBuilder(new SemanticTimeframeDao(), $form_element_factory),
                 $this->getLogger()
             ),

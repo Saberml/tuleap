@@ -34,18 +34,18 @@ require_once('Docman_View_ItemDetailsSectionReferences.class.php');
 require_once('Docman_View_ItemDetailsSectionActions.class.php');
 require_once('Docman_View_ItemDetailsSectionApproval.class.php');
 
-require_once(dirname(__FILE__).'/../Docman_LockFactory.class.php');
+require_once(dirname(__FILE__) . '/../Docman_LockFactory.class.php');
 
 class Docman_View_Details extends Docman_View_Display
 {
 
-    /* protected */ function _getTitle($params)
+    /* protected */ public function _getTitle($params)
     {
         $hp = Codendi_HTMLPurifier::instance();
-        return $GLOBALS['Language']->getText('plugin_docman', 'details_title', $hp->purify($params['item']->getTitle(), CODENDI_PURIFIER_CONVERT_HTML));
+        return sprintf(dgettext('tuleap-docman', 'Details of %1$s'), $hp->purify($params['item']->getTitle(), CODENDI_PURIFIER_CONVERT_HTML));
     }
 
-    function _content($params, $view = null, $section = null)
+    public function _content($params, $view = null, $section = null)
     {
         $url = $params['default_url'];
 

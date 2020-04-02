@@ -26,23 +26,6 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
         return $this->label;
     }
 
-    private function getRenderedAdditionalInformationsForLabel($additional_informations)
-    {
-        $html = $this->getTemplateRenderer()->renderToString(
-            'additional_column_title',
-            array(
-                'additional_title' => $additional_informations
-            )
-        );
-
-        return $html;
-    }
-
-    private function getTemplateRenderer()
-    {
-        return TemplateRendererFactory::build()->getRenderer(TRACKER_TEMPLATE_DIR.'/report');
-    }
-
     public function getCriteriaFrom($criteria)
     {
         return ' INNER JOIN tracker_artifact_priority_rank ON artifact.id = tracker_artifact_priority_rank.artifact_id';
@@ -164,10 +147,7 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
 
     /**
      * Fetch artifact value for email
-     * @param Tracker_Artifact $artifact
-     * @param PFUser $user
      * @param bool $ignore_perms
-     * @param Tracker_Artifact_ChangesetValue $value
      * @param string $format
      *
      * @return string
@@ -208,33 +188,21 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
         return '<span>314116</span>';
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'priority_label');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'priority_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/priority.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/priority.png');
@@ -243,7 +211,6 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
     /**
      * Fetch the html code to display the field value in tooltip
      *
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue $value The changeset value of this field
      * @return string The html code to display the field value in tooltip
      */
@@ -293,8 +260,6 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
     /**
      * Return REST value of the priority
      *
-     * @param PFUser $user
-     * @param Tracker_Artifact_Changeset $changeset
      *
      * @return mixed | null if no values
      */
@@ -310,7 +275,7 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
             $this->getId(),
             Tracker_FormElementFactory::instance()->getType($this),
             $this->getLabel(),
-            (int)$this->getArtifactRank($changeset->getArtifact()->getID())
+            (int) $this->getArtifactRank($changeset->getArtifact()->getID())
         );
         return $artifact_field_value_full_representation;
     }
@@ -353,7 +318,6 @@ class Tracker_FormElement_Field_Priority extends Tracker_FormElement_Field_Integ
     /**
      * Fetch the html code to display the field value in card
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return string
      */

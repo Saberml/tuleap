@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) Xerox Corporation, Codendi Team, 2001-2009. All rights reserved
- * Copyright (c) Enalean, 2015 - 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2015 - Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -19,12 +19,12 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-use Tuleap\Project\REST\UserRepresentation;
 use Tuleap\Tracker\FormElement\Field\ListFields\Bind\BindListUserValueGetter;
 use Tuleap\Tracker\FormElement\Field\ListFields\Bind\BindParameters;
 use Tuleap\Tracker\FormElement\Field\ListFields\Bind\BindVisitor;
 use Tuleap\Tracker\Import\Spotter;
 use Tuleap\Tracker\REST\FieldListBindUserValueRepresentation;
+use Tuleap\Tracker\REST\FormElement\UserListValueRepresentation;
 
 class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Field_List_Bind
 {
@@ -40,8 +40,6 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
     protected $userManager;
     protected $value_function = array();
     protected $values;
-    /** @var UserHelper */
-    private $user_helper;
 
 
     public function __construct($field, $value_function, $default_values, $decorators)
@@ -88,7 +86,7 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
     public function formatCriteriaValue($value_id)
     {
         $hp = Codendi_HTMLPurifier::instance();
-        return  $hp->purify($this->format($this->getValue($value_id)), CODENDI_PURIFIER_CONVERT_HTML);
+        return $hp->purify($this->format($this->getValue($value_id)), CODENDI_PURIFIER_CONVERT_HTML);
     }
 
     /**
@@ -424,10 +422,10 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
      */
     public function getQuerySelect()
     {
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
-        $R3 = 'R3_'. $this->field->id;
-        return "$R2.user_id AS `". $this->field->name ."`";
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
+        $R3 = 'R3_' . $this->field->id;
+        return "$R2.user_id AS `" . $this->field->name . "`";
     }
 
     /**
@@ -441,13 +439,13 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
      */
     public function getQueryFrom($changesetvalue_table = 'tracker_changeset_value_list')
     {
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
-        $R3 = 'R3_'. $this->field->id;
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
+        $R3 = 'R3_' . $this->field->id;
         return "LEFT JOIN ( tracker_changeset_value AS $R1
                     INNER JOIN $changesetvalue_table AS $R3 ON ($R3.changeset_value_id = $R1.id)
                     LEFT JOIN user AS $R2 ON ($R2.user_id = $R3.bindvalue_id )
-                ) ON ($R1.changeset_id = c.id AND $R1.field_id = ". $this->field->id ." )";
+                ) ON ($R1.changeset_id = c.id AND $R1.field_id = " . $this->field->id . " )";
     }
 
     /**
@@ -456,9 +454,9 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
     public function getQueryOrderby()
     {
         $uh = UserHelper::instance();
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
-        return $R2 .".". str_replace('user.', '', $uh->getDisplayNameSQLOrder());
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
+        return $R2 . "." . str_replace('user.', '', $uh->getDisplayNameSQLOrder());
     }
 
     /**
@@ -466,8 +464,8 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
      */
     public function getQueryGroupby()
     {
-        $R1 = 'R1_'. $this->field->id;
-        $R2 = 'R2_'. $this->field->id;
+        $R1 = 'R1_' . $this->field->id;
+        $R2 = 'R2_' . $this->field->id;
         return "$R2.user_id";
     }
 
@@ -500,8 +498,8 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
      */
     public function getQuerySelectAggregate($functions)
     {
-        $R1  = 'R1_'. $this->field->id;
-        $R2  = 'R2_'. $this->field->id;
+        $R1  = 'R1_' . $this->field->id;
+        $R2  = 'R2_' . $this->field->id;
         $same     = array();
         $separate = array();
         foreach ($functions as $f) {
@@ -513,7 +511,7 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
                         'group_by' => "$R2.user_name",
                     );
                 } else {
-                    $select = "$f($R2.user_name) AS `". $this->field->name ."_$f`";
+                    $select = "$f($R2.user_name) AS `" . $this->field->name . "_$f`";
                     if ($this->field->isMultiple()) {
                         $separate[] = array(
                             'function' => $f,
@@ -573,11 +571,6 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
         return $this->userManager;
     }
 
-    private function getOpenValueDao()
-    {
-        return new Tracker_FormElement_Field_List_OpenValueDao();
-    }
-
     public function getValueDao()
     {
         return new UserDao();
@@ -603,7 +596,7 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
     public function fetchAdminEditForm()
     {
         $html = '';
-        $html .= '<h3>'. 'Bind to users' .'</h3>';
+        $html .= '<h3>' . 'Bind to users' . '</h3>';
         $html .= self::fetchSelectUsers('bind[value_function][]', $this->field, $this->value_function);
 
         //Select default values
@@ -616,14 +609,14 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
     {
         $hp = Codendi_HTMLPurifier::instance();
         $html = '';
-        $html .= '<input type="hidden" name="'. $select_name .'" value="" />';
-        $html .= '<select multiple="multiple" name="'. $select_name .'">
-                  <option value="">'.$GLOBALS['Language']->getText('global', 'none').'</option>';
+        $html .= '<input type="hidden" name="' . $select_name . '" value="" />';
+        $html .= '<select multiple="multiple" name="' . $select_name . '">
+                  <option value="">' . $GLOBALS['Language']->getText('global', 'none') . '</option>';
         $selected = "";
         if (in_array("artifact_submitters", $value_function)) {
             $selected = 'selected="selected"';
         }
-        $html .= '<option value="artifact_submitters" '.$selected.'>'.$GLOBALS['Language']->getText('plugin_tracker_include_type', 'submitters').'</option>';
+        $html .= '<option value="artifact_submitters" ' . $selected . '>' . $GLOBALS['Language']->getText('plugin_tracker_include_type', 'submitters') . '</option>';
 
         $selected = "";
         $ugroup_res = ugroup_db_get_ugroup($GLOBALS['UGROUP_PROJECT_MEMBERS']);
@@ -631,7 +624,7 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
         if (in_array("group_members", $value_function)) {
             $selected = 'selected="selected"';
         }
-        $html .= '<option value="group_members" '.$selected.'>'. $hp->purify($name, CODENDI_PURIFIER_CONVERT_HTML) .'</option>';
+        $html .= '<option value="group_members" ' . $selected . '>' . $hp->purify($name, CODENDI_PURIFIER_CONVERT_HTML) . '</option>';
 
         $selected = "";
         $ugroup_res = ugroup_db_get_ugroup($GLOBALS['UGROUP_PROJECT_ADMIN']);
@@ -639,7 +632,7 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
         if (in_array("group_admins", $value_function)) {
             $selected = 'selected="selected"';
         }
-        $html .= '<option value="group_admins" '.$selected.'>'. $hp->purify($name, CODENDI_PURIFIER_CONVERT_HTML) .'</option>';
+        $html .= '<option value="group_admins" ' . $selected . '>' . $hp->purify($name, CODENDI_PURIFIER_CONVERT_HTML) . '</option>';
 
         /** @psalm-suppress DeprecatedFunction */
         $ugroup_res = ugroup_db_get_existing_ugroups(100);
@@ -656,11 +649,11 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
                    continue;
             }
 
-            $ugr  ="ugroup_". $ug;
+            $ugr  = "ugroup_" . $ug;
             if (in_array($ugr, $value_function)) {
                 $selected = 'selected="selected"';
             }
-            $html .= '<option value="'.$ugr.'" '.$selected.'>'. $hp->purify(util_translate_name_ugroup(db_result($ugroup_res, $i, 'name')), CODENDI_PURIFIER_CONVERT_HTML) .'</option>';
+            $html .= '<option value="' . $ugr . '" ' . $selected . '>' . $hp->purify(util_translate_name_ugroup(db_result($ugroup_res, $i, 'name')), CODENDI_PURIFIER_CONVERT_HTML) . '</option>';
         }
 
         $group_id = $field->getTracker()->getGroupId();
@@ -671,11 +664,11 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
             for ($i = 0; $i < $rows; $i++) {
                 $selected = "";
                 $ug  = db_result($ugroup_res, $i, 'ugroup_id');
-                $ugr = "ugroup_". $ug;
+                $ugr = "ugroup_" . $ug;
                 if (in_array($ugr, $value_function)) {
                     $selected = 'selected="selected"';
                 }
-                $html .= '<option value="'.$ugr.'" '.$selected.'>'. $hp->purify(util_translate_name_ugroup(db_result($ugroup_res, $i, 'name')), CODENDI_PURIFIER_CONVERT_HTML) .'</option>';
+                $html .= '<option value="' . $ugr . '" ' . $selected . '>' . $hp->purify(util_translate_name_ugroup(db_result($ugroup_res, $i, 'name')), CODENDI_PURIFIER_CONVERT_HTML) . '</option>';
             }
         }
         $html .= '</select>';
@@ -740,7 +733,7 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
     /**
      * Verifies the consistency of the imported Tracker
      *
-     * @return true if Tracler is ok
+     * @return bool true if Tracler is ok
      */
     public function testImport()
     {
@@ -896,7 +889,8 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
 
     protected function getRESTBindValue(Tracker_FormElement_Field_List_Value $value)
     {
-        $user_representation = new UserRepresentation();
+        $user_representation = new UserListValueRepresentation();
+        assert($value instanceof Tracker_FormElement_Field_List_Bind_UsersValue);
         $user_representation->build($value);
 
         $representation = new FieldListBindUserValueRepresentation();
@@ -925,9 +919,9 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
             $user = $this->getValue($id);
 
             if (! $user) {
-                throw new Tracker_FormElement_InvalidFieldValueException('Cannot Bind to user with ID '.$id.' for field ID '.$field->getId());
+                throw new Tracker_FormElement_InvalidFieldValueException('Cannot Bind to user with ID ' . $id . ' for field ID ' . $field->getId());
             }
-            return Tracker_FormElement_Field_OpenList::BIND_PREFIX.$id;
+            return Tracker_FormElement_Field_OpenList::BIND_PREFIX . $id;
         }
 
         if (isset($rest_data['username'])) {
@@ -935,10 +929,10 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
             $user       = $this->userManager->getUserByIdentifier($identifier);
 
             if (! $user) {
-                throw new Tracker_FormElement_InvalidFieldValueException('Cannot Bind to user "'.$identifier.'" for field ID '.$field->getId());
+                throw new Tracker_FormElement_InvalidFieldValueException('Cannot Bind to user "' . $identifier . '" for field ID ' . $field->getId());
             }
 
-            return Tracker_FormElement_Field_OpenList::BIND_PREFIX.$user->getId();
+            return Tracker_FormElement_Field_OpenList::BIND_PREFIX . $user->getId();
         }
 
         if (! isset($rest_data['email'])) {
@@ -949,9 +943,9 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
         $user       = $this->userManager->getUserByIdentifier("email:$identifier");
 
         if (! $user) {
-            return Tracker_FormElement_Field_OpenList::NEW_VALUE_PREFIX.$identifier;
+            return Tracker_FormElement_Field_OpenList::NEW_VALUE_PREFIX . $identifier;
         }
-        return Tracker_FormElement_Field_OpenList::BIND_PREFIX.$user->getId();
+        return Tracker_FormElement_Field_OpenList::BIND_PREFIX . $user->getId();
     }
 
     public function getFullRESTValue(Tracker_FormElement_Field_List_Value $value)

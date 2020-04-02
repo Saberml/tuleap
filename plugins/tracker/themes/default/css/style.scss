@@ -17,13 +17,14 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-@import '../../../www/scripts/node_modules/codemirror/lib/codemirror';
-@import '../../../www/scripts/node_modules/codemirror/addon/hint/show-hint';
+@import '../../../node_modules/codemirror/lib/codemirror';
+@import '../../../node_modules/codemirror/addon/hint/show-hint';
 @import 'includes/cards';
 @import 'includes/field-bound-colors';
 @import 'includes/columns-colors';
 @import 'includes/move-artifact';
 @import 'includes/artifact-link-field';
+@import 'includes/xml-validation';
 
 /* stylelint-disable selector-id-pattern, selector-class-pattern, selector-no-qualifying-type, selector-max-compound-selectors */
 /* {{{ New trackers */
@@ -3243,6 +3244,14 @@ td.tracker-unsubscriber-actions {
     .modal-body {
         > p:first-child {
             margin-bottom: 30px;
+        }
+
+        .fa-asterisk {
+            position: absolute;
+            margin: 0 0 0 3px;
+            color: #da5353;
+            font-size: 10px;
+            vertical-align: text-top;
         }
 
         input[type=url] {

@@ -26,6 +26,7 @@ use ForgeConfig;
 use Git;
 use Git_LogDao;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PFUser;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 use Tuleap\ForgeConfigSandbox;
@@ -57,11 +58,6 @@ class GitXMLExporterTest extends TestCase
     private $xml_tree;
 
     /**
-     * @var \PFUser
-     */
-    private $user;
-
-    /**
      * @var ZipArchive
      */
     private $zip;
@@ -72,6 +68,11 @@ class GitXMLExporterTest extends TestCase
     private $permission_manager;
 
     private $export_folder;
+
+    /**
+     * @var \EventManager|\Mockery\LegacyMockInterface|\Mockery\MockInterface
+     */
+    private $event_manager;
 
     protected function setUp(): void
     {
@@ -119,32 +120,33 @@ class GitXMLExporterTest extends TestCase
 
         $repository_factory->shouldReceive('getAllRepositories')->andReturns(array($repository, $forked_repository, $empty_repository));
 
-        $this->user_manager = \Mockery::spy(\UserManager::class);
-
-        $this->git_log_dao = \Mockery::spy(Git_LogDao::class);
+        $this->user_manager  = \Mockery::spy(\UserManager::class);
+        $this->event_manager = \Mockery::spy(\EventManager::class);
+        $this->git_log_dao   = \Mockery::spy(Git_LogDao::class);
 
         $this->xml_exporter = new GitXmlExporter(
             \Mockery::spy(\Project::class),
             $this->permission_manager,
             $ugroup_manager,
             $repository_factory,
-            \Mockery::spy(\Logger::class),
-            \Mockery::spy(\System_Command::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             \Mockery::spy(\Tuleap\GitBundle::class),
             $this->git_log_dao,
             $this->user_manager,
             new \UserXMLExporter(
                 $this->user_manager,
                 new \UserXMLExportedCollection(new \XML_RNGValidator(), new \XML_SimpleXMLCDATAFactory())
-            )
+            ),
+            $this->event_manager
         );
+
+        $this->event_manager->shouldReceive('processEvent')->once();
 
         $data           = '<?xml version="1.0" encoding="UTF-8"?>
                  <projects />';
         $this->xml_tree = new SimpleXMLElement($data);
 
         $this->zip  = new ZipArchive($this->export_folder . '/archive.zip');
-        $this->user = \Mockery::spy(\PFUser::class);
 
         ForgeConfig::set('tmp_dir', $this->export_folder);
     }
@@ -266,7 +268,9 @@ class GitXMLExporterTest extends TestCase
             'refname_type'   => "branch"
         ]);
 
-        $this->user_manager->shouldReceive('getUserById')->andReturns((new \UserTestBuilder())->withUserName('my user name')->build());
+        $this->user_manager->shouldReceive('getUserById')->andReturns(
+            new PFUser(['user_name' => 'my user name', 'language_id' => 'en'])
+        );
 
         $this->xml_exporter->exportToXml($this->xml_tree, $this->zip, '');
 
@@ -275,7 +279,7 @@ class GitXMLExporterTest extends TestCase
         $exported_repository = $this->xml_tree->git->repository[0];
         $last_push_date      = $exported_repository->{'last-push-date'};
         $attrs               = $last_push_date->attributes();
-        $this->assertEquals('my user name', (string)$last_push_date->user);
-        $this->assertEquals('1527145976', (string)$attrs['push_date']);
+        $this->assertEquals('my user name', (string) $last_push_date->user);
+        $this->assertEquals('1527145976', (string) $attrs['push_date']);
     }
 }

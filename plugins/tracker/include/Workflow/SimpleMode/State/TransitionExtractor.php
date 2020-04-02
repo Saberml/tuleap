@@ -28,7 +28,6 @@ use Tuleap\Tracker\Workflow\Transition\NoTransitionForStateException;
 class TransitionExtractor
 {
     /**
-     * @return Transition
      * @throws NoTransitionForStateException
      */
     public function extractReferenceTransitionFromState(State $state) : Transition
@@ -40,7 +39,7 @@ class TransitionExtractor
         }
 
         foreach ($transitions as $transition) {
-            /** @var Transition $transition*/
+            \assert($transition instanceof Transition);
             if ($transition->getIdFrom() !== '') {
                 return $transition;
             }

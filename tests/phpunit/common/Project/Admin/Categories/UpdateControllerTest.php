@@ -29,10 +29,9 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PFUser;
 use PHPUnit\Framework\TestCase;
 use Project;
-use ProjectManager;
 use Tuleap\Layout\BaseLayout;
-use Tuleap\Request\ForbiddenException;
-use Tuleap\Request\NotFoundException;
+use Tuleap\Project\Admin\Routing\ProjectAdministratorChecker;
+use Tuleap\Request\ProjectRetriever;
 
 class UpdateControllerTest extends TestCase
 {
@@ -45,19 +44,19 @@ class UpdateControllerTest extends TestCase
     /**
      * @var Mockery\MockInterface|\PFUser
      */
-    private $project_member;
-    /**
-     * @var Mockery\MockInterface|\PFUser
-     */
     private $project_admin;
     /**
      * @var UpdateController
      */
     private $controller;
     /**
-     * @var Mockery\MockInterface|ProjectManager
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|ProjectRetriever
      */
-    private $project_manager;
+    private $project_retriever;
+    /**
+     * @var Mockery\LegacyMockInterface|Mockery\MockInterface|ProjectAdministratorChecker
+     */
+    private $administrator_checker;
     /**
      * @var Mockery\MockInterface|Project
      */
@@ -74,42 +73,28 @@ class UpdateControllerTest extends TestCase
     /** @before */
     public function instantiateMocks(): void
     {
-        $this->request         = Mockery::mock(HTTPRequest::class);
-        $this->layout          = Mockery::mock(BaseLayout::class);
-        $this->project_member  = Mockery::mock(PFUser::class);
-        $this->project_admin   = Mockery::mock(PFUser::class);
-        $this->project_manager = Mockery::mock(ProjectManager::class);
-        $this->updater         = Mockery::mock(ProjectCategoriesUpdater::class);
-        $this->project         = Mockery::mock(Project::class);
+        $this->request               = Mockery::mock(HTTPRequest::class);
+        $this->layout                = Mockery::mock(BaseLayout::class);
+        $this->project_admin         = Mockery::mock(PFUser::class);
+        $this->project_retriever     = Mockery::mock(ProjectRetriever::class);
+        $this->administrator_checker = Mockery::mock(ProjectAdministratorChecker::class);
+        $this->updater               = Mockery::mock(ProjectCategoriesUpdater::class);
+        $this->project               = Mockery::mock(Project::class);
 
         $this->project->shouldReceive('getID')->andReturn(42);
         $this->project->shouldReceive('isError')->andReturn(false);
-        $this->project_manager->shouldReceive('getProject')->with('42')->andReturn($this->project);
+        $this->project_retriever->shouldReceive('getProjectFromId')
+            ->with('42')
+            ->once()
+            ->andReturn($this->project);
+        $this->administrator_checker->shouldReceive('checkUserIsProjectAdministrator')->once();
         $this->project_admin->shouldReceive('isAdmin')->with(42)->andReturn(true);
-        $this->project_member->shouldReceive('isAdmin')->with(42)->andReturn(false);
 
-        $this->controller = new UpdateController($this->project_manager, $this->updater);
-    }
-
-    public function testThrowsExceptionWhenProjectIsNotFound(): void
-    {
-        $not_found_project = Mockery::mock(Project::class);
-        $not_found_project->shouldReceive('isError')->andReturn(true);
-
-        $this->project_manager->shouldReceive('getProject')->with('unknown')->andReturn($not_found_project);
-
-        $this->expectException(NotFoundException::class);
-
-        $this->controller->process($this->request, $this->layout, ['id' => 'unknown']);
-    }
-
-    public function testThrowsExceptionWhenUserIsNotProjectAdmin(): void
-    {
-        $this->request->shouldReceive('getCurrentUser')->andReturn($this->project_member);
-
-        $this->expectException(ForbiddenException::class);
-
-        $this->controller->process($this->request, $this->layout, ['id' => '42']);
+        $this->controller = new UpdateController(
+            $this->project_retriever,
+            $this->administrator_checker,
+            $this->updater
+        );
     }
 
     public function testItDisplaysAnErrorIfCategoriesIsNotAnArray(): void

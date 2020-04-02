@@ -22,7 +22,7 @@
         class="project-release"
         v-bind:class="{
             'project-release-toggle-closed': !is_open,
-            'tlp-tooltip tlp-tooltip-top': is_loading
+            'tlp-tooltip tlp-tooltip-top': is_loading,
         }"
         v-bind:data-tlp-tooltip="$gettext('Loading data...')"
     >
@@ -31,13 +31,17 @@
             v-bind:release_data="displayed_release"
             v-bind:is-loading="is_loading"
             v-bind:class="{ 'project-release-toggle-closed': !is_open, disabled: is_loading }"
+            v-bind:is-past-release="isPastRelease"
         />
         <div v-if="is_open" data-test="toggle-open" class="release-toggle">
             <div v-if="has_error" class="tlp-alert-danger" data-test="show-error-message">
                 {{ error_message }}
             </div>
             <div v-else data-test="display-release-data">
-                <release-badges-displayer v-bind:release_data="displayed_release" />
+                <release-badges-displayer
+                    v-bind:release_data="displayed_release"
+                    v-bind:is-open="isOpen"
+                />
                 <release-description v-bind:release_data="displayed_release" />
             </div>
         </div>
@@ -58,12 +62,16 @@ import { FetchWrapperError } from "tlp";
     components: {
         ReleaseHeader,
         ReleaseDescription,
-        ReleaseBadgesDisplayer
-    }
+        ReleaseBadgesDisplayer,
+    },
 })
 export default class ReleaseDisplayer extends Vue {
     @Prop()
-    release_data!: MilestoneData;
+    readonly release_data!: MilestoneData;
+    @Prop()
+    readonly isOpen!: boolean;
+    @Prop()
+    isPastRelease!: boolean;
     @Action
     getEnhancedMilestones!: (release_data: MilestoneData) => Promise<MilestoneData>;
 
@@ -83,6 +91,7 @@ export default class ReleaseDisplayer extends Vue {
     async created(): Promise<void> {
         try {
             this.release_data_enhanced = await this.getEnhancedMilestones(this.release_data);
+            this.is_open = this.isOpen;
         } catch (rest_error) {
             await this.handle_error(rest_error);
         } finally {

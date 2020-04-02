@@ -26,7 +26,7 @@ use PHPUnit\Framework\TestCase;
 use Tuleap\GlobalLanguageMock;
 use Tuleap\Tracker\Semantic\Timeframe\TimeframeBuilder;
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class ChartConfigurationValueRetrieverTest extends TestCase
 {
@@ -36,11 +36,6 @@ class ChartConfigurationValueRetrieverTest extends TestCase
      * @var ChartConfigurationValueRetriever
      */
     private $field_retriever;
-
-    /**
-     * @var \Tracker_FormElement_Field_Date
-     */
-    private $start_date_field;
 
     /**
      * @var \Tracker
@@ -58,11 +53,6 @@ class ChartConfigurationValueRetrieverTest extends TestCase
     private $user;
 
     /**
-     * @var \Tracker_Artifact_ChangesetValue_Date
-     */
-    private $start_date_value;
-
-    /**
      * @var ChartConfigurationValueRetriever
      */
     private $configuration_value_retriever;
@@ -77,19 +67,7 @@ class ChartConfigurationValueRetrieverTest extends TestCase
      */
     private $capacity_field;
 
-    /**
-     * @var \Tracker_FormElement_Field_Integer
-     */
-    private $duration_field;
-
-    /**
-     * @var \Tracker_Artifact_ChangesetValue_Integer
-     */
-    private $duration_value;
-
-    private $start_date;
     private $capacity;
-    private $duration;
 
 
     protected function setUp() : void
@@ -104,22 +82,14 @@ class ChartConfigurationValueRetrieverTest extends TestCase
         $this->artifact_sprint->shouldReceive('getTracker')->andReturn($this->tracker);
         $this->artifact_sprint->shouldReceive('getId')->andReturn(201);
 
-        $this->start_date_field = \Mockery::mock(\Tracker_FormElement_Field_Date::class);
-        $this->start_date_value = \Mockery::mock(\Tracker_Artifact_ChangesetValue_Date::class);
-        $this->start_date       = mktime(23, 59, 59, 01, 9, 2016);
-
         $this->capacity_field = \Mockery::mock(\Tracker_FormElement_Field_Integer::class);
         $this->capacity_value = \Mockery::mock(\Tracker_Artifact_ChangesetValue_Integer::class);
         $this->capacity       = 20;
 
-        $this->duration_field = \Mockery::mock(\Tracker_FormElement_Field_Integer::class);
-        $this->duration_value = \Mockery::mock(\Tracker_Artifact_ChangesetValue_Integer::class);
-        $this->duration       = 5;
-
         $this->configuration_value_retriever = new ChartConfigurationValueRetriever(
             $this->field_retriever,
             Mockery::mock(TimeframeBuilder::class),
-            \Mockery::mock(\Logger::class)
+            \Mockery::mock(\Psr\Log\LoggerInterface::class)
         );
     }
 

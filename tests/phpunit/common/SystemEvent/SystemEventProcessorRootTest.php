@@ -29,7 +29,6 @@ use BackendSVN;
 use BackendSystem;
 use Exception;
 use ForgeConfig;
-use Logger;
 use Mockery as M;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
@@ -64,7 +63,7 @@ class SystemEventProcessorRootTest extends TestCase
     {
         $this->system_event_manager = M::mock(SystemEventManager::class);
         $this->system_event_dao     = M::mock(SystemEventDao::class);
-        $this->logger               = M::spy(Logger::class);
+        $this->logger               = M::spy(\Psr\Log\LoggerInterface::class);
         $this->site_cache           = M::mock(SiteCache::class);
 
         $this->processor = M::mock(
@@ -142,7 +141,7 @@ class SystemEventProcessorRootTest extends TestCase
         $this->system_event_dao->shouldReceive('checkOutNextEvent')->once()->andReturn(M::mock(\DataAccessResult::class, ['getRow' => ['whatever']]))->ordered();
         $this->system_event_dao->shouldReceive('checkOutNextEvent')->once()->andReturn(null)->ordered();
 
-        $command   = '/usr/bin/tuleap process-system-events '.SystemEvent::OWNER_APP;
+        $command   = '/usr/bin/tuleap process-system-events ' . SystemEvent::OWNER_APP;
         $this->processor->shouldReceive('launchAs')->with($this->sys_http_user, $command)->once();
         $category = SystemEvent::DEFAULT_QUEUE;
         $this->processor->execute($category);

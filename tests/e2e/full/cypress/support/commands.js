@@ -1,5 +1,5 @@
-/**
- * Copyright (c) Enalean, 2018. All Rights Reserved.
+/*
+ * Copyright (c) Enalean, 2018-Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -16,6 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
+
+// This forces our code to polyfill "fetch" on top of XHR and allows cypress to catch those requests.
+// See https://github.com/cypress-io/cypress/issues/95
+Cypress.Commands.overwrite("visit", (originalFn, url, options = {}) => {
+    const opts = Object.assign({}, options, {
+        onBeforeLoad: (window, ...args) => {
+            window.fetch = null;
+            if (options.onBeforeLoad) {
+                return options.onBeforeLoad(window, ...args);
+            }
+        },
+    });
+    return originalFn(url, opts);
+});
 
 Cypress.Commands.add("ProjectAdministratorLogin", () => {
     cy.visit("/");
@@ -66,7 +80,7 @@ Cypress.Commands.add("visitProjectService", (project_unixname, service_label) =>
     cy.get("[data-test=project-sidebar]")
         .contains(service_label)
         .should("have.attr", "href")
-        .then(href => {
+        .then((href) => {
             cache_service_urls[project_unixname] = cache_service_urls[project_unixname] || {};
             cache_service_urls[project_unixname][service_label] = href;
             cy.visit(href);
@@ -94,7 +108,7 @@ Cypress.Commands.add("updatePlatformVisibilityAndAllowRestricted", () => {
     cy.userLogout();
 });
 
-Cypress.Commands.add("getProjectId", project_shortname => {
+Cypress.Commands.add("getProjectId", (project_shortname) => {
     cy.visit(`/projects/${project_shortname}/`);
     return cy.get("[data-test=project-sidebar]").should("have.attr", "data-project-id");
 });

@@ -1,0 +1,13 @@
+{
+    "name": "tuleap/plugin-oauth2-server",
+    "autoload": {
+        "psr-4": {
+            "Tuleap\\OAuth2Server\\": "include/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tuleap\\OAuth2Server\\": "phpunit/"
+        }
+    }
+}

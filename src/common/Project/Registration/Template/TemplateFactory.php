@@ -62,6 +62,7 @@ class TemplateFactory
             ScrumTemplate::NAME => new ScrumTemplate($glyph_finder, $project_xml_merger, $consistency_checker),
             KanbanTemplate::NAME => new KanbanTemplate($glyph_finder, $project_xml_merger, $consistency_checker),
             IssuesTemplate::NAME => new IssuesTemplate($glyph_finder, $project_xml_merger, $consistency_checker),
+            EmptyTemplate::NAME => new EmptyTemplate($glyph_finder),
         ];
         $this->project_manager = $project_manager;
         $this->glyph_finder    = $glyph_finder;
@@ -95,6 +96,11 @@ class TemplateFactory
                 $templates[] = $template;
             }
         }
+
+        if (count($templates) === 0) {
+            $templates[] = new EmptyTemplate($this->glyph_finder);
+        }
+
         return $templates;
     }
 
@@ -103,6 +109,9 @@ class TemplateFactory
      */
     public function getTemplate(string $name): TuleapTemplate
     {
+        if ($name === EmptyTemplate::NAME && isset($this->templates[$name])) {
+            return $this->templates[EmptyTemplate::NAME];
+        }
         if (! isset($this->templates[$name]) || ! $this->templates[$name]->isAvailable()) {
             throw new InvalidXMLTemplateNameException();
         }
@@ -137,7 +146,7 @@ class TemplateFactory
         $project_templates = $this->project_manager->getSiteTemplates();
 
         foreach ($project_templates as $project_template) {
-            if ((int)$project_template->getGroupId() === \Project::ADMIN_PROJECT_ID) {
+            if ((int) $project_template->getGroupId() === \Project::ADMIN_PROJECT_ID) {
                 continue;
             }
             $company_templates[] = new CompanyTemplate($project_template, $this->glyph_finder);

@@ -33,10 +33,10 @@ class Git_Hook_LogAnalyzer
     /** @var Git_Exec */
     private $exec_repo;
 
-    /** @var Logger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
-    public function __construct(Git_Exec $git_exec, Logger $logger)
+    public function __construct(Git_Exec $git_exec, \Psr\Log\LoggerInterface $logger)
     {
         $this->exec_repo = $git_exec;
         $this->logger    = $logger;
@@ -46,8 +46,6 @@ class Git_Hook_LogAnalyzer
      *
      * Behaviour extracted from official email hook prep_for_email() function
      *
-     * @param GitRepository $repository
-     * @param PFUser $user
      * @param type $oldrev
      * @param type $newrev
      * @param type $refname
@@ -75,7 +73,7 @@ class Git_Hook_LogAnalyzer
                 $rev_type = $this->exec_repo->getObjectType($newrev);
             }
         } catch (Git_Command_Exception $exception) {
-            $this->logger->error(self::class." {$repository->getFullName()} $refname $oldrev $newrev ".$exception->getMessage());
+            $this->logger->error(self::class . " {$repository->getFullName()} $refname $oldrev $newrev " . $exception->getMessage());
         }
 
         return new Git_Hook_PushDetails(

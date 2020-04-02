@@ -496,7 +496,7 @@ plugin_tracker_include_type	avoid_spaces	Please avoid spaces and punctuation in 
 plugin_tracker_include_type	choose_creation	First, select a template you want to start from
 plugin_tracker_include_type	from_tmpl	From template gallery
 plugin_tracker_include_type	from_xml	From XML file
-plugin_tracker_include_type	from_xml_desc	You can dump and load XML description of trackers from one server to another.<br>If you do not have xml tracker template, examples are available <a href="$1">here</a>.
+plugin_tracker_include_type	from_xml_desc	You can dump and load XML description of trackers from one server to another.
 plugin_tracker_include_type	from_tv3	From a Tracker v3
 plugin_tracker_include_type	tmpl_src_prj	Origin
 plugin_tracker_include_type	tmpl_src_trk	Available templates
@@ -635,7 +635,6 @@ plugin_tracker_include_type	info_gn_default_not_added	Default global notificatio
 plugin_tracker_include_type	info_gn_deleted	Global notification has been deleted
 plugin_tracker_include_type	error_uniq_name	Unable to change the name of the element, it is already in use by another one
 
-plugin_tracker_include_type	field_copied_from	This field is shared from tracker <a href="$3">$1</a> from project $2
 plugin_tracker_include_type	field_copied_to	This field is used by the following trackers:
 
 plugin_tracker_include_type	migrate_from_tv3	Migrate a Tracker v3 content
@@ -788,7 +787,6 @@ plugin_tracker_common_type	perm_fail	Failed to create user permission: $1
 plugin_tracker_common_type	name_requ	Name, Color, and Short Name are required.
 plugin_tracker_common_type	invalid_shortname	Invalid short name: $1. Please use only alphanumerical characters or an unreserved reference. Press the "Back" button and update this information.
 plugin_tracker_common_type	invalid_templ	Invalid project template
-plugin_tracker_common_type	invalid_tracker_tmpl	Invalid tracker template
 plugin_tracker_common_type	load_fail	failed to load the new tracker
 plugin_tracker_common_type	invalid_at	Invalid ArtifactTrackerID
 plugin_tracker_common_type	invalid_date	Delay date must not be in the past
@@ -1476,7 +1474,6 @@ plugin_tracker_widget_myartifacts	description	List artifacts you have submitted 
 plugin_tracker_widget_myartifacts	no_artifacts	You don't have any </br> artifacts yet
 
 plugin_tracker	must_have_artifact_link_field	The artifact doesn't have an artifact link field or you have not the permission to modify it, please reconfigure your tracker
-plugin_tracker	burndown_missing_start_date_warning	The tracker doesn't have a "start_date" Date field or you don't have the permission to access it.
 plugin_tracker	burndown_no_linked_artifacts	There are no artifacts linked or those artifacts have no 'remaining_effort' field.
 plugin_tracker	burndown_email_as_of_today	Please note that the image above is rendered in real time so it represents burndown as of today, not as when the email was sent.
 plugin_tracker	unable_to_render_the_chart	Unable to render the chart

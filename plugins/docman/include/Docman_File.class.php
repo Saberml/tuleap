@@ -27,7 +27,7 @@ require_once('Docman_Document.class.php');
 class Docman_File extends Docman_Document
 {
 
-    function __construct($data = null)
+    public function __construct($data = null)
     {
         parent::__construct($data);
     }
@@ -48,12 +48,12 @@ class Docman_File extends Docman_Document
     public function getType()
     {
         $version      = $this->getCurrentVersion();
-        $default_type = $GLOBALS['Language']->getText('plugin_docman', 'doc_type_file');
+        $default_type = dgettext('tuleap-docman', 'File');
         $type         = $version ? $version->getFiletype() : $default_type;
         return $type;
     }
 
-    function toRow()
+    public function toRow()
     {
         $row = parent::toRow();
         $row['item_type'] = PLUGIN_DOCMAN_ITEM_TYPE_FILE;

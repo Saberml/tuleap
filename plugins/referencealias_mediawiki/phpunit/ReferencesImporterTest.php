@@ -28,7 +28,7 @@ use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 use Tuleap\Project\XML\Import\ImportConfig;
 
-include __DIR__.'/bootstrap.php';
+include __DIR__ . '/bootstrap.php';
 
 class ReferencesImporterTest extends TestCase
 {
@@ -53,7 +53,7 @@ class ReferencesImporterTest extends TestCase
     {
         parent::setUp();
         $this->dao        = \Mockery::spy(CompatibilityDao::class);
-        $this->logger     = \Mockery::spy(Logger::class);
+        $this->logger     = \Mockery::spy(\Psr\Log\LoggerInterface::class);
         $this->importer   = new ReferencesImporter($this->dao, $this->logger);
     }
 

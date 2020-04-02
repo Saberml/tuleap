@@ -26,12 +26,15 @@ use Tuleap\Error\PermissionDeniedRestrictedAccountController;
 use Tuleap\Error\ProjectAccessSuspendedController;
 use Tuleap\Error\PermissionDeniedRestrictedAccountProjectController;
 use Tuleap\Error\PlaceHolderBuilder;
+use Tuleap\Instrument\Prometheus\Prometheus;
 use Tuleap\Layout\ErrorRendering;
 use Tuleap\Project\Admin\MembershipDelegationDao;
 use Tuleap\Project\ProjectAccessChecker;
 use Tuleap\Project\ProjectAccessSuspendedException;
 use Tuleap\Project\RestrictedUserCanAccessUrlOrProjectVerifier;
 use Tuleap\Request\RequestInstrumentation;
+use Tuleap\User\Account\DisplaySecurityController;
+use Tuleap\User\Account\UpdatePasswordController;
 
 /**
  * Check the URL validity (protocol, host name, query) regarding server constraints
@@ -47,7 +50,7 @@ class URLVerification
      *
      * @return Array
      */
-    function getUrlChunks()
+    public function getUrlChunks()
     {
         return $this->urlChunks;
     }
@@ -57,7 +60,7 @@ class URLVerification
      *
      * @return PFUser
      */
-    function getCurrentUser()
+    public function getCurrentUser()
     {
         return UserManager::instance()->getCurrentUser();
     }
@@ -102,12 +105,11 @@ class URLVerification
      *
      * @return bool
      */
-    function isScriptAllowedForAnonymous($server)
+    public function isScriptAllowedForAnonymous($server)
     {
         // Defaults
         $allowedAnonymous['/account/login.php']          = true;
         $allowedAnonymous['/account/register.php']       = true;
-        $allowedAnonymous['/account/change_pw.php']      = true;
         $allowedAnonymous['/include/check_pw.php']       = true;
         $allowedAnonymous['/account/lostpw.php']         = true;
         $allowedAnonymous['/account/lostlogin.php']      = true;
@@ -139,7 +141,7 @@ class URLVerification
      *
      * @return bool
      */
-    function isException($server)
+    public function isException($server)
     {
         return preg_match('`^(?:/plugins/[^/]+)?/(?:soap|api)/`', $server['SCRIPT_NAME']);
     }
@@ -152,9 +154,8 @@ class URLVerification
      *
      * @return bool
      */
-    function isValidServerName($server, $host)
+    public function isValidServerName($server, $host)
     {
-
         return ($server['HTTP_HOST'] == $host);
     }
 
@@ -182,7 +183,7 @@ class URLVerification
      *
      * @return String
      */
-    function getRedirectionURL(HTTPRequest $request, $server)
+    public function getRedirectionURL(HTTPRequest $request, $server)
     {
         $chunks   = $this->getUrlChunks($server);
 
@@ -207,7 +208,7 @@ class URLVerification
     private function rewriteProtocol(HTTPRequest $request, array $server, array $chunks)
     {
         if (isset($chunks['protocol'])) {
-            $location = $chunks['protocol']."://";
+            $location = $chunks['protocol'] . "://";
         } else {
             if ($request->isSecure()) {
                 $location = "https://";
@@ -267,7 +268,7 @@ class URLVerification
      *
      * @return void
      */
-    function checkRestrictedAccess($server)
+    public function checkRestrictedAccess($server)
     {
         $user = $this->getCurrentUser();
         if ($user->isRestricted()) {
@@ -281,7 +282,6 @@ class URLVerification
     /**
      * Test if given url is restricted for user
      *
-     * @param PFUser $user
      * @param Url $url
      * @param String $request_uri
      * @return bool False if user not allowed to see the content
@@ -420,7 +420,7 @@ class URLVerification
                 }
                 $this->displayPrivateProjectError($user, $project);
             } catch (Project_AccessProjectNotFoundException $exception) {
-                RequestInstrumentation::increment(404);
+                (new RequestInstrumentation(Prometheus::instance()))->increment(404);
                 (new ErrorRendering())->rendersError(
                     $this->getThemeManager()->getBurningParrot($request->getCurrentUser()),
                     $request,
@@ -437,10 +437,11 @@ class URLVerification
             } catch (ProjectAccessSuspendedException $exception) {
                 $this->displaySuspendedProjectError($user, $project);
             } catch (User_PasswordExpiredException $exception) {
-                if (! $this->isScriptAllowedForAnonymous($server)) {
-                    $GLOBALS['Response']->addFeedback(Feedback::ERROR, $GLOBALS['Language']->getText('include_account', 'change_pwd_err'));
-                    $GLOBALS['Response']->redirect('/account/change_pw.php?user_id'.$user->getId());
+                if ($server['REQUEST_URI'] === DisplaySecurityController::URL || $server['REQUEST_URI'] === UpdatePasswordController::URL) {
+                    return;
                 }
+                $GLOBALS['Response']->addFeedback(Feedback::ERROR, _('Please update your password first'));
+                $GLOBALS['Response']->redirect(DisplaySecurityController::URL);
             }
         }
     }
@@ -448,8 +449,6 @@ class URLVerification
     /**
      * Ensure given user can access given project
      *
-     * @param PFUser $user
-     * @param Project $project
      * @return bool
      * @throws Project_AccessProjectNotFoundException
      * @throws Project_AccessDeletedException
@@ -473,10 +472,6 @@ class URLVerification
     /**
      * Ensure given user can access given project and user is admin of the project
      *
-     * @param PFUser $user
-     * @param Project $project
-     * @return bool
-     *
      * @throws Project_AccessProjectNotFoundException
      * @throws Project_AccessDeletedException
      * @throws Project_AccessRestrictedException
@@ -484,21 +479,17 @@ class URLVerification
      * @throws Project_AccessNotAdminException
      * @throws ProjectAccessSuspendedException
      */
-    public function userCanAccessProjectAndIsProjectAdmin(PFUser $user, Project $project)
+    public function userCanAccessProjectAndIsProjectAdmin(PFUser $user, Project $project): void
     {
         if ($this->userCanAccessProject($user, $project)) {
             if (! $user->isAdmin($project->getId())) {
                 throw new Project_AccessNotAdminException();
             }
-            return true;
+            return;
         }
     }
 
     /**
-     * @param PFUser $user
-     * @param Project $project
-     * @return bool
-     *
      * @throws Project_AccessProjectNotFoundException
      * @throws Project_AccessDeletedException
      * @throws Project_AccessRestrictedException
@@ -506,14 +497,14 @@ class URLVerification
      * @throws Project_AccessNotAdminException
      * @throws ProjectAccessSuspendedException
      */
-    public function userCanManageProjectMembership(PFUser $user, Project $project)
+    public function userCanManageProjectMembership(PFUser $user, Project $project): void
     {
         if ($this->userCanAccessProject($user, $project)) {
             $dao = new MembershipDelegationDao();
             if (! $user->isAdmin($project->getId()) && ! $dao->doesUserHasMembershipDelegation($user->getId(), $project->getID())) {
                 throw new Project_AccessNotAdminException();
             }
-            return true;
+            return;
         }
     }
 
@@ -526,7 +517,7 @@ class URLVerification
      *
      * @return Void
      */
-    function exitError($title, $text)
+    public function exitError($title, $text)
     {
         exit_error($title, $text);
     }
@@ -536,7 +527,7 @@ class URLVerification
      *
      * @return ProjectManager
      */
-    function getProjectManager()
+    public function getProjectManager()
     {
         return ProjectManager::instance();
     }
@@ -548,15 +539,12 @@ class URLVerification
      *
      * @return void
      */
-    function header($location)
+    public function header($location)
     {
-        header('Location: '.$location);
+        header('Location: ' . $location);
         exit;
     }
 
-    /**
-     * @param PFUser $user
-     */
     private function checkUserIsLoggedIn(PFUser $user)
     {
         if ($user->isAnonymous()) {

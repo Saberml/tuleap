@@ -133,9 +133,6 @@ class ProjectDashboardController
         $this->css_asset                = $css_asset;
     }
 
-    /**
-     * @param HTTPRequest $request
-     */
     public function display(HTTPRequest $request)
     {
         $project            = $request->getProject();
@@ -173,7 +170,7 @@ class ProjectDashboardController
                 && $request->getCurrentUser()->isAdmin($project->getID())
                 && empty($trove_cats)
             ) {
-                $trove_url = '/project/'. (int) $project->getID() .'/admin/categories';
+                $trove_url = '/project/' . (int) $project->getID() . '/admin/categories';
                 $GLOBALS['Response']->addFeedback(
                     Feedback::WARN,
                     $GLOBALS['Language']->getText('include_html', 'no_trovcat', $trove_url),
@@ -204,7 +201,7 @@ class ProjectDashboardController
             'project',
             new ProjectPagePresenter(
                 $this->csrf,
-                '/projects/'.urlencode($this->project->getUnixName()).'/',
+                '/projects/' . urlencode($this->project->getUnixName()) . '/',
                 new ProjectPresenter(
                     $this->project,
                     ProjectManager::instance(),
@@ -239,7 +236,7 @@ class ProjectDashboardController
                 Feedback::ERROR,
                 sprintf(
                     _('You have not rights to update dashboards of the project "%s".'),
-                    $project->getUnconvertedPublicName()
+                    $project->getPublicName()
                 )
             );
         } catch (NameDashboardAlreadyExistsException $exception) {
@@ -288,7 +285,7 @@ class ProjectDashboardController
                 Feedback::ERROR,
                 sprintf(
                     _('You have not rights to update dashboards of the project "%s".'),
-                    $project->getUnconvertedPublicName()
+                    $project->getPublicName()
                 )
             );
         } catch (NameDashboardAlreadyExistsException $exception) {
@@ -345,7 +342,7 @@ class ProjectDashboardController
                 Feedback::ERROR,
                 sprintf(
                     _('You have not rights to update dashboards of the project "%s".'),
-                    $project->getUnconvertedPublicName()
+                    $project->getPublicName()
                 )
             );
         } catch (DashboardDoesNotExistException $exception) {
@@ -428,13 +425,11 @@ class ProjectDashboardController
     private function redirectToDashboard($dashboard_id)
     {
         $GLOBALS['Response']->redirect(
-            '/projects/' . urlencode($this->project->getUnixName()) . '/?dashboard_id='. urlencode($dashboard_id)
+            '/projects/' . urlencode($this->project->getUnixName()) . '/?dashboard_id=' . urlencode($dashboard_id)
         );
     }
 
     /**
-     * @param PFUser $user
-     * @param Project $project
      * @return bool
      */
     private function canUpdateDashboards(PFUser $user, Project $project)
@@ -532,7 +527,7 @@ class ProjectDashboardController
                 $title = $presenter->name . ' - ';
             }
         }
-        $title .= $project->getUnconvertedPublicName();
+        $title .= $project->getPublicName();
 
         return $title;
     }

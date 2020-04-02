@@ -25,7 +25,6 @@ namespace Tuleap\Project\REST\v1;
 
 use ForgeAccess;
 use ForgeConfig;
-use Logger;
 use Luracast\Restler\RestException;
 use Mockery as M;
 use org\bovigo\vfs\vfsStream;
@@ -82,12 +81,7 @@ class RestProjectCreatorTest extends TestCase
     private $user;
     private $project;
     private $project_creator;
-    private $plugin_manager;
     private $project_XML_importer;
-    /**
-     * @var string
-     */
-    private $base_dir;
     /**
      * @var M\LegacyMockInterface|M\MockInterface|ProjectRegistrationUserPermissionChecker
      */
@@ -126,7 +120,7 @@ class RestProjectCreatorTest extends TestCase
             $this->project_creator,
             new XMLFileContentRetriever(),
             $this->service_manager,
-            M::spy(Logger::class),
+            M::spy(\Psr\Log\LoggerInterface::class),
             new \XML_RNGValidator(),
             $this->project_XML_importer,
             new TemplateFactory(
@@ -235,7 +229,7 @@ class RestProjectCreatorTest extends TestCase
 
     public function testCreateFromXMLTemplate()
     {
-        ForgeConfig::set('sys_user_can_choose_project_privacy', 1);
+        ForgeConfig::set(ProjectManager::SYS_USER_CAN_CHOOSE_PROJECT_PRIVACY, 1);
         ForgeConfig::set(ForgeAccess::CONFIG, ForgeAccess::RESTRICTED);
 
         $this->project->xml_template_name = ScrumTemplate::NAME;

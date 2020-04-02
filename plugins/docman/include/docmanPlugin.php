@@ -24,6 +24,7 @@
  *
  */
 
+use Laminas\HttpHandlerRunner\Emitter\SapiStreamEmitter;
 use Tuleap\Admin\AdminPageRenderer;
 use Tuleap\CLI\Events\GetWhitelistedKeys;
 use Tuleap\DB\DBFactory;
@@ -65,6 +66,18 @@ use Tuleap\Docman\Upload\Version\VersionDataStore;
 use Tuleap\Docman\Upload\Version\VersionUploadCanceler;
 use Tuleap\Docman\Upload\Version\VersionUploadCleaner;
 use Tuleap\Docman\Upload\Version\VersionUploadFinisher;
+use Tuleap\Docman\XML\Export\PermissionsExporterDao;
+use Tuleap\Docman\XML\Import\ImportPropertiesExtractor;
+use Tuleap\Docman\XML\Import\ItemImporter;
+use Tuleap\Docman\XML\Import\NodeImporter;
+use Tuleap\Docman\XML\Import\PermissionsImporter;
+use Tuleap\Docman\XML\Import\PostDoNothingImporter;
+use Tuleap\Docman\XML\Import\PostFileImporter;
+use Tuleap\Docman\XML\Import\PostFolderImporter;
+use Tuleap\Docman\XML\Import\VersionImporter;
+use Tuleap\Docman\XML\XMLExporter;
+use Tuleap\Docman\XML\XMLImporter;
+use Tuleap\Event\Events\ExportXmlProject;
 use Tuleap\Http\HTTPFactoryBuilder;
 use Tuleap\Http\Response\BinaryFileResponseBuilder;
 use Tuleap\Http\Server\SessionWriteCloseMiddleware;
@@ -81,6 +94,7 @@ use Tuleap\Project\Admin\PermissionsPerGroup\PermissionPerGroupUGroupFormatter;
 use Tuleap\Project\Admin\PermissionsPerGroup\PermissionPerGroupUGroupRetriever;
 use Tuleap\Project\ProjectAccessChecker;
 use Tuleap\Project\RestrictedUserCanAccessProjectVerifier;
+use Tuleap\Project\UGroupRetrieverWithLegacy;
 use Tuleap\Project\XML\ServiceEnableForXmlImportRetriever;
 use Tuleap\Request\CollectRoutesEvent;
 use Tuleap\REST\BasicAuthentication;
@@ -91,7 +105,6 @@ use Tuleap\Upload\FileBeingUploadedWriter;
 use Tuleap\Upload\FileUploadController;
 use Tuleap\Widget\Event\GetPublicAreas;
 use Tuleap\wiki\Events\GetItemsReferencingWikiPageCollectionEvent;
-use Laminas\HttpHandlerRunner\Emitter\SapiStreamEmitter;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -120,7 +133,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
     public function __construct($id)
     {
         parent::__construct($id);
-        bindtextdomain('tuleap-docman', __DIR__.'/../site-content');
+        bindtextdomain('tuleap-docman', __DIR__ . '/../site-content');
 
         $this->addHook('cssfile', 'cssFile', false);
         $this->addHook('javascript_file');
@@ -128,7 +141,6 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $this->addHook('permission_get_name', 'permission_get_name', false);
         $this->addHook('permission_get_object_type', 'permission_get_object_type', false);
         $this->addHook('permission_get_object_name', 'permission_get_object_name', false);
-        $this->addHook('permission_get_object_fullname', 'permission_get_object_fullname', false);
         $this->addHook('permission_user_allowed_to_change', 'permission_user_allowed_to_change', false);
         $this->addHook(GetPublicAreas::NAME);
         $this->addHook(Event::REGISTER_PROJECT_CREATION, 'installNewDocman', false);
@@ -200,6 +212,9 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $this->addHook(StatisticsCollectionCollector::NAME);
         $this->addHook(ServiceEnableForXmlImportRetriever::NAME);
 
+        $this->addHook(ExportXmlProject::NAME);
+        $this->addHook(Event::IMPORT_XML_PROJECT);
+
         return parent::getHooksAndCallbacks();
     }
 
@@ -237,16 +252,16 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         if (!$params['name']) {
             switch ($params['permission_type']) {
                 case 'PLUGIN_DOCMAN_READ':
-                    $params['name'] = $GLOBALS['Language']->getText('plugin_docman', 'permission_read');
+                    $params['name'] = dgettext('tuleap-docman', 'Document Reader');
                     break;
                 case 'PLUGIN_DOCMAN_WRITE':
-                    $params['name'] = $GLOBALS['Language']->getText('plugin_docman', 'permission_write');
+                    $params['name'] = dgettext('tuleap-docman', 'Document Writer');
                     break;
                 case 'PLUGIN_DOCMAN_MANAGE':
-                    $params['name'] = $GLOBALS['Language']->getText('plugin_docman', 'permission_manage');
+                    $params['name'] = dgettext('tuleap-docman', 'Document Manager');
                     break;
                 case 'PLUGIN_DOCMAN_ADMIN':
-                    $params['name'] = $GLOBALS['Language']->getText('plugin_docman', 'permission_admin');
+                    $params['name'] = dgettext('tuleap-docman', 'Document Administrator');
                     break;
                 default:
                     break;
@@ -275,21 +290,6 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
                 $item = $if->getItemFromDb($params['object_id']);
                 if ($item) {
                     $params['object_name'] = $item->getTitle();
-                }
-            }
-        }
-    }
-    public function permission_get_object_fullname($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
-    {
-        if (!$params['object_fullname']) {
-            if (in_array($params['permission_type'], array('PLUGIN_DOCMAN_READ', 'PLUGIN_DOCMAN_WRITE', 'PLUGIN_DOCMAN_MANAGE', 'PLUGIN_DOCMAN_ADMIN'))) {
-                require_once('Docman_ItemFactory.class.php');
-                $if = new Docman_ItemFactory();
-                $item = $if->getItemFromDb($params['object_id']);
-                if ($item) {
-                    $type = is_a($item, 'Docman_Folder') ? 'folder' : 'document';
-                    $name = $item->getTitle();
-                    $params['object_fullname'] = $type .' '. $name; //TODO i18n
                 }
             }
         }
@@ -325,28 +325,32 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         return $this->pluginInfo;
     }
 
-    public function cssFile($params)
+    public function cssFile($params): void
     {
         // Only show the stylesheet if we're actually in the Docman pages.
         // This stops styles inadvertently clashing with the main site.
         if ($this->currentRequestIsForPlugin() ||
             strpos($_SERVER['REQUEST_URI'], '/widgets/') === 0
         ) {
-            $asset = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/docman/themes/',
-                '/assets/docman/themes'
-            );
-            echo '<link rel="stylesheet" type="text/css" href="'. $asset->getFileURL('default-style.css') .'" />'."\n";
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getAssets()->getFileURL('default-style.css') . '" />' . "\n";
         }
     }
 
-    public function javascript_file($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
+    public function javascript_file($params): void //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         // Only show the stylesheet if we're actually in the Docman pages.
         // This stops styles inadvertently clashing with the main site.
         if ($this->currentRequestIsForPlugin()) {
-            echo $this->getMinifiedAssetHTML()."\n";
+            echo $this->getAssets()->getHTMLSnippet('docman.js');
         }
+    }
+
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/docman/',
+            '/assets/docman'
+        );
     }
 
     public function logsDaily($params)
@@ -364,10 +368,10 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $service = $project->getService($this->getServiceShortname());
         if ($service !== null) {
             $event->addArea(
-                '<a href="/plugins/docman/?group_id='. urlencode((string) $project->getId()) .'">' .
-                '<i class="dashboard-widget-content-projectpublicareas '.Codendi_HTMLPurifier::instance()->purify($service->getIcon()).'"></i>' .
-                $GLOBALS['Language']->getText('plugin_docman', 'descriptor_name') .': '.
-                $GLOBALS['Language']->getText('plugin_docman', 'title') .
+                '<a href="/plugins/docman/?group_id=' . urlencode((string) $project->getId()) . '">' .
+                '<i class="dashboard-widget-content-projectpublicareas ' . Codendi_HTMLPurifier::instance()->purify($service->getIcon()) . '"></i>' .
+                dgettext('tuleap-docman', 'Document Manager') . ': ' .
+                dgettext('tuleap-docman', 'Project Documentation') .
                 '</a>'
             );
         }
@@ -553,10 +557,10 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
     public function project_export_entry($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         // Docman perms
-        $url  = '?group_id='.$params['group_id'].'&export=plugin_docman_perms';
-        $params['labels']['plugin_eac_docman']                           = $GLOBALS['Language']->getText('plugin_docman', 'Project_access_permission');
-        $params['data_export_links']['plugin_eac_docman']                = $url.'&show=csv';
-        $params['data_export_format_links']['plugin_eac_docman']         = $url.'&show=format';
+        $url  = '?group_id=' . $params['group_id'] . '&export=plugin_docman_perms';
+        $params['labels']['plugin_eac_docman']                           = dgettext('tuleap-docman', 'Document Manager Permissions');
+        $params['data_export_links']['plugin_eac_docman']                = $url . '&show=csv';
+        $params['data_export_format_links']['plugin_eac_docman']         = $url . '&show=format';
         $params['history_export_links']['plugin_eac_docman']             = null;
         $params['history_export_format_links']['plugin_eac_docman']      = null;
         $params['dependencies_export_links']['plugin_eac_docman']        = null;
@@ -590,9 +594,9 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
      */
     public function renameProject($params)
     {
-        $docmanPath = $this->getPluginInfo()->getPropertyValueForName('docman_root').'/';
+        $docmanPath = $this->getPluginInfo()->getPropertyValueForName('docman_root') . '/';
         //Is this project using docman
-        if (is_dir($docmanPath.$params['project']->getUnixName())) {
+        if (is_dir($docmanPath . $params['project']->getUnixName())) {
             $version      = new Docman_VersionFactory();
 
             return $version->renameProject($docmanPath, $params['project'], $params['new_name']);
@@ -607,12 +611,12 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
      */
     public function file_exists_in_data_dir($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        $docmanPath = $this->getPluginInfo()->getPropertyValueForName('docman_root').'/';
-        $path = $docmanPath.$params['new_name'];
+        $docmanPath = $this->getPluginInfo()->getPropertyValueForName('docman_root') . '/';
+        $path = $docmanPath . $params['new_name'];
 
         if (Backend::fileExists($path)) {
-            $params['result']= false;
-            $params['error'] = $GLOBALS['Language']->getText('plugin_docman', 'name_validity');
+            $params['result'] = false;
+            $params['error'] = dgettext('tuleap-docman', 'A directory already exists with this name under docman');
         }
     }
 
@@ -704,36 +708,36 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $html .= '<section class="tlp-pane">
             <div class="tlp-pane-container">
                 <div class="tlp-pane-header">
-                    <h1 class="tlp-pane-title">'. $GLOBALS['Language']->getText('plugin_docman', 'descriptor_name') .'</h1>
+                    <h1 class="tlp-pane-title">' . dgettext('tuleap-docman', 'Document Manager') . '</h1>
                 </div>
                 <section class="tlp-pane-section">
-                    <h2 class="tlp-pane-subtitle">'. $GLOBALS['Language']->getText('plugin_docman', 'deleted_version') .'</h2>';
+                    <h2 class="tlp-pane-subtitle">' . dgettext('tuleap-docman', 'Deleted versions') . '</h2>';
         if (isset($res) && $res) {
             $html .= $this->showPendingVersions($params['csrf_token'], $res['versions'], $params['group_id'], $res['nbVersions'], $offsetVers, $limit);
         } else {
             $html .= '<table class="tlp-table">
                 <thead>
                     <tr>
-                        <th class="tlp-table-cell-numeric">'. $GLOBALS['Language']->getText('plugin_docman', 'item_id') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'doc_title') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'label') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'number') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'delete_date') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'purge_date') .'</th>
+                        <th class="tlp-table-cell-numeric">' . dgettext('tuleap-docman', 'Item Id') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Document title') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Version label') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Version number') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Delete date') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Forcast purge date') . '</th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <td class="tlp-table-cell-empty" colspan="8">
-                            '. $GLOBALS['Language']->getText('plugin_docman', 'no_pending_versions') .'
+                            ' . dgettext('tuleap-docman', 'There are no pending versions.') . '
                         </td>
                     </tr>
                 </tbody>
             </table>';
         }
         $html .= '</section>';
-        $params['html'][]= $html;
+        $params['html'][] = $html;
 
         //return all pending items for given group id
         $offsetItem = $request->getValidated('offsetItem', 'uint', 0);
@@ -745,20 +749,20 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $res = $item->listPendingItems($params['group_id'], $offsetItem, $limit);
         $html = '';
         $html .= '<section class="tlp-pane-section">
-                <h2 class="tlp-pane-subtitle">'. $GLOBALS['Language']->getText('plugin_docman', 'deleted_item') .'</h2>';
+                <h2 class="tlp-pane-subtitle">' . dgettext('tuleap-docman', 'Deleted items') . '</h2>';
         if (isset($res) && $res) {
             $html .= $this->showPendingItems($params['csrf_token'], $res['items'], $params['group_id'], $res['nbItems'], $offsetItem, $limit);
         } else {
             $html .= '<table class="tlp-table">
                 <thead>
                     <tr>
-                        <th class="tlp-table-cell-numeric">'. $GLOBALS['Language']->getText('plugin_docman', 'item_id') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'doc_title') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'location') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'owner') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'delete_date') .'</th>
-                        <th>'. $GLOBALS['Language']->getText('plugin_docman', 'purge_date') .'</th>
+                        <th class="tlp-table-cell-numeric">' . dgettext('tuleap-docman', 'Item Id') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Item type') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Document title') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Location') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Owner') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Delete date') . '</th>
+                        <th>' . dgettext('tuleap-docman', 'Forcast purge date') . '</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -774,23 +778,23 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $html .= '</section>
             </div>
         </section>';
-        $params['html'][]= $html;
+        $params['html'][] = $html;
     }
 
     public function showPendingVersions(CSRFSynchronizerToken $csrf_token, $versions, $groupId, $nbVersions, $offset, $limit)
     {
         $hp = Codendi_HTMLPurifier::instance();
 
-        $html ='';
+        $html = '';
         $html .= '<table class="tlp-table">
             <thead>
                 <tr>
-                    <th class="tlp-table-cell-numeric">'. $GLOBALS['Language']->getText('plugin_docman', 'item_id') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'doc_title') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'label') .'</th>
-                    <th class="tlp-table-cell-numeric">'. $GLOBALS['Language']->getText('plugin_docman', 'number') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'delete_date') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'purge_date') .'</th>
+                    <th class="tlp-table-cell-numeric">' . dgettext('tuleap-docman', 'Item Id') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Document title') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Version label') . '</th>
+                    <th class="tlp-table-cell-numeric">' . dgettext('tuleap-docman', 'Version number') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Delete date') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Forcast purge date') . '</th>
                     <th></th>
                 </tr>
             </thead>
@@ -798,15 +802,15 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
 
         if ($nbVersions > 0) {
             foreach ($versions as $row) {
-                $historyUrl = $this->getPluginPath().'/index.php?group_id='.$groupId.'&id='.$row['item_id'].'&action=details&section=history';
-                $purgeDate = strtotime('+'.$GLOBALS['sys_file_deletion_delay'].' day', $row['date']);
-                $html .= '<tr>'.
-                '<td class="tlp-table-cell-numeric"><a href="'.$historyUrl.'">'.$row['item_id'].'</a></td>'.
-                '<td>'.$hp->purify($row['title'], CODENDI_PURIFIER_BASIC, $groupId).'</td>'.
-                '<td>'.$hp->purify($row['label']).'</td>'.
-                '<td class="tlp-table-cell-numeric">'.$row['number'].'</td>'.
-                '<td>'.html_time_ago($row['date']).'</td>'.
-                '<td>'.format_date($GLOBALS['Language']->getText('system', 'datefmt'), $purgeDate).'</td>'.
+                $historyUrl = $this->getPluginPath() . '/index.php?group_id=' . $groupId . '&id=' . $row['item_id'] . '&action=details&section=history';
+                $purgeDate = strtotime('+' . $GLOBALS['sys_file_deletion_delay'] . ' day', $row['date']);
+                $html .= '<tr>' .
+                '<td class="tlp-table-cell-numeric"><a href="' . $historyUrl . '">' . $row['item_id'] . '</a></td>' .
+                '<td>' . $hp->purify($row['title'], CODENDI_PURIFIER_BASIC, $groupId) . '</td>' .
+                '<td>' . $hp->purify($row['label']) . '</td>' .
+                '<td class="tlp-table-cell-numeric">' . $row['number'] . '</td>' .
+                '<td>' . html_time_ago($row['date']) . '</td>' .
+                '<td>' . format_date($GLOBALS['Language']->getText('system', 'datefmt'), $purgeDate) . '</td>' .
                 '<td class="tlp-table-cell-actions">
                         <form method="post" action="/plugins/docman/restore_documents.php" onsubmit="return confirm(\'Confirm restore of this version\')">
                             ' . $csrf_token->fetchHTMLInput() . '
@@ -846,7 +850,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         } else {
             $html .= '<tr>
                         <td class="tlp-table-cell-empty" colspan="8">
-                            '. $GLOBALS['Language']->getText('plugin_docman', 'no_pending_versions') .'
+                            ' . dgettext('tuleap-docman', 'There are no pending versions.') . '
                         </td>
                     </tr>
                 </tbody>
@@ -867,13 +871,13 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         $html .= '<table class="tlp-table">
             <thead>
                 <tr>
-                    <th class="tlp-table-cell-numeric">'. $GLOBALS['Language']->getText('plugin_docman', 'item_id') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'filters_item_type') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'doc_title') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'location') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'owner') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'delete_date') .'</th>
-                    <th>'. $GLOBALS['Language']->getText('plugin_docman', 'purge_date') .'</th>
+                    <th class="tlp-table-cell-numeric">' . dgettext('tuleap-docman', 'Item Id') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Item type') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Document title') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Location') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Owner') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Delete date') . '</th>
+                    <th>' . dgettext('tuleap-docman', 'Forcast purge date') . '</th>
                     <th></th>
                 </tr>
             </thead>
@@ -881,15 +885,15 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
 
         if ($nbItems > 0) {
             foreach ($res as $row) {
-                $purgeDate = strtotime('+'.$GLOBALS['sys_file_deletion_delay'].' day', $row['date']);
-                $html .='<tr>'.
-                '<td class="tlp-table-cell-numeric">'.$row['id'].'</td>'.
-                '<td>'.$itemFactory->getItemTypeAsText($row['item_type']).'</td>'.
-                '<td>'.$hp->purify($row['title'], CODENDI_PURIFIER_BASIC, $groupId).'</td>'.
-                '<td>'.$hp->purify($row['location']).'</td>'.
-                '<td>'.$hp->purify($uh->getDisplayNameFromUserId($row['user'])).'</td>'.
-                '<td>'.html_time_ago($row['date']).'</td>'.
-                '<td>'.format_date($GLOBALS['Language']->getText('system', 'datefmt'), $purgeDate).'</td>'.
+                $purgeDate = strtotime('+' . $GLOBALS['sys_file_deletion_delay'] . ' day', $row['date']);
+                $html .= '<tr>' .
+                '<td class="tlp-table-cell-numeric">' . $row['id'] . '</td>' .
+                '<td>' . $itemFactory->getItemTypeAsText($row['item_type']) . '</td>' .
+                '<td>' . $hp->purify($row['title'], CODENDI_PURIFIER_BASIC, $groupId) . '</td>' .
+                '<td>' . $hp->purify($row['location']) . '</td>' .
+                '<td>' . $hp->purify($uh->getDisplayNameFromUserId($row['user'])) . '</td>' .
+                '<td>' . html_time_ago($row['date']) . '</td>' .
+                '<td>' . format_date($GLOBALS['Language']->getText('system', 'datefmt'), $purgeDate) . '</td>' .
                 '<td class="tlp-table-cell-actions">
                     <form method="post" action="/plugins/docman/restore_documents.php" onsubmit="return confirm(\'Confirm restore of this item\')">
                         ' . $csrf_token->fetchHTMLInput() . '
@@ -928,7 +932,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         } else {
             $html .= '<tr>
                         <td class="tlp-table-cell-empty" colspan="8">
-                            '. $GLOBALS['Language']->getText('plugin_docman', 'no_pending_items') .'
+                            ' . dgettext('tuleap-docman', 'There are no pending items.') . '
                         </td>
                     </tr>
                 </tbody>
@@ -1004,7 +1008,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
      */
     public function permissionRequestInformation($params)
     {
-        $params['notices'][] = $GLOBALS['Language']->getText('plugin_docman', 'permission_requests_information');
+        $params['notices'][] = dgettext('tuleap-docman', 'The selected group will not affect people notified for permission requests on documents service.<br> Only the <b>document managers</b> will be notified in that case.');
     }
 
     /**
@@ -1043,7 +1047,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
     protected function getController($controller, $request)
     {
         if (!isset($this->controller[$controller])) {
-            include_once $controller.'.class.php';
+            include_once $controller . '.class.php';
             $this->controller[$controller] = new $controller($this, $this->getPluginPath(), $this->getThemePath(), $request);
         } else {
             $this->controller[$controller]->setRequest($request);
@@ -1068,7 +1072,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
     {
         $project = $params['project'];
         if ($project->usesService('docman')) {
-            $params['services'][] = $GLOBALS['Language']->getText('plugin_docman', 'service_lbl_key');
+            $params['services'][] = dgettext('tuleap-docman', 'Documents');
         }
     }
 
@@ -1189,8 +1193,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
                 $this->getUsersUpdater(),
                 $this->getUGroupsUpdater()
             ),
-            $this->getUserManager(),
-            $this->getUsersToNotifyDao()
+            $this->getUserManager()
         );
     }
 
@@ -1342,7 +1345,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
                     $path_allocator
                 ),
                 new \Tuleap\Docman\Upload\Document\DocumentUploadFinisher(
-                    new BackendLogger(),
+                    BackendLogger::getDefaultLogger(),
                     $path_allocator,
                     $this->getItemFactory(),
                     new Docman_VersionFactory(),
@@ -1386,7 +1389,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
                     DBFactory::getMainTuleapDBConnection()
                 ),
                 new VersionUploadFinisher(
-                    new BackendLogger(),
+                    BackendLogger::getDefaultLogger(),
                     $path_allocator,
                     $this->getItemFactory(),
                     new Docman_VersionFactory(),
@@ -1439,7 +1442,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
                 new Docman_VersionFactory(),
                 new BinaryFileResponseBuilder($response_factory, HTTPFactoryBuilder::streamFactory())
             ),
-            new BackendLogger(),
+            BackendLogger::getDefaultLogger(),
             new SessionWriteCloseMiddleware(),
             new RESTCurrentUserMiddleware(\Tuleap\REST\UserManager::build(), new BasicAuthentication()),
             new TuleapRESTCORSMiddleware(),
@@ -1544,9 +1547,6 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
         );
     }
 
-    /**
-     * @return Docman_LockFactory
-     */
     private function getDocmanLockFactory(): Docman_LockFactory
     {
         return new \Docman_LockFactory(new \Docman_LockDao(), new Docman_Log());
@@ -1555,7 +1555,7 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
     private function getProvider(Project $project): ILinkUrlProvider
     {
         $provider = new LegacyLinkProvider(
-            HTTPRequest::instance()->getServerUrl(). '/?group_id=' . urlencode((string) $project->getID())
+            HTTPRequest::instance()->getServerUrl() . '/?group_id=' . urlencode((string) $project->getID())
         );
         $link_provider = new DocmanLinkProvider($project, $provider);
         EventManager::instance()->processEvent($link_provider);
@@ -1580,5 +1580,90 @@ class DocmanPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.M
     public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event) : void
     {
         $event->addServiceIfPluginIsNotRestricted($this, $this->getServiceShortname());
+    }
+
+    public function exportXmlProject(ExportXmlProject $event): void
+    {
+        $project = $event->getProject();
+        if (! $project->usesService($this->getServiceShortname())) {
+            return;
+        }
+
+        $ugroup_retriever                   = new UGroupRetrieverWithLegacy(new UGroupManager());
+        $project_ugroups_id_indexed_by_name = $ugroup_retriever->getProjectUgroupIds($project);
+
+        $archive = $event->getArchive();
+        $archive->addEmptyDir('documents');
+
+        $export = new XMLExporter(
+            $event->getLogger(),
+            Docman_ItemFactory::instance($project->getGroupId()),
+            new Docman_VersionFactory(),
+            UserManager::instance(),
+            $event->getUserXMLExporter(),
+            new \Tuleap\Docman\XML\Export\PermissionsExporter(
+                new PermissionsExporterDao(),
+                $project_ugroups_id_indexed_by_name
+            )
+        );
+        $export->export($project, $event->getIntoXml(), $archive);
+    }
+
+    /** @see Event::IMPORT_XML_PROJECT */
+    public function importXmlProject(array $params): void
+    {
+        if (empty($params['xml_content']->docman)) {
+            return;
+        }
+        $root_path = $this->getPluginInfo()->getPropertyValueForName('docman_root');
+
+        $logger = new WrapperLogger($params['logger'], 'docman');
+        $logger->info('Start import');
+
+        $user_finder = $params['user_finder'];
+        assert($user_finder instanceof \User\XML\Import\IFindUserFromXMLReference);
+
+        $current_user = UserManager::instance()->getCurrentUser();
+        assert($current_user !== null);
+
+        $project             = $params['project'];
+        $docman_item_factory = Docman_ItemFactory::instance($project->getGroupId());
+        $current_date        = new DateTimeImmutable();
+        $xml_importer        = new XMLImporter(
+            $docman_item_factory,
+            $project,
+            $logger,
+            new NodeImporter(
+                new ItemImporter(
+                    new PermissionsImporter(
+                        $logger,
+                        PermissionsManager::instance(),
+                        new UGroupRetrieverWithLegacy(new UGroupManager()),
+                        $project
+                    ),
+                    $docman_item_factory
+                ),
+                new PostFileImporter(
+                    new VersionImporter(
+                        $user_finder,
+                        new Docman_VersionFactory(),
+                        new Docman_FileStorage($root_path),
+                        $project,
+                        $params['extraction_path'],
+                        $current_date,
+                        $current_user
+                    ),
+                    $logger
+                ),
+                new PostFolderImporter(),
+                new PostDoNothingImporter(),
+                $logger,
+                new ImportPropertiesExtractor($current_date, $current_user, $user_finder)
+            ),
+            new XML_RNGValidator()
+        );
+        $xml_importer->import($params['xml_content']->docman);
+
+        $logger->info('Import completed');
     }
 }

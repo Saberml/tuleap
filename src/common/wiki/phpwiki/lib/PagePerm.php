@@ -120,7 +120,7 @@ function pagePermissionsSimpleFormat($perm_tree, $owner, $group = false)
         return HTML::tt($perm->asRwxString($owner, $group));
     } elseif ($type == 'inherited') {
         return HTML::tt(
-            array('class'=>'inherited', 'style'=>'color:#aaa;'),
+            array('class' => 'inherited', 'style' => 'color:#aaa;'),
             $perm->asRwxString($owner, $group)
         );
     }
@@ -244,7 +244,7 @@ function _requiredAuthorityForPagename($access, $pagename)
             $perm = new PagePermission();
             if ($perm->isAuthorized('change', $request->_user)) {
                 // warn the user to set ACL of ".", if he has permissions to do so.
-                trigger_error(". (dotpage == rootpage for inheriting pageperm ACLs) exists without any ACL!\n".
+                trigger_error(". (dotpage == rootpage for inheriting pageperm ACLs) exists without any ACL!\n" .
                               "Please do ?action=setacl&pagename=.", E_USER_WARNING);
             }
             $result = ($perm->isAuthorized($access, $request->_user) === true);
@@ -356,7 +356,7 @@ class PagePermission
 {
     public $perm;
 
-    function __construct($hash = array())
+    public function __construct($hash = array())
     {
         $this->_group = &$GLOBALS['request']->getGroup();
         if (is_array($hash) and !empty($hash)) {
@@ -383,7 +383,7 @@ class PagePermission
      * Must translate the various special groups to the actual users settings
      * (userid, group membership).
      */
-    function isAuthorized($access, $user)
+    public function isAuthorized($access, $user)
     {
         if (!empty($this->perm[$access])) {
             foreach ($this->perm[$access] as $group => $bool) {
@@ -399,7 +399,7 @@ class PagePermission
      * Translate the various special groups to the actual users settings
      * (userid, group membership).
      */
-    function isMember($user, $group)
+    public function isMember($user, $group)
     {
         global $request;
         if ($group === ACL_EVERY) {
@@ -466,7 +466,7 @@ class PagePermission
      * returns hash of default permissions.
      * check if the page '.' exists and returns this instead.
      */
-    function defaultPerms()
+    public function defaultPerms()
     {
         //Todo: check for the existance of '.' and take this instead.
         //Todo: honor more config.ini auth settings here
@@ -512,7 +512,7 @@ class PagePermission
     /**
      * FIXME: check valid groups and access
      */
-    function sanify()
+    public function sanify()
     {
         foreach ($this->perm as $access => $groups) {
             foreach ($groups as $group => $bool) {
@@ -524,7 +524,7 @@ class PagePermission
     /**
      * do a recursive comparison
      */
-    function equal($otherperm)
+    public function equal($otherperm)
     {
         $diff = array_diff_assoc_recursive($this->perm, $otherperm);
         return empty($diff);
@@ -533,7 +533,7 @@ class PagePermission
     /**
      * returns list of all supported access types.
      */
-    function accessTypes()
+    public function accessTypes()
     {
         return array_keys(PagePermission::defaultPerms());
     }
@@ -542,7 +542,7 @@ class PagePermission
      * special permissions for dot-files, beginning with '.'
      * maybe also for '_' files?
      */
-    function dotPerms()
+    public function dotPerms()
     {
         $def = array(ACL_ADMIN => true,
                      ACL_OWNER => true);
@@ -556,7 +556,7 @@ class PagePermission
     /**
      *  dead code. not needed inside the object. see getPagePermissions($page)
      */
-    function retrieve($page)
+    public function retrieve($page)
     {
         $hash = $page->get('perm');
         if ($hash) {  // hash => object
@@ -568,31 +568,31 @@ class PagePermission
         return $perm;
     }
 
-    function store($page)
+    public function store($page)
     {
         // object => hash
         $this->sanify();
         return $page->set('perm', serialize($this->perm));
     }
 
-    function groupName($group)
+    public function groupName($group)
     {
         if ($group[0] == '_') {
-            return constant("GROUP".$group);
+            return constant("GROUP" . $group);
         } else {
             return $group;
         }
     }
 
     /* type: page, default, inherited */
-    function asTable($type)
+    public function asTable($type)
     {
         $table = HTML::table();
         foreach ($this->perm as $access => $perms) {
             $td = HTML::table(array('class' => 'cal','valign' => 'top'));
             foreach ($perms as $group => $bool) {
                 $td->pushContent(HTML::tr(
-                    HTML::td(array('align'=>'right'), $group),
+                    HTML::td(array('align' => 'right'), $group),
                     HTML::td($bool ? '[X]' : '[ ]')
                 ));
             }
@@ -613,7 +613,7 @@ class PagePermission
     }
 
     /* type: page, default, inherited */
-    function asEditableTable($type)
+    public function asEditableTable($type)
     {
         global $WikiTheme;
         if (!isset($this->_group)) {
@@ -626,7 +626,7 @@ class PagePermission
                 _("Access")
             ),
             HTML::th(
-                array('align'=>'right'),
+                array('align' => 'right'),
                 _("Group/User")
             ),
             HTML::th(_("Grant")),
@@ -657,7 +657,7 @@ class PagePermission
                                            'title' => _("Add this ACL"),
                                            'value' => 1));
             $newgroup = HTML::select(array('name' => "acl[_new_group][$access]",
-                                           'style'=> 'text-align: right;',
+                                           'style' => 'text-align: right;',
                                            'size' => 1));
             foreach ($allGroups as $groupname) {
                 if (!isset($groups[$groupname])) {
@@ -673,7 +673,7 @@ class PagePermission
                 $table->pushContent(
                     HTML::tr(
                         array('valign' => 'top'),
-                        HTML::td(HTML::strong($access.":")),
+                        HTML::td(HTML::strong($access . ":")),
                         HTML::td($newgroup),
                         HTML::td($nbsp, $newperm),
                         HTML::td($nbsp, $addbutton),
@@ -697,7 +697,7 @@ class PagePermission
                 );
                 $deletebutton = HTML::input(array('type' => 'checkbox',
                                                   'name' => "acl[_del_group][$access][$group]",
-                                                  'style' => 'background: #aaa url('.$deletesrc.')',
+                                                  'style' => 'background: #aaa url(' . $deletesrc . ')',
                                                   //'src'  => $deletesrc,
                                                   //'alt'   => "Del",
                                                   'title' => _("Delete this ACL"),
@@ -705,13 +705,13 @@ class PagePermission
                 if ($first_only) {
                     $table->pushContent(
                         HTML::tr(
-                            HTML::td(HTML::strong($access.":")),
+                            HTML::td(HTML::strong($access . ":")),
                             HTML::td(
-                                array('class' => 'cal-today','align'=>'right'),
+                                array('class' => 'cal-today','align' => 'right'),
                                 HTML::strong($this->groupName($group))
                             ),
-                            HTML::td(array('align'=>'center'), $nbsp, $checkbox),
-                            HTML::td(array('align'=>'right','style' => 'background: #aaa url('.$deletesrc.') no-repeat'), $deletebutton),
+                            HTML::td(array('align' => 'center'), $nbsp, $checkbox),
+                            HTML::td(array('align' => 'right','style' => 'background: #aaa url(' . $deletesrc . ') no-repeat'), $deletebutton),
                             HTML::td(HTML::em(getAccessDescription($access)))
                         )
                     );
@@ -721,11 +721,11 @@ class PagePermission
                         HTML::tr(
                             HTML::td(),
                             HTML::td(
-                                array('class' => 'cal-today','align'=>'right'),
+                                array('class' => 'cal-today','align' => 'right'),
                                 HTML::strong($this->groupName($group))
                             ),
-                            HTML::td(array('align'=>'center'), $nbsp, $checkbox),
-                            HTML::td(array('align'=>'right','style' => 'background: #aaa url('.$deletesrc.') no-repeat'), $deletebutton),
+                            HTML::td(array('align' => 'center'), $nbsp, $checkbox),
+                            HTML::td(array('align' => 'right','style' => 'background: #aaa url(' . $deletesrc . ') no-repeat'), $deletebutton),
                             HTML::td()
                         )
                     );
@@ -735,10 +735,10 @@ class PagePermission
                 $table->pushContent(
                     HTML::tr(
                         array('valign' => 'top'),
-                        HTML::td(array('align'=>'right'), _("add ")),
+                        HTML::td(array('align' => 'right'), _("add ")),
                         HTML::td($newgroup),
-                        HTML::td(array('align'=>'center'), $nbsp, $newperm),
-                        HTML::td(array('align'=>'right','style' => 'background: #ccc url('.$addsrc.') no-repeat'), $addbutton),
+                        HTML::td(array('align' => 'center'), $nbsp, $newperm),
+                        HTML::td(array('align' => 'right','style' => 'background: #ccc url(' . $addsrc . ') no-repeat'), $addbutton),
                         HTML::td(HTML::small(_("Check to add this ACL")))
                     )
                 );
@@ -758,7 +758,7 @@ class PagePermission
     // Seperate acl's by "; " or whitespace
     // See http://opag.ca/wiki/HelpOnAccessControlLists
     // As used by WikiAdminSetAclSimple
-    function asAclLines()
+    public function asAclLines()
     {
         $s = '';
         $line = '';
@@ -766,12 +766,12 @@ class PagePermission
         foreach ($this->perm as $access => $groups) {
             // unify groups for same access+bool
             //    view:CREATOR,-OWNER,
-            $line = $access.':';
+            $line = $access . ':';
             foreach ($groups as $group => $bool) {
-                $line .= ($bool?'':'-').$group.",";
+                $line .= ($bool ? '' : '-') . $group . ",";
             }
             if (substr($line, -1) == ',') {
-                $s .= substr($line, 0, -1)."; ";
+                $s .= substr($line, 0, -1) . "; ";
             }
         }
         if (substr($s, -2) == '; ') {
@@ -784,7 +784,7 @@ class PagePermission
     // This is just a bad hack for testing.
     // Simplify the ACL to a unix-like "rwx------+" string
     // See getfacl(8)
-    function asRwxString($owner, $group = false)
+    public function asRwxString($owner, $group = false)
     {
         global $request;
         // simplify object => rwxrw---x+ string as in cygwin (+ denotes additional ACLs)

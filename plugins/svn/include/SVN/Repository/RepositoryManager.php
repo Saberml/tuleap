@@ -25,7 +25,7 @@ use EventManager;
 use Exception;
 use ForgeConfig;
 use HTTPRequest;
-use Logger;
+use Psr\Log\LoggerInterface;
 use Project;
 use ProjectManager;
 use System_Command;
@@ -49,7 +49,7 @@ class RepositoryManager
     private $project_manager;
      /** @var SvnAdmin */
     private $svnadmin;
-     /** @var Logger */
+     /** @var LoggerInterface */
     private $logger;
     /** @var System_Command */
     private $system_command;
@@ -66,7 +66,7 @@ class RepositoryManager
         Dao $dao,
         ProjectManager $project_manager,
         SvnAdmin $svnadmin,
-        Logger $logger,
+        LoggerInterface $logger,
         System_Command $system_command,
         Destructor $destructor,
         EventManager $event_manager,
@@ -178,7 +178,7 @@ class RepositoryManager
     public function queueRepositoryRestore(Repository $repository, SystemEventManager $system_event_manager)
     {
         return $system_event_manager->createEvent(
-            'Tuleap\\SVN\\Events\\'.SystemEvent_SVN_RESTORE_REPOSITORY::NAME,
+            'Tuleap\\SVN\\Events\\' . SystemEvent_SVN_RESTORE_REPOSITORY::NAME,
             $repository->getProject()->getID() . SystemEvent::PARAMETER_SEPARATOR . $repository->getId(),
             SystemEvent::PRIORITY_MEDIUM,
             SystemEvent::OWNER_ROOT
@@ -193,7 +193,7 @@ class RepositoryManager
      */
     public function getRepositoryFromSystemPath($path)
     {
-        if (! preg_match('/\/(\d+)\/('.RuleName::PATTERN_REPOSITORY_NAME.')$/', $path, $matches)) {
+        if (! preg_match('/\/(\d+)\/(' . RuleName::PATTERN_REPOSITORY_NAME . ')$/', $path, $matches)) {
             throw new CannotFindRepositoryException(dgettext('tuleap-svn', 'Repository not found'));
         }
 
@@ -202,7 +202,6 @@ class RepositoryManager
     }
 
     /**
-     * @param HTTPRequest $request
      *
      * @return Repository
      * @throws CannotFindRepositoryException
@@ -212,7 +211,7 @@ class RepositoryManager
         $path    = $request->get('root');
         $project = $request->getProject();
 
-        if (! preg_match('/^'.preg_quote($project->getUnixNameMixedCase(), '/').'\/('.RuleName::PATTERN_REPOSITORY_NAME.')$/', $path, $matches)) {
+        if (! preg_match('/^' . preg_quote($project->getUnixNameMixedCase(), '/') . '\/(' . RuleName::PATTERN_REPOSITORY_NAME . ')$/', $path, $matches)) {
             throw new CannotFindRepositoryException();
         }
 
@@ -292,7 +291,7 @@ class RepositoryManager
     public function purgeArchivedRepositories()
     {
         if (! ForgeConfig::exists('sys_file_deletion_delay')) {
-            $this->logger->warn("Purge of archived SVN repositories is disabled: sys_file_deletion_delay is missing in local.inc file");
+            $this->logger->warning("Purge of archived SVN repositories is disabled: sys_file_deletion_delay is missing in local.inc file");
             return;
         }
         $retention_period      = intval(ForgeConfig::get('sys_file_deletion_delay'));
@@ -313,11 +312,11 @@ class RepositoryManager
 
     public function restoreRepository(Repository $repository)
     {
-        $this->logger->info('Restoring repository : '.$repository->getName());
+        $this->logger->info('Restoring repository : ' . $repository->getName());
         $backup_path = $repository->getBackupPath();
 
         if (! file_exists($backup_path)) {
-            $this->logger->error('[Restore] Unable to find repository archive: '.$backup_path);
+            $this->logger->error('[Restore] Unable to find repository archive: ' . $backup_path);
             return false;
         }
 
@@ -339,17 +338,17 @@ class RepositoryManager
 
     private function deleteArchivedRepository(Repository $repository)
     {
-        $this->logger->info('Purge of archived SVN repository: '.$repository->getName());
+        $this->logger->info('Purge of archived SVN repository: ' . $repository->getName());
         $path = $repository->getBackupPath();
-        $this->logger->debug('Delete backup '. $path);
+        $this->logger->debug('Delete backup ' . $path);
         if (empty($path) || ! is_writable($path)) {
-            $this->logger->debug('Empty path or permission denied '.$path);
+            $this->logger->debug('Empty path or permission denied ' . $path);
         }
         $this->logger->debug('Removing physically the repository');
 
-        $command_output = $this->system_command->exec('rm -rf '.escapeshellarg($path));
+        $command_output = $this->system_command->exec('rm -rf ' . escapeshellarg($path));
         foreach ($command_output as $line) {
-            $this->logger->debug('[svn '.$repository->getName().'] cannot remove repository: '. $line);
+            $this->logger->debug('[svn ' . $repository->getName() . '] cannot remove repository: ' . $line);
         }
     }
 
@@ -368,8 +367,8 @@ class RepositoryManager
                 return true;
             }
 
-            $this->logger->warn('Can not move the repository ' . $repository->getName() . ' to the archiving area before purge.');
-            $this->logger->warn('An error occured while archiving SVN repository: ' . $repository->getName());
+            $this->logger->warning('Can not move the repository ' . $repository->getName() . ' to the archiving area before purge.');
+            $this->logger->warning('An error occured while archiving SVN repository: ' . $repository->getName());
             return false;
         }
 

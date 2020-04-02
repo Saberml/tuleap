@@ -219,7 +219,6 @@ class AddWidgetController
     }
 
     /**
-     * @param HTTPRequest $request
      * @param $dashboard_type
      * @param $dashboard_id
      */
@@ -234,7 +233,6 @@ class AddWidgetController
     }
 
     /**
-     * @param HTTPRequest $request
      * @param $dashboard_type
      * @return int
      */
@@ -275,14 +273,13 @@ class AddWidgetController
     }
 
     /**
-     * @param HTTPRequest $request
      * @param $dashboard_id
      * @param $dashboard_type
      */
     private function redirectToDashboard(HTTPRequest $request, $dashboard_id, $dashboard_type)
     {
         if ($dashboard_type === ProjectDashboardController::DASHBOARD_TYPE) {
-            $url = '/projects/' . $request->getProject()->getUnixName() .'/';
+            $url = '/projects/' . $request->getProject()->getUnixName() . '/';
         } else {
             $url = '/my/';
         }

@@ -101,7 +101,7 @@ class ForumMLPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     public function forumml_browse_archives($params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $request  = HTTPRequest::instance();
-        $group_id = (int)$request->get('group_id');
+        $group_id = (int) $request->get('group_id');
         if ($this->isAllowed($group_id)) {
             $params['html'] = '<A href="/plugins/forumml/message.php?group_id=' . $group_id . '&list=' . $params['group_list_id'] . '"> ' . $GLOBALS['Language']->getText('plugin_forumml', 'archives') . '</A>';
         }
@@ -110,19 +110,24 @@ class ForumMLPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     public function cssFile($params)
     {
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0) {
-            $asset = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/forumml/themes',
-                '/assets/forumml/themes'
-            );
-            echo '<link rel="stylesheet" type="text/css" href="'. $asset->getFileURL('style.css') .'" />'."\n";
+            $asset = $this->getAssets()->getFileURL('style.css');
+            echo '<link rel="stylesheet" type="text/css" href="' . $asset . '" />' . "\n";
         }
     }
 
     public function jsFile($params)
     {
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0) {
-            echo '<script type="text/javascript" src="'.$this->getPluginPath().'/scripts/forumml.js"></script>'."\n";
+            echo $this->getAssets()->getHTMLSnippet('forumml.js');
         }
+    }
+
+    private function getAssets():IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/forumml',
+            '/assets/forumml'
+        );
     }
 
     /**
@@ -166,7 +171,7 @@ class ForumMLPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
 
     private function getSearchUrl($group_id, $list_id, $words)
     {
-        return '/plugins/forumml/message.php?group_id='.$group_id.'&list='.$list_id.'&search='.urlencode($words);
+        return '/plugins/forumml/message.php?group_id=' . $group_id . '&list=' . $list_id . '&search=' . urlencode($words);
     }
 
     /**
@@ -181,12 +186,12 @@ class ForumMLPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         $root        = $this->getPluginInfo()->getPropertyValueForName('forumml_dir');
         $path        = $root . '/' . strtolower($project_row['unix_group_name']);
 
-        $sql = 'SELECT group_list_id, list_name FROM mail_group_list WHERE group_id = '.$project_row['group_id'];
+        $sql = 'SELECT group_list_id, list_name FROM mail_group_list WHERE group_id = ' . $project_row['group_id'];
         $res = db_query($sql);
         $sum = 0;
         while ($row = db_fetch_array($res)) {
-            $sum += $params['DiskUsageManager']->getDirSize($path.'/'.$row['list_name'].'/');
-            $sum += $params['DiskUsageManager']->getDirSize($path.'/'.$row['group_list_id'].'/');
+            $sum += $params['DiskUsageManager']->getDirSize($path . '/' . $row['list_name'] . '/');
+            $sum += $params['DiskUsageManager']->getDirSize($path . '/' . $row['group_list_id'] . '/');
         }
 
         $dao = $params['DiskUsageManager']->_getDao();
@@ -260,7 +265,7 @@ class ForumMLPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
             $tmp_watch = new \Tuleap\TmpWatch((string) $this->getPluginInfo()->getPropertyValueForName('forumml_tmp'), 24);
             $tmp_watch->run();
         } catch (Exception $exception) {
-            $event->getLogger()->error('ForumML root_daily_start '.get_class($exception).': '.$exception->getMessage(), $exception);
+            $event->getLogger()->error('ForumML root_daily_start ' . get_class($exception) . ': ' . $exception->getMessage(), ['exception' => $exception]);
             $event->addWarning($exception->getMessage());
         }
     }

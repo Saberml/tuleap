@@ -25,22 +25,17 @@ class MediawikiAdminPermissionsPanePresenter extends MediawikiAdminPanePresenter
     public $read_ugroups;
     public $write_ugroups;
 
-    /** @var bool */
-    private $is_default_mapping;
-
     private $is_compatibility_view_enabled = true;
 
     public function __construct(
         Project $project,
         array $groups_permissions,
-        $is_default_mapping,
         $is_compatibility_view_enabled,
         array $read_ugroups,
         array $write_ugroups
     ) {
         parent::__construct($project);
         $this->groups_permissions            = $groups_permissions;
-        $this->is_default_mapping            = $is_default_mapping;
         $this->is_compatibility_view_enabled = $is_compatibility_view_enabled;
         $this->read_ugroups                  = $read_ugroups;
         $this->write_ugroups                 = $write_ugroups;
@@ -78,13 +73,16 @@ class MediawikiAdminPermissionsPanePresenter extends MediawikiAdminPanePresenter
 
     public function help_project()
     {
-        $type = $this->project->isPublic() ? 'public' : 'private';
-        return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_mapping_help_project_'.$type);
+        if ($this->project->isPublic()) {
+            return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_mapping_help_project_public');
+        }
+
+        return $GLOBALS['Language']->getText('plugin_mediawiki', 'group_mapping_help_project_private');
     }
 
     private function getMWUrl($page)
     {
-        return MEDIAWIKI_BASE_URL . '/wiki/' . $this->project->getUnixName(). '/index.php/' . $page;
+        return MEDIAWIKI_BASE_URL . '/wiki/' . $this->project->getUnixName() . '/index.php/' . $page;
     }
 
     public function route()

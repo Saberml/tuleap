@@ -44,10 +44,10 @@ class SystemEvent_SYSTEM_CHECK extends SystemEvent
     /**
      * Process stored event
      */
-    function process()
+    public function process()
     {
-        /** @var BackendSystem $backendSystem */
         $backendSystem      = Backend::instance('System');
+        \assert($backendSystem instanceof BackendSystem);
         $backendAliases     = Backend::instance('Aliases');
         $backendSVN         = Backend::instance('SVN');
         $backendCVS         = Backend::instance('CVS');
@@ -134,16 +134,11 @@ class SystemEvent_SYSTEM_CHECK extends SystemEvent
             }
         }
 
-        $backend_logger = new BackendLogger();
+        $backend_logger = BackendLogger::getDefaultLogger();
         $logger         = new SystemCheckLogger($backend_logger, 'system_check');
 
-        if (is_file($backend_logger->getFilepath())) {
-            $backendSystem->changeOwnerGroupMode(
-                $backend_logger->getFilepath(),
-                ForgeConfig::get('sys_http_user'),
-                ForgeConfig::get('sys_http_user'),
-                0640
-            );
+        if ($backend_logger instanceof BackendLogger) {
+            $backend_logger->restoreOwnership($backendSystem);
         }
 
         // If no codendi_svnroot.conf file, force recreate.
@@ -182,7 +177,7 @@ class SystemEvent_SYSTEM_CHECK extends SystemEvent
         return true;
     }
 
-    function expireRestTokens(UserManager $user_manager)
+    public function expireRestTokens(UserManager $user_manager)
     {
         $token_dao     = new Rest_TokenDao();
         $token_factory = new Rest_TokenFactory($token_dao);

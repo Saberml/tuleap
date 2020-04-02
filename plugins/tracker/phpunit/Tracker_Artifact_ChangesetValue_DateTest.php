@@ -28,10 +28,6 @@ class Tracker_Artifact_ChangesetValue_DateTest extends \PHPUnit\Framework\TestCa
      */
     private $changeset;
     /**
-     * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|PFUser
-     */
-    private $user;
-    /**
      * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|Tracker_FormElement_Field_Date
      */
     private $field;
@@ -41,7 +37,6 @@ class Tracker_Artifact_ChangesetValue_DateTest extends \PHPUnit\Framework\TestCa
         parent::setUp();
 
         $this->field = Mockery::mock(\Tracker_FormElement_Field_Date::class);
-        $this->user = Mockery::mock(PFUser::class);
 
         $this->changeset = \Mockery::spy(\Tracker_Artifact_Changeset::class);
     }
@@ -117,7 +112,6 @@ class Tracker_Artifact_ChangesetValue_DateTest extends \PHPUnit\Framework\TestCa
 
     public function testDiffNoValueSubmittedYetBothDatesAreNull(): void
     {
-
         $previous_date = new Tracker_Artifact_ChangesetValue_Date(111, $this->changeset, $this->field, false, null);
         $new_date      = new Tracker_Artifact_ChangesetValue_Date(111, $this->changeset, $this->field, false, null);
         $this->assertEquals('', $new_date->diff($previous_date));

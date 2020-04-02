@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2012. All Rights Reserved.
+ * Copyright (c) Enalean, 2012 - Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -17,9 +17,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
-Mock::generatePartial('Transition_PostAction_Field_Float', 'Transition_PostAction_Field_FloatTestVersion', array('getDao', 'addFeedback', 'getFormElementFactory', 'isDefined', 'getFieldIdOfPostActionToUpdate'));
+Mock::generatePartial('Transition_PostAction_Field_Float', 'Transition_PostAction_Field_FloatTestVersion', array('getDao', 'getFormElementFactory', 'isDefined', 'getFieldIdOfPostActionToUpdate'));
 
 class Transition_PostAction_Field_FloatTest extends TuleapTestCase
 {
@@ -38,6 +38,16 @@ class Transition_PostAction_Field_FloatTest extends TuleapTestCase
         $this->post_action->__construct($this->transition, $this->post_action_id, $this->field, $this->value);
         stub($this->post_action)->getDao()->returns($this->dao);
         stub($this->post_action)->isDefined()->returns($this->field);
+
+        $GLOBALS['Language']->setReturnValue(
+            'getText',
+            'field_value_set',
+            [
+                'workflow_postaction',
+                'field_value_set',
+                ['Remaining Effort', 1.5]
+            ]
+        );
     }
 
     public function testBeforeShouldSetTheFloatField()
@@ -52,8 +62,6 @@ class Transition_PostAction_Field_FloatTest extends TuleapTestCase
         $fields_data = array(
             'field_id' => 'value',
         );
-
-        $this->post_action->expectOnce('addFeedback', array('info', 'workflow_postaction', 'field_value_set', array($this->field->getLabel(), $expected)));
 
         $this->post_action->before($fields_data, $user);
         $this->assertEqual($expected, $fields_data[$this->field->getId()]);
@@ -72,7 +80,6 @@ class Transition_PostAction_Field_FloatTest extends TuleapTestCase
             'field_id' => 'value',
         );
 
-        $this->post_action->expectOnce('addFeedback', array('info', 'workflow_postaction', 'field_value_set', array($this->field->getLabel(), $expected)));
         $this->post_action->before($fields_data, $user);
         $this->assertEqual($expected, $fields_data[$this->field->getId()]);
     }
@@ -89,14 +96,19 @@ class Transition_PostAction_Field_FloatTest extends TuleapTestCase
             'field_id' => 'value',
         );
 
-        $this->post_action->expectNever('addFeedback');
         $this->post_action->before($fields_data, $user);
         $this->assertEqual($expected, $fields_data[$this->field->getId()]);
     }
 
     public function itAcceptsValue0()
     {
-        $post_action = aFloatFieldPostAction()->withValue(0.0)->build();
+        $post_action = new Transition_PostAction_Field_Float(
+            Mockery::mock(Transition::class),
+            0,
+            Mockery::mock(Tracker_FormElement_Field_Float::class),
+            0.0
+        );
+
         $this->assertTrue($post_action->isDefined());
     }
 }

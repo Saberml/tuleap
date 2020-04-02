@@ -261,25 +261,18 @@ class Tracker_ReportFactory
         $group_id
     ) {
         $att = $xml->attributes();
-        $row = array('name' => (string)$xml->name,
-                     'description' => (string)$xml->description);
-        $row['is_default'] = isset($att['is_default']) ? (int)$att['is_default'] : 0;
-        $row['is_query_displayed'] = isset($att['is_query_displayed']) ? (int)$att['is_query_displayed'] : 1;
-        $row['is_in_expert_mode']  = isset($att['is_in_expert_mode']) ? (int)$att['is_in_expert_mode'] : 0;
-        $row['expert_query']       = isset($att['expert_query']) ? (string)$att['expert_query'] : "";
-        // in case old id values are important modify code here
-        if (false) {
-            foreach ($xml->attributes() as $key => $value) {
-                $row[$key] = (int)$value;
-            }
-        } else {
-            $row['id'] = 'XML_IMPORT_REPORT_'.rand();
-            $row['current_renderer_id'] = 0;
-            $row['parent_report_id'] = 0;
-            $row['tracker_id'] = 0;
-            $row['user_id'] = null;
-            $row['group_id'] = $group_id;
-        }
+        $row = array('name' => (string) $xml->name,
+                     'description' => (string) $xml->description);
+        $row['is_default'] = isset($att['is_default']) ? (int) $att['is_default'] : 0;
+        $row['is_query_displayed'] = isset($att['is_query_displayed']) ? (int) $att['is_query_displayed'] : 1;
+        $row['is_in_expert_mode']  = isset($att['is_in_expert_mode']) ? (int) $att['is_in_expert_mode'] : 0;
+        $row['expert_query']       = isset($att['expert_query']) ? (string) $att['expert_query'] : "";
+        $row['id'] = 'XML_IMPORT_REPORT_' . rand();
+        $row['current_renderer_id'] = 0;
+        $row['parent_report_id'] = 0;
+        $row['tracker_id'] = 0;
+        $row['user_id'] = null;
+        $row['group_id'] = $group_id;
         $row['updated_by'] = null;
         $row['updated_at'] = null;
         $report = $this->getInstanceFromRow($row);
@@ -307,7 +300,7 @@ class Tracker_ReportFactory
             $report->renderers[] = $rend;
 
             if (isset($renderer['ID'])) {
-                $renderers_xml_mapping[(string)$renderer['ID']] = $rend;
+                $renderers_xml_mapping[(string) $renderer['ID']] = $rend;
             }
         }
 

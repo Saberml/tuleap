@@ -17,7 +17,7 @@
   * You should have received a copy of the GNU General Public License
   * along with Tuleap. If not, see <http://www.gnu.org/licenses/
   */
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 class Tracker_Rule_List_FactoryTest extends TuleapTestCase
 {
@@ -231,7 +231,7 @@ class Tracker_Rule_List_FactoryTest extends TuleapTestCase
         $factory->duplicate($from_tracker_id, $to_tracker_id, $field_mapping);
     }
 
-    function testExport()
+    public function testExport()
     {
         $xml = simplexml_load_file(dirname(__FILE__) . '/../../../_fixtures/ImportTrackerRulesTest.xml');
 

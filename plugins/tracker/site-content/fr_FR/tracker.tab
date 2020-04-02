@@ -486,7 +486,7 @@ plugin_tracker_include_type	avoid_spaces	Veuillez éviter les espaces et les pon
 plugin_tracker_include_type	choose_creation	Tout d'abord, selectonnez le modèle à partir duquel vous voulez démarrer&nbsp;:
 plugin_tracker_include_type	from_tmpl	A partir de la galerie de modèles
 plugin_tracker_include_type	from_xml	A partir d'un fichier XML
-plugin_tracker_include_type	from_xml_desc	Vous pouvez sauvegarder puis ré-importer la définition d'un outil de suivi d'un serveur à un autre.<br/>Si vous n'avez pas de fichiers XML, des exemples sont disponibles <a href="$1">ici</a>.
+plugin_tracker_include_type	from_xml_desc	Vous pouvez sauvegarder puis ré-importer la définition d'un outil de suivi d'un serveur à un autre.
 plugin_tracker_include_type	from_tv3	A partir d'un outil de suivi v3
 plugin_tracker_include_type	tmpl_src_prj	Projet source
 plugin_tracker_include_type	tmpl_src_trk	Liste des modèles
@@ -623,7 +623,6 @@ plugin_tracker_include_type	info_gn_default_not_added	Notification globale par d
 plugin_tracker_include_type	info_gn_deleted	Notification globale supprimée
 plugin_tracker_include_type	error_uniq_name	Impossible de changer le nom du champ car il est utilisé ailleurs
 
-plugin_tracker_include_type	field_copied_from	Ce champ est partagé depuis l'outil de suivi <a href="$3">$1</a> du projet $2
 plugin_tracker_include_type	field_copied_to	Ce champ est utilisé par les outils de suivi suivants :
 
 plugin_tracker_include_type	migrate_from_tv3	Migrer le contenu d'un outil de suivi v3
@@ -777,7 +776,6 @@ plugin_tracker_common_type	perm_fail	La création des permissions utilisateurs a
 plugin_tracker_common_type	name_requ	Le nom, la couleur et le nom court sont obligatoires.
 plugin_tracker_common_type	invalid_shortname	Nom court invalide&nbsp;: $1. Veuillez utiliser uniquement des caractères alphanumériques ou un nom court non réservé. Retournez à la page précédente et modifiez ce champ.
 plugin_tracker_common_type	invalid_templ	Le modèle de projet selectionné est invalide
-plugin_tracker_common_type	invalid_tracker_tmpl	Le modèle d'outil de suivi selectionné est invalide
 plugin_tracker_common_type	load_fail	impossible de charger le nouvel outil de suivi
 plugin_tracker_common_type	invalid_at	ArtifactTrackerID invalide
 plugin_tracker_common_type	invalid_date	La date de report ne doit pas se situer dans le passé
@@ -1470,8 +1468,6 @@ plugin_tracker_widget_myartifacts	description	Affiche la liste des artefacts par
 plugin_tracker_widget_myartifacts	no_artifacts	Vous n'avez pas </br> encore d'artefacts
 
 plugin_tracker	must_have_artifact_link_field	L'artefact n'a pas de champ de type lien vers artefact ou alors vous n'avez pas la permission de le modifier, merci de reconfigurer l'outil de suivi
-plugin_tracker	burndown_missing_start_date_warning	L'outil de suivi n'a pas de champ "start_date" de type Date ou bien vous n'avez pas la permission d'y accéder.
-plugin_tracker	burndown_missing_duration_warning	L'outil de suivi n'a pas de champ "duration" de type Entier ou bien vous n'avez pas la permission d'y accéder.
 plugin_tracker	burndown_no_linked_artifacts	Aucun artifact lié n'a été trouvé ou le champ "remaining_effort" n'existe pas sur ces artefacts.
 plugin_tracker	burndown_email_as_of_today	L'image précédente est calculée en temps réel. L'information représentée correspond à la date courante, et non à la date d'envoi du message.
 plugin_tracker	unable_to_render_the_chart	Impossible de construire le graphique

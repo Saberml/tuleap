@@ -39,7 +39,11 @@
             >
                 Cancel
             </button>
-            <button class="tlp-button-primary writing-mode-actions-search" v-on:click="search">
+            <button
+                class="tlp-button-primary writing-mode-actions-search"
+                v-on:click="search"
+                data-test="search-report-button"
+            >
                 <i class="fa fa-search tlp-button-icon"></i>
                 <translate>Search</translate>
             </button>
@@ -57,14 +61,14 @@ export default {
     components: {
         QueryEditor,
         TrackerSelection,
-        TrackerListWritingMode
+        TrackerListWritingMode,
     },
     props: {
-        writingCrossTrackerReport: Object
+        writingCrossTrackerReport: Object,
     },
     data() {
         return {
-            selected_trackers: []
+            selected_trackers: [],
         };
     },
     mounted() {
@@ -106,10 +110,10 @@ export default {
                 return {
                     tracker_id: tracker.id,
                     tracker_label: tracker.label,
-                    project_label: project.label
+                    project_label: project.label,
                 };
             });
-        }
-    }
+        },
+    },
 };
 </script>

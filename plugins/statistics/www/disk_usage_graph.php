@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) STMicroelectronics, 2009. All Rights Reserved.
- * Copyright (c) Enalean, 2016 - 2017. All Rights Reserved.
+ * Copyright (c) Enalean, 2016 - Present. All Rights Reserved.
  *
  * Originally written by Manuel VACELET, 2009
  *
@@ -23,13 +23,13 @@
  */
 
 require_once __DIR__ . '/../../../src/www/include/pre.php';
-require_once __DIR__ .'/../include/Statistics_DiskUsageGraph.class.php';
+require_once __DIR__ . '/../include/Statistics_DiskUsageGraph.class.php';
 
-use Tuleap\SVN\DiskUsage\Collector as SVNCollector;
-use Tuleap\SVN\DiskUsage\Retriever as SVNRetriever;
-use Tuleap\CVS\DiskUsage\Retriever as CVSRetriever;
-use Tuleap\CVS\DiskUsage\Collector as CVSCollector;
-use Tuleap\CVS\DiskUsage\FullHistoryDao;
+use Tuleap\Statistics\DiskUsage\Subversion\Collector as SVNCollector;
+use Tuleap\Statistics\DiskUsage\Subversion\Retriever as SVNRetriever;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\Retriever as CVSRetriever;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\Collector as CVSCollector;
+use Tuleap\Statistics\DiskUsage\ConcurrentVersionsSystem\FullHistoryDao;
 
 // First, check plugin availability
 $pluginManager = PluginManager::instance();
@@ -101,7 +101,7 @@ switch ($graphType) {
 }
 
 
-$groupByDate = array('day', 'deek', 'month', 'year');
+$groupByDate = array('day', 'week', 'month', 'year');
 $vGroupBy = new Valid_WhiteList('group_by', $groupByDate);
 $vGroupBy->required();
 if ($request->valid($vGroupBy)) {
@@ -150,11 +150,11 @@ if (!$error) {
             break;
 
         case 'graph_user':
-            $graph->displayUserGraph($userId, $selectedGroupByDate, $startDate, $endDate, !$relative) ;
+            $graph->displayUserGraph($userId, $selectedGroupByDate, $startDate, $endDate, !$relative);
             break;
 
         case 'graph_project':
-            $graph->displayProjectGraph($groupId, $services, $selectedGroupByDate, $startDate, $endDate, !$relative) ;
+            $graph->displayProjectGraph($groupId, $services, $selectedGroupByDate, $startDate, $endDate, !$relative);
             break;
 
         default:

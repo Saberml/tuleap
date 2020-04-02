@@ -24,6 +24,7 @@ declare(strict_types=1);
 namespace Tuleap\Language;
 
 use ForgeConfig;
+use PFUser;
 
 final class CustomizableContentLoaderTest extends \PHPUnit\Framework\TestCase
 {
@@ -39,12 +40,18 @@ final class CustomizableContentLoaderTest extends \PHPUnit\Framework\TestCase
     {
         parent::setUp();
         ForgeConfig::store();
-        ForgeConfig::set('sys_incdir', __DIR__.'/_fixtures/customizable_loader/tuleap/site-content');
+        ForgeConfig::set('sys_incdir', __DIR__ . '/_fixtures/customizable_loader/tuleap/site-content');
 
         $this->loader  = new CustomizableContentLoader();
-        $this->us_user = (new \UserTestBuilder())->withLang('en_US')->build();
-        $this->fr_user = (new \UserTestBuilder())->withLang('fr_FR')->build();
-        $this->br_user = (new \UserTestBuilder())->withLang('pt_BR')->build();
+        $this->us_user = new PFUser([
+            'language_id' => 'en_US',
+        ]);
+        $this->fr_user = new PFUser([
+            'language_id' => 'fr_FR',
+        ]);
+        $this->br_user = new PFUser([
+            'language_id' => 'pt_BR',
+        ]);
     }
 
     protected function tearDown() : void
@@ -65,13 +72,13 @@ final class CustomizableContentLoaderTest extends \PHPUnit\Framework\TestCase
 
     public function testItLoadsBarFromLocalEnUSWhenExists() : void
     {
-        ForgeConfig::set('sys_custom_incdir', __DIR__.'/_fixtures/customizable_loader/etc/site-content');
+        ForgeConfig::set('sys_custom_incdir', __DIR__ . '/_fixtures/customizable_loader/etc/site-content');
         $this->assertEquals('local hello', $this->loader->getContent($this->us_user, 'foo/bar'));
     }
 
     public function testItLoadsBarFromLocalFrFRWhenExists() : void
     {
-        ForgeConfig::set('sys_custom_incdir', __DIR__.'/_fixtures/customizable_loader/etc/site-content');
+        ForgeConfig::set('sys_custom_incdir', __DIR__ . '/_fixtures/customizable_loader/etc/site-content');
         $this->assertEquals('bonjour local', $this->loader->getContent($this->fr_user, 'foo/bar'));
     }
 
@@ -82,7 +89,7 @@ final class CustomizableContentLoaderTest extends \PHPUnit\Framework\TestCase
 
     public function testItFallsBackToLocalEnglishWhenLocaleDoesntExist() : void
     {
-        ForgeConfig::set('sys_custom_incdir', __DIR__.'/_fixtures/customizable_loader/etc/site-content');
+        ForgeConfig::set('sys_custom_incdir', __DIR__ . '/_fixtures/customizable_loader/etc/site-content');
         $this->assertEquals('local hello', $this->loader->getContent($this->br_user, 'foo/bar'));
     }
 

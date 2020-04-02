@@ -39,7 +39,6 @@ class ArtifactsPresentersBuilder
 
     /**
      * @param array  $ordered_artifact_rows
-     * @param PFUser $current_user
      * @param string $server_url
      * @param int    $hard_limit
      *
@@ -83,8 +82,8 @@ class ArtifactsPresentersBuilder
             return '';
         }
 
-        /** @var Tracker_Artifact_ChangesetValue_Text $changeset_value */
         $changeset_value = $last_changeset->getValue($description_field);
+        \assert($changeset_value instanceof Tracker_Artifact_ChangesetValue_Text);
         if (! $changeset_value) {
             return '';
         }

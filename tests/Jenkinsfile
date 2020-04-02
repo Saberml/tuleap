@@ -21,7 +21,7 @@ pipeline {
                 }
                 script {
                     actions = load 'sources/tests/actions.groovy'
-                    actions.prepareSources('nexus.enalean.com_readonly')
+                    actions.prepareSources('nexus.enalean.com_readonly', 'github-token-composer')
                 }
             }
         }
@@ -50,11 +50,6 @@ pipeline {
                     stages {
                         stage('UT PHPUnit PHP 7.3') {
                             steps { script { actions.runPHPUnitTests('73') } }
-                            post {
-                                always {
-                                    step([$class: 'CloverPublisher', cloverReportDir: 'results/ut-phpunit/php-73/coverage/', cloverReportFileName: 'clover.xml'])
-                                }
-                            }
                         }
                     }
                     post { always { junit 'results/ut-phpunit/*/phpunit_tests_results.xml' } }
@@ -71,7 +66,7 @@ pipeline {
                     post {
                         always {
                             junit 'results/jest/test-*-results.xml'
-                            step([$class: 'CloverPublisher', cloverReportDir: 'results/jest/coverage/', cloverReportFileName: 'clover.xml'])
+                            publishCoverage adapters: [istanbulCoberturaAdapter('results/jest/coverage/cobertura-coverage.xml')], tag: 'Javascript'
                         }
                     }
                 }
@@ -93,9 +88,9 @@ pipeline {
                 }
                 stage('SOAP') {
                     stages {
-                        stage('SOAP PHP 7.3') { steps { script { actions.runSOAPTests('php-73', '5') } } }
+                        stage('SOAP PHP 7.3') { steps { script { actions.runSOAPTests('mysql57', '73') } } }
                     }
-                    post { always { junit "results/api-soap/*/soap_tests.xml" } }
+                    post { always { junit "results/soap/*/soap_tests.xml" } }
                 }
                 stage('Build and run CentOS 6') { steps { script { actions.runBuildAndRun('centos6') } } }
                 stage('Build and run CentOS 7') { steps { script { actions.runBuildAndRun('centos7') } } }
@@ -105,16 +100,6 @@ pipeline {
                             steps { script {
                                 actions.runFilesStatusChangesDetection('.', 'translation files', '"*.po\$"')
                             } }
-                        }
-                        stage('Javascript coding standards') {
-                            agent {
-                                docker {
-                                    image 'node:13.3-alpine'
-                                    reuseNode true
-                                    args '--network none'
-                                }
-                            }
-                            steps { script { actions.runJavascriptCodingStandards() } }
                         }
                         stage('ESLint static analysis') {
                             agent {
@@ -170,6 +155,17 @@ pipeline {
                                     recordIssues enabledForFailure: true, minimumSeverity: 'NORMAL', tools: [checkStyle(id: 'checkstyle_psalm', pattern: 'results/psalm/checkstyle.xml')]
                                 }
                             }
+                        }
+                        stage('Architecture') {
+                            agent {
+                                docker {
+                                    image 'php:7.4-cli-alpine'
+                                    reuseNode true
+                                    args '--network none'
+                                }
+                            }
+                            steps { script { actions.runDeptrac('tests/deptrac/core_on_plugins.yml', 'core_on_plugins') } }
+                            post { failure { junit 'results/deptrac/*.xml' } }
                         }
                     }
                 }

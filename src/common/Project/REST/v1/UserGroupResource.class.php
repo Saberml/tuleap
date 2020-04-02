@@ -311,7 +311,7 @@ class UserGroupResource extends AuthenticatedResource
 
         try {
             $this->ugroup_manager->syncUgroupMembers($user_group, $users_from_references);
-        } catch (CannotAddRestrictedUserToProjectNotAllowingRestricted|CannotRemoveUserMembershipToUserGroupException $exception) {
+        } catch (CannotAddRestrictedUserToProjectNotAllowingRestricted | CannotRemoveUserMembershipToUserGroupException $exception) {
             throw new RestException(400, $exception->getMessage());
         } catch (\Exception $ex) {
             throw $ex;
@@ -415,7 +415,6 @@ class UserGroupResource extends AuthenticatedResource
     /**
      * Get the UserRepresentation of a user
      *
-     * @param PFUser $member
      *
      * @return \Tuleap\User\REST\UserRepresentation
      */
@@ -461,7 +460,6 @@ class UserGroupResource extends AuthenticatedResource
     }
 
     /**
-     * @param int $ugroup_id
      *
      * @throws RestException 404
      *

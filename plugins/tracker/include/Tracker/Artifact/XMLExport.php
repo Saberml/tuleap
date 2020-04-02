@@ -20,9 +20,7 @@
 
 class Tracker_Artifact_XMLExport
 {
-
-    public const ARTIFACTS_RNG_PATH = '/www/resources/artifacts.rng';
-    public const THRESHOLD          = 9000;
+    public const THRESHOLD = 9000;
 
     /**
      * @var Tracker_ArtifactFactory
@@ -75,11 +73,14 @@ class Tracker_Artifact_XMLExport
 
         if ($nb_artifacts > self::THRESHOLD) {
             throw new Tracker_Artifact_XMLExportTooManyArtifactsException(
-                "Too many artifacts: $nb_artifacts (IT'S OVER ".self::THRESHOLD."!)"
+                "Too many artifacts: $nb_artifacts (IT'S OVER " . self::THRESHOLD . "!)"
             );
         }
     }
 
+    /**
+     * @param Tracker_Artifact[] $artifacts
+     */
     private function exportBunchOfArtifacts(
         array $artifacts,
         SimpleXMLElement $xml_content,
@@ -99,7 +100,7 @@ class Tracker_Artifact_XMLExport
 
         $this->rng_validator->validate(
             $artifacts_node,
-            realpath(dirname(TRACKER_BASE_DIR) . self::ARTIFACTS_RNG_PATH)
+            realpath(__DIR__ . '/../../../resources/artifacts.rng')
         );
     }
 

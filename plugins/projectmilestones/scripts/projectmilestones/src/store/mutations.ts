@@ -24,6 +24,10 @@ export default {
         state.is_loading = loading;
     },
 
+    setNbPastReleases(state: State, total: number): void {
+        state.nb_past_releases = total;
+    },
+
     setErrorMessage(state: State, error_message: string): void {
         state.error_message = error_message;
     },
@@ -34,5 +38,9 @@ export default {
 
     setCurrentMilestones(state: State, milestones: MilestoneData[]): void {
         state.current_milestones = milestones;
-    }
+    },
+
+    setLastRelease(state: State, milestone: MilestoneData): void {
+        state.last_release = milestone;
+    },
 };

@@ -23,7 +23,6 @@ declare(strict_types=1);
 namespace Tuleap\Queue\TaskWorker;
 
 use JsonException;
-use Logger;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use org\bovigo\vfs\vfsStream;
@@ -48,7 +47,7 @@ final class TaskWorkerProcessCommandTest extends TestCase
     public function testEventIsDispatchedForProcessing() : void
     {
         $event_dispatcher = Mockery::mock(EventDispatcherInterface::class);
-        $logger           = Mockery::mock(Logger::class);
+        $logger           = Mockery::mock(\Psr\Log\LoggerInterface::class);
         $command          = new TaskWorkerProcessCommand($event_dispatcher, $logger);
 
         $path_to_file            = $this->filesystem_root->url() . '/event';
@@ -61,12 +60,12 @@ final class TaskWorkerProcessCommandTest extends TestCase
         $event_dispatcher->shouldReceive('dispatch')->with(Mockery::type(WorkerEvent::class));
 
         $command_tester = new CommandTester($command);
-        $command_tester->execute(['input_file' =>$path_to_file]);
+        $command_tester->execute(['input_file' => $path_to_file]);
     }
 
     public function testEventNotProperlyJSONSerializedIsRejected() : void
     {
-        $logger           = Mockery::mock(Logger::class);
+        $logger           = Mockery::mock(\Psr\Log\LoggerInterface::class);
         $command          = new TaskWorkerProcessCommand(Mockery::mock(EventDispatcherInterface::class), $logger);
 
         $path_to_file            = $this->filesystem_root->url() . '/event';
@@ -77,6 +76,6 @@ final class TaskWorkerProcessCommandTest extends TestCase
         $command_tester = new CommandTester($command);
 
         $this->expectException(JsonException::class);
-        $command_tester->execute(['input_file' =>$path_to_file]);
+        $command_tester->execute(['input_file' => $path_to_file]);
     }
 }

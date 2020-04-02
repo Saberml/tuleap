@@ -28,7 +28,7 @@ import { Modal } from "tlp";
 jest.mock("tlp", () => {
     return {
         __esModule: true,
-        modal: jest.fn()
+        modal: jest.fn(),
     };
 });
 
@@ -44,9 +44,9 @@ describe("ErrorModal", () => {
             localVue: local_vue,
             mocks: {
                 $store: createStoreMock({
-                    state: { error: { modal_error_message: error_message } }
-                })
-            }
+                    state: { error: { modal_error_message: error_message } },
+                }),
+            },
         });
     }
 
@@ -61,20 +61,21 @@ describe("ErrorModal", () => {
         const modal_show = jest.fn();
         jest.spyOn(tlp, "modal").mockImplementation(() => {
             return ({
-                show: modal_show
+                show: modal_show,
             } as unknown) as Modal;
         });
         createWrapper("Full error message with details");
         expect(modal_show).toHaveBeenCalledTimes(1);
     });
 
-    it("display more details when user click on show error", () => {
+    it("display more details when user click on show error", async () => {
         const error_message = "Full error message with details";
         const wrapper = createWrapper(error_message);
 
-        wrapper.find("[data-test=show-details]").trigger("click");
+        wrapper.get("[data-test=show-details]").trigger("click");
+        await wrapper.vm.$nextTick();
 
-        const details = wrapper.find("[data-test=details]");
+        const details = wrapper.get("[data-test=details]");
         expect(details.text()).toEqual(error_message);
     });
 

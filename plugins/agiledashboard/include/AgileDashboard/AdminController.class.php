@@ -167,9 +167,10 @@ class AdminController extends BaseController
     public function adminScrum(): string
     {
         $include_assets = new IncludeAssets(
-            AGILEDASHBOARD_BASE_DIR . '/../www/assets',
-            AGILEDASHBOARD_BASE_URL . '/assets'
+            __DIR__ . '/../../../../src/www/assets/agiledashboard',
+            '/assets/agiledashboard'
         );
+
         $GLOBALS['HTML']->includeFooterJavascriptFile($include_assets->getFileURL('administration.js'));
 
         return $this->renderToString(
@@ -218,9 +219,6 @@ class AdminController extends BaseController
 
     public function updateConfiguration(): void
     {
-        $token = new CSRFSynchronizerToken('/plugins/agiledashboard/?action=admin');
-        $token->check();
-
         if (! $this->request->getCurrentUser()->isAdmin($this->group_id)) {
             $GLOBALS['Response']->addFeedback(
                 Feedback::ERROR,
@@ -229,6 +227,9 @@ class AdminController extends BaseController
 
             return;
         }
+
+        $token = new CSRFSynchronizerToken('/plugins/agiledashboard/?action=admin');
+        $token->check();
 
         $response = new AgileDashboardConfigurationResponse(
             $this->request->getProject(),

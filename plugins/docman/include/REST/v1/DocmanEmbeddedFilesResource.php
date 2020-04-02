@@ -293,10 +293,10 @@ class DocmanEmbeddedFilesResource extends AuthenticatedResource
         $this->createNewEmbeddedFileVersion(
             $representation,
             $item_request,
-            (int)$item->getStatus(),
-            (int)$item->getObsolescenceDate(),
-            (string)$item->getTitle(),
-            (string)$item->getDescription()
+            (int) $item->getStatus(),
+            (int) $item->getObsolescenceDate(),
+            (string) $item->getTitle(),
+            (string) $item->getDescription()
         );
     }
 
@@ -332,7 +332,6 @@ class DocmanEmbeddedFilesResource extends AuthenticatedResource
         int $id,
         PUTMetadataRepresentation $representation
     ): void {
-
         $this->checkAccess();
         $this->setMetadataHeaders();
 
@@ -457,9 +456,6 @@ class DocmanEmbeddedFilesResource extends AuthenticatedResource
         return new RestLockUpdater(new Docman_LockFactory(new \Docman_LockDao(), new Docman_Log()), $this->getPermissionManager($project));
     }
 
-    /**
-     * @param \Project $project
-     */
     private function addAllEvent(\Project $project): void
     {
         $event_adder = $this->getDocmanItemsEventAdder();

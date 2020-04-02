@@ -22,6 +22,7 @@ namespace Tuleap\Tracker\REST\v1\Workflow;
 
 use EventManager;
 use Luracast\Restler\RestException;
+use Psr\Log\LoggerInterface;
 use Tracker_RuleFactory;
 use TrackerFactory;
 use Transition_PostAction_CIBuildDao;
@@ -257,6 +258,7 @@ class TransitionsResource extends AuthenticatedResource
      *
      * @url GET {id}
      * @status 200
+     * @oauth2-scope read:tracker
      *
      * @access protected
      *
@@ -301,6 +303,7 @@ class TransitionsResource extends AuthenticatedResource
      *
      * @url GET {id}/actions
      * @status 200
+     * @oauth2-scope read:tracker
      *
      * @access protected
      *
@@ -329,7 +332,7 @@ class TransitionsResource extends AuthenticatedResource
         try {
             $project = $transition->getWorkflow()->getTracker()->getProject();
         } catch (OrphanTransitionException $exception) {
-            $this->getRESTLogger()->error('Cannot return transition post actions', $exception);
+            $this->getRESTLogger()->error('Cannot return transition post actions', ['exception' => $exception]);
             throw new RestException(520);
         }
         ProjectStatusVerificator::build()->checkProjectStatusAllowsOnlySiteAdminToAccessIt($current_user, $project);
@@ -429,7 +432,7 @@ class TransitionsResource extends AuthenticatedResource
 
             $handler->handle($current_user, $transition, $post_actions_representation);
         } catch (OrphanTransitionException $exception) {
-            $this->getRESTLogger()->error('Cannot update transition post actions', $exception);
+            $this->getRESTLogger()->error('Cannot update transition post actions', ['exception' => $exception]);
             throw new RestException(520);
         } catch (InvalidPostActionException |
                  UnknownPostActionIdsException |
@@ -474,12 +477,9 @@ class TransitionsResource extends AuthenticatedResource
         return new TransitionsPermissionsChecker(new TrackerPermissionsChecker(new \URLVerification()));
     }
 
-    /**
-     * @return RESTLogger
-     */
-    private function getRESTLogger()
+    private function getRESTLogger(): LoggerInterface
     {
-        return new RESTLogger();
+        return RESTLogger::getLogger();
     }
 
     private function getPostActionCollectionJsonParser(): PostActionCollectionJsonParser

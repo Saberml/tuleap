@@ -46,7 +46,7 @@ class documentPlugin extends Plugin // phpcs:ignore
         parent::__construct($id);
         $this->setScope(self::SCOPE_PROJECT);
 
-        bindtextdomain('tuleap-document', __DIR__.'/../site-content');
+        bindtextdomain('tuleap-document', __DIR__ . '/../site-content');
     }
 
     public function getHooksAndCallbacks()
@@ -176,9 +176,6 @@ class documentPlugin extends Plugin // phpcs:ignore
     public function docmanLinkProvider(DocmanLinkProvider $link_provider)
     {
         $project = $link_provider->getProject();
-        $retriever = new DocumentUsageRetriever();
-        if ($retriever->canProjectUseNewUI($project)) {
-            $link_provider->replaceProvider(new DocumentLinkProvider(HTTPRequest::instance()->getServerUrl(), $project));
-        }
+        $link_provider->replaceProvider(new DocumentLinkProvider(HTTPRequest::instance()->getServerUrl(), $project));
     }
 }

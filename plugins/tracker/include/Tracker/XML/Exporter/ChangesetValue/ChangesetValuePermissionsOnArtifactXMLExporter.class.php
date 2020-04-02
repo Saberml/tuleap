@@ -36,13 +36,15 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValuePermissionsOnArtifactXML
             $changeset_value,
             $changeset_xml
         );
-        $field_change->addAttribute('use_perm', (int)$this->isUsed($changeset_value));
+        $field_change->addAttribute('use_perm', (int) $this->isUsed($changeset_value));
 
         $ugroup_names = array_filter($changeset_value->getUgroupNamesFromPerms());
 
         array_walk(
             $ugroup_names,
-            array($this, 'appendUgroupToFieldChangeNode'),
+            function ($ugroup_name, $index, SimpleXMLElement $field_xml) {
+                $this->appendUgroupToFieldChangeNode($ugroup_name, $index, $field_xml);
+            },
             $field_change
         );
     }

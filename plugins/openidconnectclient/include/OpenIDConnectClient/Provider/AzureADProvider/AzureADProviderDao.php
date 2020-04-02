@@ -57,7 +57,7 @@ class AzureADProviderDao extends DataAccessObject
                     VALUES (?, ?, ?)';
                 $db->run($sql, $id, $tenant_id, $acceptable_tenant_auth_identifier);
 
-                return (int)$id;
+                return (int) $id;
             }
         );
     }
@@ -76,7 +76,8 @@ class AzureADProviderDao extends DataAccessObject
         string $client_secret,
         string $icon,
         string $color,
-        string $tenant_id
+        string $tenant_id,
+        string $acceptable_tenant_auth_identifier
     ) : void {
         $this->getDB()->tryFlatTransaction(
             function (EasyDB $db) use (
@@ -87,9 +88,9 @@ class AzureADProviderDao extends DataAccessObject
                 $client_secret,
                 $icon,
                 $color,
-                $tenant_id
+                $tenant_id,
+                $acceptable_tenant_auth_identifier
             ) : void {
-
                 if ($is_unique_authentication_endpoint) {
                     $this->disableUniqueAuthenticationProvider();
                 }
@@ -106,10 +107,11 @@ class AzureADProviderDao extends DataAccessObject
                 $db->run($sql, $name, $client_id, $client_secret, $is_unique_authentication_endpoint, $icon, $color, $id);
 
                 $sql = "UPDATE plugin_openidconnectclient_provider_azure_ad SET
-                        tenant_id = ?
+                        tenant_id = ?,
+                        acceptable_tenant_auth_identifier = ?
                     WHERE provider_id = ?";
 
-                $db->run($sql, $tenant_id, $id);
+                $db->run($sql, $tenant_id, $acceptable_tenant_auth_identifier, $id);
             }
         );
     }

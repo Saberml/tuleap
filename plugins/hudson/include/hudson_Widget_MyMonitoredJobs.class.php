@@ -63,7 +63,7 @@ class hudson_Widget_MyMonitoredJobs extends HudsonOverviewWidget
         return $GLOBALS['Language']->getText('plugin_hudson', 'widget_description_myjobs');
     }
 
-    function updatePreferences(Codendi_Request $request)
+    public function updatePreferences(Codendi_Request $request)
     {
         $request->valid(new Valid_String('cancel'));
         if (!$request->exist('cancel')) {
@@ -102,7 +102,7 @@ class hudson_Widget_MyMonitoredJobs extends HudsonOverviewWidget
                 <tr>
                     <th></th>
                     <th style="width:100%">
-                        '. $purifier->purify($GLOBALS['Language']->getText('plugin_hudson', 'monitored_jobs')) .'
+                        ' . $purifier->purify($GLOBALS['Language']->getText('plugin_hudson', 'monitored_jobs')) . '
                     </th>
                 </tr>
             </thead>
@@ -114,8 +114,8 @@ class hudson_Widget_MyMonitoredJobs extends HudsonOverviewWidget
             $html .= '<tr><td>';
             $html .= '<input type="checkbox"
                              name="myhudsonjobs[]"
-                             value="'. $purifier->purify($row['job_id']) .'"
-                             '.(in_array($row['job_id'], $this->_not_monitored_jobs)?'':'checked="checked"').'>';
+                             value="' . $purifier->purify($row['job_id']) . '"
+                             ' . (in_array($row['job_id'], $this->_not_monitored_jobs) ? '' : 'checked="checked"') . '>';
             $html .= '</td><td>';
             $html .= $purifier->purify($row['name']);
             $html .= '</td></tr>';
@@ -201,7 +201,7 @@ class hudson_Widget_MyMonitoredJobs extends HudsonOverviewWidget
         return $html;
     }
 
-    function _getMonitoredJobsByUser()
+    public function _getMonitoredJobsByUser()
     {
         $user = UserManager::instance()->getCurrentUser();
         $job_dao = new PluginHudsonJobDao(CodendiDataAccess::instance());

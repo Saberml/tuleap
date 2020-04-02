@@ -30,17 +30,17 @@ require_once('lib/PageList.php');
  */
 class WikiPlugin_AllPages extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("AllPages");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("List all pages in this wiki.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -49,7 +49,7 @@ class WikiPlugin_AllPages extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(),
@@ -69,7 +69,7 @@ class WikiPlugin_AllPages extends WikiPlugin
     // sortby: [+|-] pagename|mtime|hits
 
     // 2004-07-08 22:05:35 rurban: turned off &$request to prevent from strange bug below
-    function run($dbi, $argstr, $request, $basepage)
+    public function run($dbi, $argstr, $request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         $pages = false;
@@ -177,12 +177,12 @@ class WikiPlugin_AllPages extends WikiPlugin
         }
     }
 
-    function getmicrotime()
+    public function getmicrotime()
     {
         list($usec, $sec) = explode(" ", microtime());
-        return (float)$usec + (float)$sec;
+        return (float) $usec + (float) $sec;
     }
-};
+}
 
 // $Log: AllPages.php,v $
 // Revision 1.36  2005/01/28 12:08:42  rurban

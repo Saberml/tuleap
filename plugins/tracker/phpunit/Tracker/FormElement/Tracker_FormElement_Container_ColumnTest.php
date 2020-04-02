@@ -61,7 +61,7 @@ class Tracker_FormElement_Container_ColumnTest extends TestCase //phpcs:ignore
         $this->assertTrue($container_column->canBeRemovedFromUsage());
     }
 
-    public function itCallsExportPermissionsToXMLForEachSubfield()
+    public function testItCallsExportPermissionsToXMLForEachSubfield()
     {
         $container_column = Mockery::mock(Tracker_FormElement_Container_Column::class)
             ->makePartial()
@@ -71,11 +71,13 @@ class Tracker_FormElement_Container_ColumnTest extends TestCase //phpcs:ignore
         $field_02 = Mockery::mock(Tracker_FormElement_Field_Float::class);
         $field_03 = Mockery::mock(Tracker_FormElement_Field_Text::class);
 
-        $container_column->shouldReceive('getAllFormElements')->andReturn([
+        $container_column->shouldReceive('getAllFormElements')->andReturn(
+            [
             $field_01,
             $field_02,
-            $field_03
-        ]);
+                $field_03
+            ]
+        );
 
         $data    = '<?xml version="1.0" encoding="UTF-8"?>
                     <permissions/>';

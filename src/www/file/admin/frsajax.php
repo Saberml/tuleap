@@ -54,7 +54,7 @@ if ($action == 'permissions_frs_package') {
             ),
         );
 
-        $package_controller->displayUserGroups($project, FRSPackage::PERM_READ, $object_id);
+        $package_controller->displayUserGroups($project, FRSPackage::PERM_READ);
     }
 } else {
     if ($action == 'permissions_frs_release') {
@@ -71,7 +71,7 @@ if ($action == 'permissions_frs_package') {
                 new User_ForgeUserGroupFactory(new UserGroupDao())
             );
 
-            $release_controller->displayUserGroups($project, FRSRelease::PERM_READ, $object_id);
+            $release_controller->displayUserGroups($project, FRSRelease::PERM_READ);
         }
     } else {
         header("Cache-Control: no-store, no-cache, must-revalidate"); // HTTP/1.1
@@ -158,7 +158,7 @@ if ($action == 'permissions_frs_package') {
                     $available_ftp_files = implode(",", $file_list);
                     $purifier = Codendi_HTMLPurifier::instance();
                     $available_ftp_files = $purifier->purify($available_ftp_files, CODENDI_PURIFIER_JS_DQUOTE);
-                    echo '{"valid":true, "msg":"'.$available_ftp_files.'"}';
+                    echo '{"valid":true, "msg":"' . $available_ftp_files . '"}';
                 }
             }
         }

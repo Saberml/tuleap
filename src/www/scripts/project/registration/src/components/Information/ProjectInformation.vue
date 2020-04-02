@@ -19,46 +19,67 @@
   -->
 
 <template>
-    <div class="project-registration-content">
+    <div>
         <div class="tlp-alert-danger" v-if="has_error" data-test="project-creation-failed">
             {{ error }}
         </div>
 
-        <form v-on:submit.prevent="createProject" data-test="project-registration-form">
-            <div class="register-new-project-section ">
-                <project-information-svg />
-                <div class="register-new-project-list register-new-project-information">
-                    <h1 class="project-registration-title" v-translate>Start a new project</h1>
-                    <h2>
-                        <span class="tlp-badge-primary register-new-project-section-badge">2</span>
-                        <span v-translate>Project information</span>
-                    </h2>
-                    <div
-                        class="register-new-project-information-form-container"
-                        data-test="register-new-project-information-form"
-                    ></div>
-                    <project-name v-model="name_properties" />
-                    <project-information-input-privacy-list
-                        v-model="selected_visibility"
-                        data-test="register-new-project-information-list"
-                    />
-                    <field-description v-model="field_description" />
-                    <trove-category-list
-                        v-model="trove_cats"
-                        v-for="trovecat in trove_categories"
-                        v-bind:key="trovecat.id"
-                        v-bind:trovecat="trovecat"
-                    />
-                    <fields-list
-                        v-for="field in project_fields"
-                        v-bind:key="field.group_desc_id + field.desc_name"
-                        v-bind:field="field"
-                    />
-                    <policy-agreement />
-                    <project-information-footer />
+        <div class="project-registration-content">
+            <form v-on:submit.prevent="createProject" data-test="project-registration-form">
+                <div class="register-new-project-section">
+                    <project-information-svg />
+                    <div class="register-new-project-list register-new-project-information">
+                        <h1 class="project-registration-title" v-translate>Start a new project</h1>
+                        <h2>
+                            <span class="tlp-badge-primary register-new-project-section-badge">
+                                2
+                            </span>
+                            <span v-translate>Project information</span>
+                        </h2>
+                        <div
+                            class="register-new-project-information-form-container"
+                            data-test="register-new-project-information-form"
+                        ></div>
+                        <div class="tlp-property">
+                            <label class="tlp-label" v-translate>Chosen template</label>
+                            <p class="project-information-selected-template">
+                                {{ selected_template_name }}
+                            </p>
+                        </div>
+
+                        <project-name v-model="name_properties" />
+
+                        <div class="tlp-form-element" v-if="can_user_choose_project_visibility">
+                            <label
+                                class="tlp-label"
+                                for="project-information-input-privacy-list-label"
+                            >
+                                <span v-translate>Visibility</span>
+                                <i class="fa fa-asterisk"></i>
+                            </label>
+                            <project-information-input-privacy-list
+                                data-test="register-new-project-information-list"
+                            />
+                        </div>
+
+                        <field-description v-model="field_description" />
+                        <trove-category-list
+                            v-model="trove_cats"
+                            v-for="trovecat in trove_categories"
+                            v-bind:key="trovecat.id"
+                            v-bind:trovecat="trovecat"
+                        />
+                        <fields-list
+                            v-for="field in project_fields"
+                            v-bind:key="field.group_desc_id + field.desc_name"
+                            v-bind:field="field"
+                        />
+                        <policy-agreement />
+                        <project-information-footer />
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </template>
 
@@ -74,9 +95,10 @@ import {
     FieldProperties,
     ProjectNameProperties,
     ProjectProperties,
+    ProjectVisibilityProperties,
     TemplateData,
     TroveCatData,
-    TroveCatProperties
+    TroveCatProperties,
 } from "../../type";
 import { Getter, State } from "vuex-class";
 import EventBus from "../../helpers/event-bus";
@@ -89,7 +111,7 @@ import {
     ACCESS_PRIVATE,
     ACCESS_PRIVATE_WO_RESTRICTED,
     ACCESS_PUBLIC,
-    ACCESS_PUBLIC_UNRESTRICTED
+    ACCESS_PUBLIC_UNRESTRICTED,
 } from "../../constant";
 
 const DEFAULT_PROJECT_ID = "100";
@@ -103,8 +125,8 @@ const DEFAULT_PROJECT_ID = "100";
         ProjectInformationInputPrivacyList,
         ProjectName,
         ProjectInformationFooter,
-        ProjectInformationSvg
-    }
+        ProjectInformationSvg,
+    },
 })
 export default class ProjectInformation extends Vue {
     @Getter
@@ -137,11 +159,14 @@ export default class ProjectInformation extends Vue {
     @State
     selected_company_template!: TemplateData;
 
+    @State
+    can_user_choose_project_visibility!: boolean;
+
     selected_visibility = "";
 
     name_properties: ProjectNameProperties = {
         slugified_name: "",
-        name: ""
+        name: "",
     };
 
     field_description = "";
@@ -149,6 +174,8 @@ export default class ProjectInformation extends Vue {
     trove_cats: Array<TroveCatProperties> = [];
 
     is_private = false;
+
+    selected_template_name = "";
 
     field_list: Array<FieldProperties> = [];
 
@@ -158,16 +185,24 @@ export default class ProjectInformation extends Vue {
             return;
         }
 
+        if (this.selected_tuleap_template) {
+            this.selected_template_name = this.selected_tuleap_template.title;
+        } else if (this.selected_company_template) {
+            this.selected_template_name = this.selected_company_template.title;
+        }
+
         this.selected_visibility = this.project_default_visibility;
         EventBus.$on("update-project-name", this.updateProjectName);
         EventBus.$on("choose-trove-cat", this.updateTroveCat);
         EventBus.$on("update-field-list", this.updateFieldList);
+        EventBus.$on("update-project-visibility", this.updateProjectVisibility);
     }
 
     beforeDestroy(): void {
         EventBus.$off("update-project-name", this.updateProjectName);
         EventBus.$off("choose-trove-cat", this.updateTroveCat);
         EventBus.$off("update-field-list", this.updateFieldList);
+        EventBus.$off("update-project-visibility", this.updateProjectVisibility);
     }
 
     updateProjectName(event: ProjectNameProperties): void {
@@ -175,7 +210,7 @@ export default class ProjectInformation extends Vue {
     }
 
     updateTroveCat(event: TroveCatProperties): void {
-        const index = this.trove_cats.findIndex(trove => trove.category_id === event.category_id);
+        const index = this.trove_cats.findIndex((trove) => trove.category_id === event.category_id);
         if (index === -1) {
             this.trove_cats.push(event);
         } else {
@@ -184,12 +219,16 @@ export default class ProjectInformation extends Vue {
     }
 
     updateFieldList(event: FieldProperties): void {
-        const index = this.field_list.findIndex(field => field.field_id === event.field_id);
+        const index = this.field_list.findIndex((field) => field.field_id === event.field_id);
         if (index === -1) {
             this.field_list.push(event);
         } else {
             this.field_list[index] = event;
         }
+    }
+
+    updateProjectVisibility(event: ProjectVisibilityProperties): void {
+        this.selected_visibility = event.new_visibility;
     }
 
     async createProject(): Promise<void> {
@@ -215,7 +254,7 @@ export default class ProjectInformation extends Vue {
             label: this.name_properties.name,
             is_public: !this.is_private,
             categories: this.trove_cats,
-            fields: this.field_list
+            fields: this.field_list,
         };
         if (
             this.selected_tuleap_template &&
@@ -231,9 +270,6 @@ export default class ProjectInformation extends Vue {
         }
         if (this.selected_company_template) {
             project_properties.template_id = parseInt(this.selected_company_template.id, 10);
-        }
-        if (!this.are_restricted_users_allowed) {
-            return project_properties;
         }
 
         let is_public_project = null;

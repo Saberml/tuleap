@@ -21,7 +21,7 @@
 
 namespace Tuleap\Git;
 
-require_once __DIR__.'/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 use FastRoute;
 use Git_Mirror_MirrorDataMapper;
@@ -30,7 +30,6 @@ use GitDao;
 use GitPermissionsManager;
 use GitPlugin;
 use GitRepositoryFactory;
-use Logger;
 use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PermissionsManager;
@@ -149,7 +148,7 @@ class GitRoutingTest extends TestCase
                 [
                     'getRepositoryFactory'      => \Mockery::mock(GitRepositoryFactory::class),
                     'getChainOfRouters'               => \Mockery::mock(RouterLink::class),
-                    'getLogger'                       => \Mockery::mock(Logger::class),
+                    'getLogger'                       => \Mockery::mock(\Psr\Log\LoggerInterface::class),
                     'getGerritServerFactory'          => \Mockery::mock(
                         Git_RemoteServer_GerritServerFactory::class,
                         ['getServers' => []]

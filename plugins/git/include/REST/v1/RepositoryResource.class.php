@@ -33,7 +33,6 @@ use Git_RemoteServer_Dao;
 use Git_RemoteServer_GerritServerFactory;
 use Git_RemoteServer_NotFoundException;
 use Git_SystemEventManager;
-use GitBackendLogger;
 use GitDao;
 use GitPermissionsManager;
 use GitRepoNotFoundException;
@@ -91,6 +90,7 @@ use Tuleap\Git\Repository\GitRepositoryNameIsInvalidException;
 use Tuleap\Git\Repository\RepositoryCreator;
 use Tuleap\Git\XmlUgroupRetriever;
 use Tuleap\Http\HttpClientFactory;
+use Tuleap\PullRequest\REST\v1\RepositoryPullRequestRepresentation;
 use Tuleap\REST\AuthenticatedResource;
 use Tuleap\REST\Header;
 use Tuleap\REST\ProjectStatusVerificator;
@@ -142,10 +142,6 @@ class RepositoryResource extends AuthenticatedResource
      * @var CITokenManager
      */
     private $ci_token_manager;
-    /**
-     * @var Git_GitRepositoryUrlManager
-     */
-    private $url_manager;
     /**
      * @var GitCommitRepresentationBuilder
      */
@@ -204,7 +200,7 @@ class RepositoryResource extends AuthenticatedResource
                 new \Tuleap\Git\Driver\GerritHTTPClientFactory(HttpClientFactory::createClient()),
                 \Tuleap\Http\HTTPFactoryBuilder::requestFactory(),
                 \Tuleap\Http\HTTPFactoryBuilder::streamFactory(),
-                new GitBackendLogger()
+                \BackendLogger::getDefaultLogger(\GitPlugin::LOG_IDENTIFIER),
             ),
             $project_history_dao,
             new Git_Driver_Gerrit_ProjectCreatorStatus(new Git_Driver_Gerrit_ProjectCreatorStatusDao()),
@@ -237,7 +233,7 @@ class RepositoryResource extends AuthenticatedResource
             $regexp_retriever
         );
         $sorter               = new FineGrainedPermissionSorter();
-        $xml_ugroup_retriever = new XmlUgroupRetriever(new GitBackendLogger(), $ugroup_manager);
+        $xml_ugroup_retriever = new XmlUgroupRetriever(\BackendLogger::getDefaultLogger(\GitPlugin::LOG_IDENTIFIER), $ugroup_manager);
 
         $fine_grained_permission_factory    = new FineGrainedPermissionFactory(
             $fine_grained_dao,
@@ -289,7 +285,7 @@ class RepositoryResource extends AuthenticatedResource
             $this->repository_factory,
             new \Git_Backend_Gitolite(
                 new \Git_GitoliteDriver(
-                    new GitBackendLogger(),
+                    \BackendLogger::getDefaultLogger(\GitPlugin::LOG_IDENTIFIER),
                     $this->git_system_event_manager,
                     $url_manager,
                     $git_dao,
@@ -308,7 +304,7 @@ class RepositoryResource extends AuthenticatedResource
                     new VersionDetector()
                 ),
                 new GitoliteAccessURLGenerator($git_plugin->getPluginInfo()),
-                new GitBackendLogger()
+                \BackendLogger::getDefaultLogger(\GitPlugin::LOG_IDENTIFIER),
             ),
             $mirror_data_mapper,
             new \GitRepositoryManager(
@@ -414,7 +410,7 @@ class RepositoryResource extends AuthenticatedResource
      * @param int    $limit  Number of elements displayed per page {@from path}
      * @param int    $offset Position of the first element to display {@from path}
      *
-     * @return Tuleap\PullRequest\REST\v1\RepositoryPullRequestRepresentation
+     * @return RepositoryPullRequestRepresentation
      *
      * @throws RestException 403
      * @throws RestException 404
@@ -527,7 +523,7 @@ class RepositoryResource extends AuthenticatedResource
     public function postCommitStatus($id_or_path, $commit_reference, $state, $token)
     {
         if (ctype_digit($id_or_path)) {
-            $repository = $this->repository_factory->getRepositoryById((int)$id_or_path);
+            $repository = $this->repository_factory->getRepositoryById((int) $id_or_path);
         } else {
             preg_match("/(.+?)\/(.+)/", $id_or_path, $path);
             if (count($path) !== 3) {
@@ -895,7 +891,7 @@ class RepositoryResource extends AuthenticatedResource
             throw new RestException(
                 400,
                 'Invalid permission provided. Valid values are ' .
-                self::MIGRATE_NO_PERMISSION. ' or ' . self::MIGRATE_PERMISSION_DEFAULT
+                self::MIGRATE_NO_PERMISSION . ' or ' . self::MIGRATE_PERMISSION_DEFAULT
             );
         }
 

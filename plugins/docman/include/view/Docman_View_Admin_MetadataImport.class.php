@@ -23,39 +23,39 @@
  */
 
 require_once('Docman_View_Extra.class.php');
-require_once(dirname(__FILE__).'/../Docman_MetadataComparator.class.php');
+require_once(dirname(__FILE__) . '/../Docman_MetadataComparator.class.php');
 
 class Docman_View_Admin_MetadataImport extends Docman_View_Extra
 {
     public $srcGo;
     public $dstGo;
 
-    function _title($params)
+    public function _title($params)
     {
         $pm = ProjectManager::instance();
         $this->srcGo = $pm->getProject($params['sSrcGroupId']);
         $this->dstGo = $pm->getProject($params['group_id']);
 
-        echo '<h2>'. $this->_getTitle($params) .' - '. $GLOBALS['Language']->getText('plugin_docman', 'admin_md_import_title', array($this->srcGo->getPublicName())) .'</h2>';
+        echo '<h2>' . $this->_getTitle($params) . ' - ' . sprintf(dgettext('tuleap-docman', 'Import "%1$s" properties'), Codendi_HTMLPurifier::instance()->purify($this->srcGo->getPublicName())) . '</h2>';
     }
 
 
-    function getImportForm($sthToImport)
+    public function getImportForm($sthToImport)
     {
         $html = '';
         if ($sthToImport) {
             $html .= '<form name="" method="post" action="?">';
             $html .= '<input type="hidden" name="action" value="admin_import_metadata">';
-            $html .= '<input type="hidden" name="group_id" value="'.$this->dstGo->getGroupId().'">';
-            $html .= '<input type="hidden" name="plugin_docman_metadata_import_group" value="'.$this->srcGo->getGroupId().'">';
+            $html .= '<input type="hidden" name="group_id" value="' . $this->dstGo->getGroupId() . '">';
+            $html .= '<input type="hidden" name="plugin_docman_metadata_import_group" value="' . $this->srcGo->getGroupId() . '">';
             $html .= '<p>';
-            $html .= '<input type="submit" name="confirm" value="'.$GLOBALS['Language']->getText('plugin_docman', 'admin_md_import_form_submit').'">';
+            $html .= '<input type="submit" name="confirm" value="' . dgettext('tuleap-docman', 'Import') . '">';
             $html .= ' ';
-            $html .= '<input type="submit" name="cancel" value="'.$GLOBALS['Language']->getText('global', 'btn_cancel').'">';
+            $html .= '<input type="submit" name="cancel" value="' . $GLOBALS['Language']->getText('global', 'btn_cancel') . '">';
             $html .= '</p>';
             $html .= '</form>';
         } else {
-            $html .= '<p>'.$GLOBALS['Language']->getText('plugin_docman', 'admin_md_import_form_nothingtodo').'</p>';
+            $html .= '<p>' . dgettext('tuleap-docman', 'The properties of the two projects are aligned. Nothing to do.') . '</p>';
         }
         return $html;
     }
@@ -63,7 +63,7 @@ class Docman_View_Admin_MetadataImport extends Docman_View_Extra
     /**
      * Build page
      */
-    function _content($params)
+    public function _content($params)
     {
         $html = '';
 

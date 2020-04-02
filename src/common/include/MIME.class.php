@@ -35,7 +35,7 @@ class MIME
      */
     private function __construct()
     {
-        $this->XDG_DATA_DIRS = explode(':', (isset($_ENV['XDG_DATA_DIRS'])?$_ENV['XDG_DATA_DIRS']:'/usr/local/share/:/usr/share/'));
+        $this->XDG_DATA_DIRS = explode(':', (isset($_ENV['XDG_DATA_DIRS']) ? $_ENV['XDG_DATA_DIRS'] : '/usr/local/share/:/usr/share/'));
     }
 
     /**
@@ -55,7 +55,7 @@ class MIME
      * tries to determine the mimetype of the given file
      * if the second variable is false, the file won't be opened and magic checking will be skipped
      */
-    function type($filename, $openfile = true)
+    public function type($filename, $openfile = true)
     {
         $mimetype = '';
         $matchlen = 0;
@@ -231,7 +231,7 @@ class MIME
     /**
      * gets the textual description of the mimetype, optionally in the specified language
      */
-    function description($mimetype, $language = 'en')
+    public function description($mimetype, $language = 'en')
     {
         $this->description = '';
         $this->lang = $language;
@@ -248,13 +248,34 @@ class MIME
 
             // initialize XML parser
             $xml_parser = xml_parser_create();
-            xml_set_element_handler($xml_parser, array($this, 'description_StartElement'), array($this, 'description_EndElement'));
-            xml_set_character_data_handler($xml_parser, array($this, 'description_Data'));
+            xml_set_element_handler(
+                $xml_parser,
+                function ($parser, $name, $attrs) {
+                    $this->read = false;
+                    if ($name == 'COMMENT') {
+                        if (!isset($attrs['XML:LANG']) || $attrs['XML:LANG'] == $this->lang) {
+                            $this->read = true;
+                        }
+                    }
+                },
+                function ($parser, $name) {
+                    $this->read = false;
+                }
+            );
+            xml_set_character_data_handler(
+                $xml_parser,
+                function ($parser, $data) {
+                    /** @psalm-suppress TypeDoesNotContainType */
+                    if ($this->read == true) {
+                        $this->description = $data;
+                    }
+                }
+            );
 
             // read the file and parse
             while ($data = str_replace("\n", "", fread($fp, 4096))) {
                 if (!xml_parse($xml_parser, $data, feof($fp))) {
-                    error_log("ERROR: Couldn't parse $filename: ".
+                    error_log("ERROR: Couldn't parse $filename: " .
                               xml_error_string(xml_get_error_code($xml_parser)));
                     break;
                 }
@@ -263,37 +284,6 @@ class MIME
         }
 
         return $this->description;
-    }
-
-    /**
-     * helper function for description()
-     */
-    private function description_StartElement($parser, $name, $attrs)
-    {
-        $this->read = false;
-        if ($name == 'COMMENT') {
-            if (!isset($attrs['XML:LANG']) || $attrs['XML:LANG'] == $this->lang) {
-                $this->read = true;
-            }
-        }
-    }
-
-    /**
-     * helper function for description()
-     */
-    private function description_EndElement($parser, $name)
-    {
-        $this->read = false;
-    }
-
-    /**
-     * helper function for description()
-     */
-    private function description_Data($parser, $data)
-    {
-        if ($this->read == true) {
-            $this->description = $data;
-        }
     }
 
     private $XDG_DATA_DIRS;

@@ -41,8 +41,8 @@ describe("Store actions", () => {
                 label_tracker_planning: "Release",
                 is_timeframe_duration: true,
                 label_start_date: "start date",
-                label_timeframe: "duration"
-            } as State
+                label_timeframe: "duration",
+            } as State,
         };
     });
 
@@ -53,10 +53,13 @@ describe("Store actions", () => {
                     error_json: {
                         error: {
                             code: 403,
-                            message: "Forbidden"
-                        }
-                    }
+                            message: "Forbidden",
+                        },
+                    },
                 });
+
+                jest.spyOn(rest_querier, "getNbOfPastRelease").mockReturnValue(Promise.resolve(10));
+                jest.spyOn(rest_querier, "getLastRelease");
 
                 await actions.getMilestones(context);
                 expect(context.commit).toHaveBeenCalledWith("setIsLoading", true);
@@ -71,13 +74,13 @@ describe("Store actions", () => {
                     {
                         id: 1,
                         label: "one",
-                        color_name: "red_fiesta"
+                        color_name: "red_fiesta",
                     },
                     {
                         id: 2,
                         label: "two",
-                        color_name: "lake_placid_blue"
-                    }
+                        color_name: "lake_placid_blue",
+                    },
                 ];
 
                 context.state = {
@@ -93,22 +96,37 @@ describe("Store actions", () => {
                     label_tracker_planning: "Release",
                     is_timeframe_duration: true,
                     label_start_date: "start date",
-                    label_timeframe: "duration"
+                    label_timeframe: "duration",
+                    last_release: null,
                 } as State;
 
                 const milestones: MilestoneData[] = [
                     {
-                        id: 1
-                    } as MilestoneData
+                        id: 1,
+                    } as MilestoneData,
                 ];
+
+                const last_release: MilestoneData[] = [
+                    {
+                        id: 10,
+                    } as MilestoneData,
+                ];
+
+                jest.spyOn(rest_querier, "getLastRelease").mockReturnValue(
+                    Promise.resolve(last_release)
+                );
 
                 jest.spyOn(rest_querier, "getCurrentMilestones").mockReturnValue(
                     Promise.resolve(milestones)
                 );
 
+                jest.spyOn(rest_querier, "getNbOfPastRelease").mockReturnValue(Promise.resolve(10));
+
                 await actions.getMilestones(context);
                 expect(context.commit).toHaveBeenCalledWith("setIsLoading", true);
                 expect(context.commit).toHaveBeenCalledWith("setCurrentMilestones", milestones);
+                expect(context.commit).toHaveBeenCalledWith("setNbPastReleases", 10);
+                expect(context.commit).toHaveBeenCalledWith("setLastRelease", last_release[0]);
                 expect(context.commit).toHaveBeenCalledWith("setIsLoading", false);
             });
         });
@@ -120,13 +138,13 @@ describe("Store actions", () => {
                 {
                     id: 1,
                     label: "one",
-                    color_name: "red_fiesta"
+                    color_name: "red_fiesta",
                 },
                 {
                     id: 2,
                     label: "two",
-                    color_name: "lake_placid_blue"
-                }
+                    color_name: "lake_placid_blue",
+                },
             ];
 
             context.state = {
@@ -142,7 +160,7 @@ describe("Store actions", () => {
                 label_tracker_planning: "Release",
                 is_timeframe_duration: true,
                 label_start_date: "start date",
-                label_timeframe: "duration"
+                label_timeframe: "duration",
             } as State;
 
             const milestone: MilestoneData = {
@@ -153,25 +171,25 @@ describe("Store actions", () => {
                             trackers: [
                                 {
                                     id: 1,
-                                    label: "one"
+                                    label: "one",
                                 },
                                 {
                                     id: 2,
-                                    label: "two"
-                                }
-                            ]
-                        }
+                                    label: "two",
+                                },
+                            ],
+                        },
                     },
                     milestones: {
                         accept: {
-                            trackers: [] as TrackerProjectLabel[]
-                        }
-                    }
-                }
+                            trackers: [] as TrackerProjectLabel[],
+                        },
+                    },
+                },
             } as MilestoneData;
 
             const sprint = {
-                id: 10
+                id: 10,
             } as MilestoneData;
 
             const enriched_milestones = {
@@ -181,19 +199,19 @@ describe("Store actions", () => {
                         id: 1,
                         label: "one",
                         total_artifact: 2,
-                        color_name: "red_fiesta"
+                        color_name: "red_fiesta",
                     },
                     {
                         id: 2,
                         label: "two",
                         total_artifact: 1,
-                        color_name: "lake_placid_blue"
-                    }
+                        color_name: "lake_placid_blue",
+                    },
                 ],
                 initial_effort: 15,
                 total_sprint: 11,
                 total_closed_sprint: 10,
-                open_sprints: [sprint]
+                open_sprints: [sprint],
             };
 
             const milestone_content = [
@@ -201,26 +219,26 @@ describe("Store actions", () => {
                     initial_effort: 5,
                     artifact: {
                         tracker: {
-                            id: 1
-                        }
-                    }
+                            id: 1,
+                        },
+                    },
                 },
                 {
                     initial_effort: 10,
                     artifact: {
                         tracker: {
-                            id: 2
-                        }
-                    }
+                            id: 2,
+                        },
+                    },
                 },
                 {
                     initial_effort: 0,
                     artifact: {
                         tracker: {
-                            id: 1
-                        }
-                    }
-                }
+                            id: 1,
+                        },
+                    },
+                },
             ];
 
             jest.spyOn(rest_querier, "getMilestonesContent").mockReturnValue(
@@ -245,8 +263,8 @@ describe("Store actions", () => {
                 response: {
                     json(): Promise<void> {
                         throw new Error();
-                    }
-                } as Response
+                    },
+                } as Response,
             });
 
             expect(context.commit).toHaveBeenCalledWith("setErrorMessage", "");

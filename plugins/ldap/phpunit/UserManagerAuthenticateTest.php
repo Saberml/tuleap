@@ -36,7 +36,7 @@ use Tuleap\ForgeConfigSandbox;
 use Tuleap\GlobalLanguageMock;
 use UserManager;
 
-require_once __DIR__.'/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 final class UserManagerAuthenticateTest extends TestCase
 {
@@ -96,7 +96,7 @@ final class UserManagerAuthenticateTest extends TestCase
 
         $this->ldap = \Mockery::mock(
             \LDAP::class,
-            [$this->ldap_params, Mockery::mock(\Logger::class)]
+            [$this->ldap_params, Mockery::mock(\Psr\Log\LoggerInterface::class)]
         )
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();

@@ -57,7 +57,6 @@ class UGroupLiteralizer
     /**
      * Return User groups for a given user
      *
-     * @param PFUser $user
      *
      * @return array Ex: array('site_active', 'gpig1_project_members')
      */
@@ -76,7 +75,6 @@ class UGroupLiteralizer
     /**
      * Return User groups for a given user
      *
-     * @param PFUser $user
      *
      * @return array Ex: array('site_active', 'gpig1_project_members')
      */
@@ -84,13 +82,17 @@ class UGroupLiteralizer
     {
         $groups = $this->getUserGroupsForUser($user);
 
-        return array_map(array($this, 'injectArobase'), $groups);
+        return array_map(
+            static function (string $value): string {
+                return '@' . $value;
+            },
+            $groups
+        );
     }
 
     /**
      * Append project dynamic ugroups of user
      *
-     * @param PFUser  $user
      * @param array $user_ugroups
      *
      * @return array the new array of user's ugroup
@@ -112,7 +114,6 @@ class UGroupLiteralizer
     /**
      * Append project static ugroups of user
      *
-     * @param PFUser  $user
      * @param array $user_ugroups
      *
      * @return array the new array of user's ugroup
@@ -121,7 +122,7 @@ class UGroupLiteralizer
     {
         $ugroups = $user->getAllUgroups();
         foreach ($ugroups as $row) {
-            $user_ugroups[] = 'ug_'.$row['ugroup_id'];
+            $user_ugroups[] = 'ug_' . $row['ugroup_id'];
         }
         return $user_ugroups;
     }
@@ -146,7 +147,7 @@ class UGroupLiteralizer
     {
         $ugroup = null;
         if ($ugroup_id > 100) {
-            $ugroup = '@ug_'. $ugroup_id;
+            $ugroup = '@ug_' . $ugroup_id;
         } elseif (isset(self::$ugroups_templates[$ugroup_id])) {
             $ugroup = sprintf(self::$ugroups_templates[$ugroup_id], $project_name);
         }
@@ -159,14 +160,6 @@ class UGroupLiteralizer
     private function ugroupIdToStringWithoutArobase($ugroup_id, $project_name)
     {
         return str_replace('@', '', $this->ugroupIdToString($ugroup_id, $project_name));
-    }
-
-    /**
-     * @see ugroupIdToString
-     */
-    private function injectArobase($value)
-    {
-        return '@'. $value;
     }
 
     /**

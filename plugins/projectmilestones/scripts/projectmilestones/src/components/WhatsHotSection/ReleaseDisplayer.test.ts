@@ -45,7 +45,7 @@ describe("ReleaseDisplayer", () => {
 
     beforeEach(() => {
         store_options = {
-            state: {}
+            state: {},
         };
 
         release_data = {
@@ -54,20 +54,21 @@ describe("ReleaseDisplayer", () => {
             start_date: new Date("2017-01-22T13:42:08+02:00").toDateString(),
             capacity: 10,
             total_sprint: 20,
-            initial_effort: 10
+            initial_effort: 10,
         } as MilestoneData;
 
         component_options = {
             propsData: {
-                release_data
+                release_data,
+                isOpen: true,
             },
             data(): DefaultData<ReleaseDisplayer> {
                 return {
                     is_open: false,
                     is_loading: false,
-                    error_message: null
+                    error_message: null,
                 };
-            }
+            },
         };
     });
 
@@ -76,20 +77,41 @@ describe("ReleaseDisplayer", () => {
             return {
                 is_open: true,
                 is_loading: false,
-                error_message: "404"
+                error_message: "404",
             };
         };
         const wrapper = await getPersonalWidgetInstance(store_options);
         expect(wrapper.contains("[data-test=show-error-message]")).toBe(true);
     });
 
-    it("When the widget is rendered, Then toggle is closed", async () => {
+    it("When the widget is rendered and it's the first release, Then toggle is open", async () => {
         component_options.data = (): DefaultData<ReleaseDisplayer> => {
             return {
                 is_open: false,
                 is_loading: false,
-                error_message: null
+                error_message: null,
             };
+        };
+
+        const wrapper = await getPersonalWidgetInstance(store_options);
+        await wrapper.vm.$nextTick();
+        expect(wrapper.contains("[data-test=toggle-open]")).toBe(true);
+    });
+
+    it("When the widget is rendered and it's not the first release, Then toggle is closed", async () => {
+        component_options.data = (): DefaultData<ReleaseDisplayer> => {
+            return {
+                is_open: false,
+                is_loading: false,
+                error_message: null,
+            };
+        };
+
+        component_options = {
+            propsData: {
+                release_data,
+                isOpen: false,
+            },
         };
 
         const wrapper = await getPersonalWidgetInstance(store_options);
@@ -101,14 +123,15 @@ describe("ReleaseDisplayer", () => {
             return {
                 is_open: true,
                 is_loading: false,
-                error_message: null
+                error_message: null,
             };
         };
 
         const wrapper = await getPersonalWidgetInstance(store_options);
         expect(wrapper.contains("[data-test=toggle-open]")).toBe(true);
 
-        wrapper.find(ReleaseHeader).vm.$emit("toggleReleaseDetails");
+        wrapper.get(ReleaseHeader).vm.$emit("toggleReleaseDetails");
+        await wrapper.vm.$nextTick();
         expect(wrapper.contains("[data-test=toggle-open]")).toBe(false);
     });
 
@@ -117,7 +140,7 @@ describe("ReleaseDisplayer", () => {
             return {
                 is_open: false,
                 is_loading: true,
-                error_message: null
+                error_message: null,
             };
         };
 
@@ -131,7 +154,7 @@ describe("ReleaseDisplayer", () => {
             return {
                 is_open: true,
                 is_loading: false,
-                error_message: null
+                error_message: null,
             };
         };
 

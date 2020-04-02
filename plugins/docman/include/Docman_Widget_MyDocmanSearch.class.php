@@ -27,15 +27,15 @@ class Docman_Widget_MyDocmanSearch extends Widget
 
     public $pluginPath;
 
-    function __construct($pluginPath)
+    public function __construct($pluginPath)
     {
         parent::__construct('plugin_docman_mydocman_search');
         $this->_pluginPath = $pluginPath;
     }
 
-    function getTitle()
+    public function getTitle()
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'my_docman_search');
+        return dgettext('tuleap-docman', 'Document Id Search');
     }
 
     public function getContent()
@@ -43,7 +43,7 @@ class Docman_Widget_MyDocmanSearch extends Widget
         $html = '';
         $request = HTTPRequest::instance();
         $um = UserManager::instance();
-        $user =$um->getCurrentUser();
+        $user = $um->getCurrentUser();
 
         $vFunc = new Valid_WhiteList('docman_func', array('show_docman'));
         $vFunc->required();
@@ -69,11 +69,11 @@ class Docman_Widget_MyDocmanSearch extends Widget
         $html .= '<input type="hidden" name="docman_func" value="show_docman" />';
         $html .= '<div class="tlp-form-element">
                     <label class="tlp-label" for="docman_id">' .
-            $GLOBALS['Language']->getText('plugin_docman', 'widget_my_docman_search_label') .
+            dgettext('tuleap-docman', 'Search document id') .
             '</label>
                     <input type="text" name="docman_id" value="' . $docman_id . '" id="docman_id" class="tlp-input" placeholder="123"/>
                   </div>';
-        $html .= '<input type="submit" class="tlp-button-primary" value="'.$GLOBALS['Language']->getText('plugin_docman', 'widget_my_docman_search_btn').'"/>';
+        $html .= '<input type="submit" class="tlp-button-primary" value="' . dgettext('tuleap-docman', 'Search') . '"/>';
         $html .= '</form>';
 
         if (($func == 'show_docman') && $docman_id) {
@@ -84,11 +84,11 @@ class Docman_Widget_MyDocmanSearch extends Widget
                 $itemPerm = $dPm->userCanAccess($user, $docman_id);
 
                 if ($itemPerm) {
-                    $html .= '<p><a href="/plugins/docman/?group_id='.$res['group_id'].'&action=details&id='.$docman_id.'&section=properties">Show &quot;'.$res['title'].'&quot; Properties</a></p>';
+                    $html .= '<p><a href="/plugins/docman/?group_id=' . $res['group_id'] . '&action=details&id=' . $docman_id . '&section=properties">Show &quot;' . $res['title'] . '&quot; Properties</a></p>';
                     return $html;
                 }
             }
-            $html .= '<p>'.$GLOBALS['Language']->getText('plugin_docman', 'perm_denied').'</p>';
+            $html .= '<p>' . dgettext('tuleap-docman', 'You do not have the permission to access the document') . '</p>';
         }
 
         return $html;
@@ -109,14 +109,14 @@ class Docman_Widget_MyDocmanSearch extends Widget
      * @return array|0
      * @psalm-return array{group_id: int, title:string}|0
      **/
-    function returnAllowedGroupId($docman_id, $user)
+    public function returnAllowedGroupId($docman_id, $user)
     {
-        $sql_group = 'SELECT group_id,title FROM  plugin_docman_item WHERE'.
-                         ' item_id = '. db_ei($docman_id);
+        $sql_group = 'SELECT group_id,title FROM  plugin_docman_item WHERE' .
+                         ' item_id = ' . db_ei($docman_id);
 
         $res_group = db_query($sql_group);
 
-        if ($res_group && db_numrows($res_group)== 1) {
+        if ($res_group && db_numrows($res_group) == 1) {
             $row = db_fetch_array($res_group);
             $res = [
                 'group_id' => (int) $row['group_id'],
@@ -138,13 +138,13 @@ class Docman_Widget_MyDocmanSearch extends Widget
         return 0;
     }
 
-    function getCategory()
+    public function getCategory()
     {
         return dgettext('tuleap-docman', 'Document manager');
     }
 
-    function getDescription()
+    public function getDescription()
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'widget_description_my_docman_search');
+        return dgettext('tuleap-docman', 'Redirect to document with given id.');
     }
 }

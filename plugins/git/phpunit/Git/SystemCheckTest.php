@@ -23,7 +23,7 @@ declare(strict_types=1);
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 class Git_SystemCheckTest extends TestCase
@@ -41,7 +41,7 @@ class Git_SystemCheckTest extends TestCase
         $this->driver               = \Mockery::spy(\Git_GitoliteDriver::class);
         $this->gitgc                = \Mockery::spy(\Git_GitoliteHousekeeping_GitoliteHousekeepingGitGc::class);
         $this->system_event_manager = \Mockery::spy(\Git_SystemEventManager::class);
-        $logger                     = \Mockery::spy(\Logger::class);
+        $logger                     = \Mockery::spy(\Psr\Log\LoggerInterface::class);
         $config_checker             = new PluginConfigChecker($logger);
         $plugin                     = \Mockery::spy(\Plugin::class);
 

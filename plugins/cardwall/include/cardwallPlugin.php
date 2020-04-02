@@ -184,7 +184,6 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
                 $params['row']['description'],
                 $params['row']['rank'],
                 $this->getFieldForInstance($params),
-                $this->getPluginInfo()->getPropVal('display_qr_code')
             );
 
             if ($params['store_in_session']) {
@@ -260,11 +259,7 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
 
     private function getCSSURL()
     {
-        $theme_include_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/cardwall/themes',
-            '/assets/cardwall/themes'
-        );
-        return $theme_include_assets->getFileURL('flamingparrot-theme.css');
+        return $this->getAssets()->getFileURL('flamingparrot-theme.css');
     }
 
     private function canIncludeStylesheets()
@@ -280,11 +275,19 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
         if ($this->isAgileDashboardOrTrackerUrl() && $this->canUseStandardJavsacript()) {
             $agiledashboard_plugin = PluginManager::instance()->getAvailablePluginByName('agiledashboard');
             if ($agiledashboard_plugin && $agiledashboard_plugin->currentRequestIsForPlugin()) {
-                $tracker_plugin = PluginManager::instance()->getPluginByName('tracker');
-                echo $tracker_plugin->getMinifiedAssetHTML()."\n";
+                $assets = new IncludeAssets(__DIR__ . '/../../../src/www/assets/trackers', '/assets/trackers');
+                echo $assets->getHTMLSnippet('tracker.js');
             }
-            echo $this->getMinifiedAssetHTML()."\n";
+            echo $this->getAssets()->getHTMLSnippet('cardwall.js');
         }
+    }
+
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/cardwall/',
+            '/assets/cardwall/'
+        );
     }
 
     /**
@@ -293,8 +296,8 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
     public function tracker_event_manage_semantics($parameters) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $tracker   = $parameters['tracker'];
-        /** @var Tracker_SemanticCollection $semantics */
         $semantics = $parameters['semantics'];
+        \assert($semantics instanceof Tracker_SemanticCollection);
 
         $semantics->add(Cardwall_Semantic_CardFields::load($tracker));
     }
@@ -337,8 +340,8 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
     private function isAgileDashboardOrTrackerUrl()
     {
         return (defined('AGILEDASHBOARD_BASE_DIR') &&
-                strpos($_SERVER['REQUEST_URI'], AGILEDASHBOARD_BASE_URL.'/') === 0 ||
-                strpos($_SERVER['REQUEST_URI'], TRACKER_BASE_URL.'/') === 0);
+                strpos($_SERVER['REQUEST_URI'], AGILEDASHBOARD_BASE_URL . '/') === 0 ||
+                strpos($_SERVER['REQUEST_URI'], TRACKER_BASE_URL . '/') === 0);
     }
 
     private function canUseStandardJavsacript()
@@ -359,16 +362,10 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
     public function javascript($params)
     {
         include $GLOBALS['Language']->getContent('script_locale', null, 'cardwall', '.js');
-        echo "var tuleap = tuleap || { };".PHP_EOL;
-        echo "tuleap.cardwall = tuleap.cardwall || { };".PHP_EOL;
-        echo "tuleap.cardwall.base_url = '". CARDWALL_BASE_URL ."/';".PHP_EOL;
+        echo "var tuleap = tuleap || { };" . PHP_EOL;
+        echo "tuleap.cardwall = tuleap.cardwall || { };" . PHP_EOL;
+        echo "tuleap.cardwall.base_url = '" . CARDWALL_BASE_URL . "/';" . PHP_EOL;
         echo PHP_EOL;
-    }
-
-    private function denyAccess($tracker_id)
-    {
-        $GLOBALS['Response']->addFeedback('error', $GLOBALS['Language']->getText('plugin_tracker_admin', 'access_denied'));
-        $GLOBALS['Response']->redirect(TRACKER_BASE_URL.'/?tracker='. $tracker_id);
     }
 
     /**
@@ -413,14 +410,14 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
             return;
         }
 
-        return new CardwallPaneInfo($milestone, $this->getThemePath());
+        return new CardwallPaneInfo($milestone);
     }
 
     public function agiledashboard_event_index_page($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         // Only display a cardwall if there is something to display
         if ($params['milestone'] && $params['milestone']->getPlannedArtifacts() && count($params['milestone']->getPlannedArtifacts()->getChildren()) > 0) {
-            $pane_info = new CardwallPaneInfo($params['milestone'], $this->getThemePath());
+            $pane_info = new CardwallPaneInfo($params['milestone']);
             $params['pane'] = $this->getCardwallPane($pane_info, $params['milestone'], $params['user'], $params['milestone_factory']);
         }
     }
@@ -574,7 +571,7 @@ class cardwallPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration
 
     private function buildRightVersionOfMilestonesCardwallResource($version)
     {
-        $class_with_right_namespace = '\\Tuleap\\Cardwall\\REST\\'.$version.'\\MilestonesCardwallResource';
+        $class_with_right_namespace = '\\Tuleap\\Cardwall\\REST\\' . $version . '\\MilestonesCardwallResource';
         return new $class_with_right_namespace($this->getConfigFactory());
     }
 

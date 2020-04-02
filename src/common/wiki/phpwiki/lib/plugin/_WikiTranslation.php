@@ -45,81 +45,81 @@ rcs_id('$Id: _WikiTranslation.php,v 1.17 2005/09/10 11:31:16 rurban Exp $');
 
 /* Container for untranslated pagenames. Needed to show up in locale/po/phpwiki.pot */
 $pgsrc_container =
-    _("AddCommentPlugin")  .','.
-    _("AddingPages")  .','.
-    _("AllPagesCreatedByMe")  .','.
-    _("AllPagesLastEditedByMe")  .','.
-    _("AllPagesOwnedByMe")  .','.
-    _("AuthorHistoryPlugin") .','.
-    _("BackLinks") .','.
-    _("CalendarListPlugin") .','.
-    _("CalendarPlugin") .','.
-    _("CategoryCategory")  .','.
-    _("CategoryHomePages")  .','.
-    _("CommentPlugin")  .','.
-    _("CreateTocPlugin")  .','.
-    _("DebugInfo") .','.
-    _("EditMetaData") .','.
-    _("EditMetaDataPlugin") .','.
-    _("ExternalSearchPlugin") .','.
-    _("FindPage") .','.
-    _("FoafViewerPlugin") .','.
-    _("FrameIncludePlugin") .','.
-    _("FullRecentChanges") .','.
-    _("HelloWorldPlugin") .','.
-    _("HomePageAlias") .','.
-    _("IncludePagePlugin") .','.
-    _("InterWiki") .','.
-    _("LinkIcons") .','.
-    _("MagicPhpWikiURLs") .','.
-    _("MoreAboutMechanics") .','.
-    _("NewMarkupTestPage") .','.
-    _("OldMarkupTestPage") .','.
-    _("OldStyleTablePlugin") .','.
+    _("AddCommentPlugin")  . ',' .
+    _("AddingPages")  . ',' .
+    _("AllPagesCreatedByMe")  . ',' .
+    _("AllPagesLastEditedByMe")  . ',' .
+    _("AllPagesOwnedByMe")  . ',' .
+    _("AuthorHistoryPlugin") . ',' .
+    _("BackLinks") . ',' .
+    _("CalendarListPlugin") . ',' .
+    _("CalendarPlugin") . ',' .
+    _("CategoryCategory")  . ',' .
+    _("CategoryHomePages")  . ',' .
+    _("CommentPlugin")  . ',' .
+    _("CreateTocPlugin")  . ',' .
+    _("DebugInfo") . ',' .
+    _("EditMetaData") . ',' .
+    _("EditMetaDataPlugin") . ',' .
+    _("ExternalSearchPlugin") . ',' .
+    _("FindPage") . ',' .
+    _("FoafViewerPlugin") . ',' .
+    _("FrameIncludePlugin") . ',' .
+    _("FullRecentChanges") . ',' .
+    _("HelloWorldPlugin") . ',' .
+    _("HomePageAlias") . ',' .
+    _("IncludePagePlugin") . ',' .
+    _("InterWiki") . ',' .
+    _("LinkIcons") . ',' .
+    _("MagicPhpWikiURLs") . ',' .
+    _("MoreAboutMechanics") . ',' .
+    _("NewMarkupTestPage") . ',' .
+    _("OldMarkupTestPage") . ',' .
+    _("OldStyleTablePlugin") . ',' .
 //  _("PageDump") .','.
-    _("PageGroupTest") .','.
-    _("PageGroupTest/Four") .','.
-    _("PageGroupTest/One") .','.
-    _("PageGroupTest/Three") .','.
-    _("PageGroupTest/Two") .','.
-    _("PgsrcTranslation") .','.
-    _("PhotoAlbumPlugin") .','.
-    _("PhpHighlightPlugin") .','.
-    _("PhpWeatherPlugin") .','.
-    _("PhpWiki") .','.
-    _("PhpWikiAdministration/Chmod") .','.
-    _("PhpWikiAdministration/Chown") .','.
-    _("PhpWikiAdministration/Remove") .','.
-    _("PhpWikiAdministration/Rename") .','.
-    _("PhpWikiAdministration/Replace") .','.
-    _("PhpWikiAdministration/SetAcl") .','.
-    _("PhpWikiDocumentation") .','.
-    _("PloticusPlugin") .','.
-    _("PgsrcTranslation") .','.
-    _("PgsrcTranslation/de") .','.
-    _("PgsrcTranslation/fr") .','.
-    _("PgsrcTranslation/it") .','.
-    _("PgsrcTranslation/es") .','.
-    _("PgsrcTranslation/nl") .','.
-    _("PgsrcTranslation/sv") .','.
-    _("PgsrcTranslation/ja") .','.
-    _("PgsrcTranslation/zh") .','.
-    _("RawHtmlPlugin") .','.
-    _("RecentVisitors") .','.
-    _("RedirectToPlugin") .','.
-    _("ReleaseNotes") .','.
-    _("RichTablePlugin") .','.
+    _("PageGroupTest") . ',' .
+    _("PageGroupTest/Four") . ',' .
+    _("PageGroupTest/One") . ',' .
+    _("PageGroupTest/Three") . ',' .
+    _("PageGroupTest/Two") . ',' .
+    _("PgsrcTranslation") . ',' .
+    _("PhotoAlbumPlugin") . ',' .
+    _("PhpHighlightPlugin") . ',' .
+    _("PhpWeatherPlugin") . ',' .
+    _("PhpWiki") . ',' .
+    _("PhpWikiAdministration/Chmod") . ',' .
+    _("PhpWikiAdministration/Chown") . ',' .
+    _("PhpWikiAdministration/Remove") . ',' .
+    _("PhpWikiAdministration/Rename") . ',' .
+    _("PhpWikiAdministration/Replace") . ',' .
+    _("PhpWikiAdministration/SetAcl") . ',' .
+    _("PhpWikiDocumentation") . ',' .
+    _("PloticusPlugin") . ',' .
+    _("PgsrcTranslation") . ',' .
+    _("PgsrcTranslation/de") . ',' .
+    _("PgsrcTranslation/fr") . ',' .
+    _("PgsrcTranslation/it") . ',' .
+    _("PgsrcTranslation/es") . ',' .
+    _("PgsrcTranslation/nl") . ',' .
+    _("PgsrcTranslation/sv") . ',' .
+    _("PgsrcTranslation/ja") . ',' .
+    _("PgsrcTranslation/zh") . ',' .
+    _("RawHtmlPlugin") . ',' .
+    _("RecentVisitors") . ',' .
+    _("RedirectToPlugin") . ',' .
+    _("ReleaseNotes") . ',' .
+    _("RichTablePlugin") . ',' .
 //    _("SpellCheck") .','.
-    _("SteveWainstead") .','.
-    _("SystemInfoPlugin") .','.
-    _("TranscludePlugin") .','.
-    _("TranslateText") .','.
-    _("UnfoldSubpagesPlugin") .','.
-    _("UpLoad") .','.
-    _("UpLoadPlugin") .','.
-    _("WabiSabi") .','.
-    _("WikiBlogPlugin") .','.
-    _("WikiPlugin") .','.
+    _("SteveWainstead") . ',' .
+    _("SystemInfoPlugin") . ',' .
+    _("TranscludePlugin") . ',' .
+    _("TranslateText") . ',' .
+    _("UnfoldSubpagesPlugin") . ',' .
+    _("UpLoad") . ',' .
+    _("UpLoadPlugin") . ',' .
+    _("WabiSabi") . ',' .
+    _("WikiBlogPlugin") . ',' .
+    _("WikiPlugin") . ',' .
     _("WikiWikiWeb");
 
 require_once('lib/PageList.php');
@@ -127,17 +127,17 @@ require_once('lib/PageList.php');
 class WikiPlugin__WikiTranslation extends WikiPlugin
 {
 
-    function getName()
+    public function getName()
     {
         return _("_WikiTranslation");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Show translations of various words or pages");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -146,7 +146,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(),
@@ -170,7 +170,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
         );
     }
 
-    function init_locale($lang)
+    public function init_locale($lang)
     {
         if ($lang != $this->lang) {
             update_locale($lang);
@@ -192,7 +192,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
     }
 
     // reverse translation:
-    function translate_to_en($text, $lang = false)
+    public function translate_to_en($text, $lang = false)
     {
         if (!$lang) {
             $lang = $this->lang; // current locale
@@ -223,7 +223,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
      * setlocale() switching with the gettext extension is by far too slow.
      * So use the hash regardless if gettext is loaded or not.
      */
-    function fast_translate($text, $to_lang, $from_lang = false)
+    public function fast_translate($text, $to_lang, $from_lang = false)
     {
         if (!$from_lang) {
             $from_lang = $this->lang; // current locale
@@ -245,7 +245,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
     }
 
     //FIXME! There's something wrong.
-    function translate($text, $to_lang, $from_lang = false)
+    public function translate($text, $to_lang, $from_lang = false)
     {
         if (!$from_lang) {
             $from_lang = $this->lang; // current locale
@@ -278,7 +278,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
         return $result;
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $this->args = $this->getArgs($argstr, $request);
         extract($this->args);
@@ -320,7 +320,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
             }
         }
         $to_lang = $languages[0];
-        if (!empty($string) and count($languages)==1) {
+        if (!empty($string) and count($languages) == 1) {
             return $this->translate($string, $to_lang, $from_lang);
         }
         if (!empty($page)) {
@@ -330,7 +330,7 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
                 // google can only translate from english and french
                 if (in_array($from_lang, array('en', 'fr'))) {
                     $url = "http://translate.google.com/translate";
-                    $url .= "?langpair=" . urlencode($from_lang."|".$to_lang);
+                    $url .= "?langpair=" . urlencode($from_lang . "|" . $to_lang);
                     $url .= "&u=" . urlencode(WikiURL($pagename, false, true));
                 }
                 // redirect or transclude?
@@ -447,11 +447,11 @@ class WikiPlugin__WikiTranslation extends WikiPlugin
         }
         return $pagelist;
     }
-};
+}
 
 class _PageList_Column_customlang extends _PageList_Column
 {
-    function __construct($field, $from_lang, $plugin)
+    public function __construct($field, $from_lang, $plugin)
     {
         $this->_field = $field;
         $this->_from_lang = $from_lang;
@@ -468,7 +468,7 @@ class _PageList_Column_customlang extends _PageList_Column
         $this->_PageList_Column_base($this->_field);
     }
 
-    function _getValue($page, &$revision_handle)
+    public function _getValue($page, &$revision_handle)
     {
         if (is_object($page)) {
             $text = $page->getName();

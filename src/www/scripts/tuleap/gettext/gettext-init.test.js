@@ -18,7 +18,7 @@
  */
 
 import Gettext from "node-gettext";
-import { initGettext } from "./gettext-init.js";
+import { initGettext, getPOFileFromLocale } from "./gettext-init.js";
 
 jest.mock("node-gettext");
 
@@ -42,12 +42,20 @@ describe("initGettext", () => {
     });
 
     it("calls function to load external translation", async () => {
-        const gettext_provider = await initGettext("fr_FR", "my-domain", locale =>
+        const gettext_provider = await initGettext("fr_FR", "my-domain", (locale) =>
             Promise.resolve({ headers: { Language: locale } })
         );
 
         expect(gettext_provider.addTranslations).toHaveBeenCalledWith("fr_FR", "my-domain", {
-            headers: { Language: "fr_FR" }
+            headers: { Language: "fr_FR" },
         });
+    });
+
+    it("does not reject string looking like actual locale ID string", () => {
+        expect(getPOFileFromLocale("fr_FR")).toEqual("fr_FR.po");
+    });
+
+    it("rejects string that does not look like locale ID string", () => {
+        expect(() => getPOFileFromLocale("not_a_locale")).toThrow();
     });
 });

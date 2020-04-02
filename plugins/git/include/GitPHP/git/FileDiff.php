@@ -747,7 +747,7 @@ class FileDiff
                         $diffs[] = $currentDiff;
                     }
                     $comma = strpos($d, ",");
-                    $line = -intval(substr($d, 2, $comma-2));
+                    $line = -intval(substr($d, 2, $comma - 2));
                     $currentDiff = array("line" => $line,
                         "left" => array(), "right" => array());
                     break;
@@ -782,7 +782,7 @@ class FileDiff
         $output = array();
         $idx = 0;
         foreach ($diffs as $d) {
-            while ($idx+1 < $d['line']) {
+            while ($idx + 1 < $d['line']) {
                 $h = $blob[$idx];
                 $output[] = array('', $h, $h);
                 $idx ++;
@@ -840,7 +840,7 @@ class FileDiff
         if (empty($this->status) || ($this->status == 'M') || ($this->status == 'D')) {
             $fromBlob = $this->GetFromBlob();
             $fromData = $fromBlob->GetData(false);
-            $isBinary = $isBinary || BinaryDetector::isBinary($fromData);
+            $isBinary = BinaryDetector::isBinary($fromData);
             $fromName = 'a/';
             if (!empty($file)) {
                 $fromName .= $file;

@@ -34,7 +34,7 @@ class Docman_ItemAction
     public $other_icons;
     public $extraUrlParams;
 
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         $this->item             = $item;
         $this->action           = '';
@@ -44,16 +44,16 @@ class Docman_ItemAction
         $this->extraUrlParams   = array();
     }
 
-    function fetchAction($params)
+    public function fetchAction($params)
     {
-        $url   = $params['default_url'].'&action='.$this->action.'&id='.$this->item->getId();
+        $url   = $params['default_url'] . '&action=' . $this->action . '&id=' . $this->item->getId();
         $title = $this->title;
-        $href  = '<a href="'.$url.'">'.$title.'</a>';
-        $html  = '<li>'.$href.'</li>';
+        $href  = '<a href="' . $url . '">' . $title . '</a>';
+        $html  = '<li>' . $href . '</li>';
         return $html;
     }
 
-    function fetch($params)
+    public function fetch($params)
     {
         $dfltUrlParams = array('action' => $this->action,
                                'id' => $this->item->getId());
@@ -65,60 +65,60 @@ class Docman_ItemAction
             true,
             true
         );
-        $html  = '<a href="'.$url.'" class="'. $this->classes .'" title="'. $this->title .'">';
-        $html .= '<img src="'. $params['docman_icons']->getActionIcon($this->action) .'" class="docman_item_icon" alt="['. $this->title .']" />';
+        $html  = '<a href="' . $url . '" class="' . $this->classes . '" title="' . $this->title . '">';
+        $html .= '<img src="' . $params['docman_icons']->getActionIcon($this->action) . '" class="docman_item_icon" alt="[' . $this->title . ']" />';
         $html .= '</a>&nbsp;';
         return $html;
     }
 }
 class Docman_ItemActionNewFolder extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'newFolder';
         $this->classes          = 'docman_item_option_newfolder';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_newfolder');
+        $this->title            = dgettext('tuleap-docman', 'New folder');
     }
 }
 class Docman_ItemActionNewDocument extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'newDocument';
         $this->classes          = 'docman_item_option_newdocument';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_newdocument');
+        $this->title            = dgettext('tuleap-docman', 'New document');
     }
 }
 class Docman_ItemActionDetails extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'details';
         $this->classes          = 'docman_item_option_details';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_details');
+        $this->title            = dgettext('tuleap-docman', 'Properties');
     }
 }
 class Docman_ItemActionNewVersion extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'action_new_version';
         $this->classes          = 'docman_item_option_newversion';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_newversion');
+        $this->title            = dgettext('tuleap-docman', 'New version');
     }
 }
 class Docman_ItemActionMove extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'move';
         $this->classes          = 'docman_item_option_move';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_move');
+        $this->title            = dgettext('tuleap-docman', 'Move');
         $this->other_icons[]    = 'move-up';
         $this->other_icons[]    = 'move-down';
         $this->other_icons[]    = 'move-beginning';
@@ -127,63 +127,63 @@ class Docman_ItemActionMove extends Docman_ItemAction
 }
 class Docman_ItemActionPermissions extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'details&section=permissions';
         $this->classes          = 'docman_item_option_permissions';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_permissions');
+        $this->title            = dgettext('tuleap-docman', 'Permissions');
     }
 }
 class Docman_ItemActionHistory extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'details&section=history';
         $this->classes          = 'docman_item_option_history';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_history');
+        $this->title            = dgettext('tuleap-docman', 'History');
     }
 }
 class Docman_ItemActionNotifications extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'details&section=notifications';
         $this->classes          = 'docman_item_option_notifications';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_notifications');
+        $this->title            = dgettext('tuleap-docman', 'Notifications');
     }
 }
 class Docman_ItemActionDelete extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'confirmDelete';
         $this->classes          = 'docman_item_option_delete';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_delete');
+        $this->title            = dgettext('tuleap-docman', 'Delete');
     }
 }
 class Docman_ItemActionUpdate extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'action_update';
         $this->classes          = 'docman_item_option_update';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_update');
+        $this->title            = dgettext('tuleap-docman', 'Update');
     }
 }
 
 class Docman_ItemActionCopy extends Docman_ItemAction
 {
-    function __construct(&$item, $params)
+    public function __construct(&$item, $params)
     {
         parent::__construct($item);
         $this->action           = 'action_copy';
         $this->classes          = 'docman_item_option_copy';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_copy');
+        $this->title            = dgettext('tuleap-docman', 'Copy');
 
         $currentItem = $params['item'];
         $origAction = isset($params['action']) ? $params['action'] : 'show';
@@ -194,12 +194,12 @@ class Docman_ItemActionCopy extends Docman_ItemAction
 
 class Docman_ItemActionCut extends Docman_ItemAction
 {
-    function __construct(&$item, $params)
+    public function __construct(&$item, $params)
     {
         parent::__construct($item);
         $this->action           = 'action_cut';
         $this->classes          = 'docman_item_option_cut';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_cut');
+        $this->title            = dgettext('tuleap-docman', 'Cut');
 
         $currentItem = $params['item'];
         $origAction = isset($params['action']) ? $params['action'] : 'show';
@@ -210,22 +210,22 @@ class Docman_ItemActionCut extends Docman_ItemAction
 
 class Docman_ItemActionPaste extends Docman_ItemAction
 {
-    function __construct(&$item, $params)
+    public function __construct(&$item, $params)
     {
         parent::__construct($item);
         $this->action           = 'action_paste';
         $this->classes          = 'docman_item_option_paste';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_paste');
+        $this->title            = dgettext('tuleap-docman', 'Paste');
     }
 }
 
 class Docman_ItemActionApproval extends Docman_ItemAction
 {
-    function __construct(&$item)
+    public function __construct(&$item)
     {
         parent::__construct($item);
         $this->action           = 'details&section=approval';
         $this->classes          = 'docman_item_option_approval';
-        $this->title            = $GLOBALS['Language']->getText('plugin_docman', 'action_approval');
+        $this->title            = dgettext('tuleap-docman', 'Approval table');
     }
 }

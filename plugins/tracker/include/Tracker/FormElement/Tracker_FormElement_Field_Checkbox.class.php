@@ -1,7 +1,7 @@
 <?php
 /**
  * Copyright (c) Jtekt, Jason Team, 2012. All rights reserved
- * Copyright (c) Enalean, 2015-2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2015-present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -37,9 +37,9 @@ class Tracker_FormElement_Field_Checkbox extends Tracker_FormElement_Field_Multi
         $html    = '';
         $checked = $is_selected ? 'checked="checked"' : '';
 
-        $html .= '<label class="checkbox" for="cb_'. $id .'" ><input type="hidden" '.$name.' value="0"  />';
-        $html .= '<input type="checkbox" '. $name .' value="'. $id .'" id=cb_'. $id .' '. $checked .' valign="middle" />';
-        $html .= $this->getBind()->formatChangesetValueWithoutLink($value) .'</label>';
+        $html .= '<label class="checkbox" for="cb_' . $id . '" ><input type="hidden" ' . $name . ' value="0"  />';
+        $html .= '<input type="checkbox" ' . $name . ' value="' . $id . '" id=cb_' . $id . ' ' . $checked . ' valign="middle" />';
+        $html .= $this->getBind()->formatChangesetValueWithoutLink($value) . '</label>';
 
         return $html;
     }
@@ -67,33 +67,21 @@ class Tracker_FormElement_Field_Checkbox extends Tracker_FormElement_Field_Multi
         return is_array($values) ? array_filter($values) : $values;
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'checkbox');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'checkbox_desc');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-check-box.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-check--plus.png');

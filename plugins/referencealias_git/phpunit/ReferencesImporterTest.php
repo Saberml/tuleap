@@ -26,7 +26,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tuleap\Project\XML\Import\ImportConfig;
 
-include __DIR__.'/bootstrap.php';
+include __DIR__ . '/bootstrap.php';
 
 class ReferencesImporterTest extends TestCase
 {
@@ -56,7 +56,7 @@ class ReferencesImporterTest extends TestCase
     {
         parent::setUp();
         $this->dao        = \Mockery::spy(\Tuleap\ReferenceAliasGit\Dao::class);
-        $this->logger     = \Mockery::spy(\Logger::class);
+        $this->logger     = \Mockery::spy(\Psr\Log\LoggerInterface::class);
         $this->importer   = new ReferencesImporter($this->dao, $this->logger);
         $this->repository = \Mockery::spy(\GitRepository::class);
 

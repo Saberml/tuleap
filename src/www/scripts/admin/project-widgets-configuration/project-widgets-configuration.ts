@@ -21,15 +21,15 @@
 export function initProjectWidgetsConfigurationFormSubmission(mount_point: Document): void {
     const switches = mount_point.querySelectorAll(".tlp-switch-checkbox");
 
-    [].forEach.call(switches, function(switch_button: HTMLFormElement) {
-        switch_button.addEventListener("change", function() {
+    [].forEach.call(switches, function (switch_button: HTMLFormElement) {
+        switch_button.addEventListener("change", function () {
             if (!switch_button.dataset.formId) {
                 return;
             }
-            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-            const form = mount_point.getElementById(
-                switch_button.dataset.formId
-            ) as HTMLFormElement;
+            const form = mount_point.getElementById(switch_button.dataset.formId);
+            if (!(form instanceof HTMLFormElement)) {
+                throw new Error("Retrieved element is not a form");
+            }
             form.submit();
         });
     });

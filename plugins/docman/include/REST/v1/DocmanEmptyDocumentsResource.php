@@ -342,8 +342,8 @@ class DocmanEmptyDocumentsResource extends AuthenticatedResource
 
         $project      = $item_request->getProject();
 
-        /** @var Docman_Empty $item */
         $item         = $item_request->getItem();
+        \assert($item instanceof Docman_Empty);
 
         $current_user = $this->user_manager->getCurrentUser();
 
@@ -429,7 +429,6 @@ class DocmanEmptyDocumentsResource extends AuthenticatedResource
      * @param int                                   $id             Id of the file
      * @param FilePropertiesPOSTPATCHRepresentation $representation {@from body}
      *
-     * @return CreatedItemFilePropertiesRepresentation
      *
      * @status 201
      * @throws RestException 400
@@ -445,8 +444,8 @@ class DocmanEmptyDocumentsResource extends AuthenticatedResource
 
         $item_request = $this->request_builder->buildFromItemId($id);
         $project      = $item_request->getProject();
-        /** @var Docman_Empty $item */
         $item         = $item_request->getItem();
+        \assert($item instanceof Docman_Empty);
         $current_user = $this->user_manager->getCurrentUser();
 
         $this->addAllEvent($project);
@@ -461,8 +460,8 @@ class DocmanEmptyDocumentsResource extends AuthenticatedResource
                 $current_user,
                 $representation,
                 new \DateTimeImmutable(),
-                (int)$item->getStatus(),
-                (int)$item->getObsolescenceDate()
+                (int) $item->getStatus(),
+                (int) $item->getObsolescenceDate()
             );
         } catch (UploadMaxSizeExceededException $exception) {
             throw new RestException(

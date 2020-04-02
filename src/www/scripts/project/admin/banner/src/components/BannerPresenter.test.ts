@@ -29,8 +29,8 @@ describe("BannerPresenter", () => {
             localVue: await createProjectAdminBannerLocalVue(),
             propsData: {
                 message: banner_message,
-                loading: false
-            }
+                loading: false,
+            },
         });
 
         expect(wrapper.element).toMatchSnapshot();
@@ -41,8 +41,8 @@ describe("BannerPresenter", () => {
             localVue: await createProjectAdminBannerLocalVue(),
             propsData: {
                 message: "",
-                loading: false
-            }
+                loading: false,
+            },
         });
 
         expect(wrapper.element).toMatchSnapshot();
@@ -53,17 +53,17 @@ describe("BannerPresenter", () => {
             localVue: await createProjectAdminBannerLocalVue(),
             propsData: {
                 message: "some message",
-                loading: false
-            }
+                loading: false,
+            },
         });
 
         const emitSpy = jest.spyOn(wrapper.vm, "$emit");
 
-        wrapper.find("input").trigger("click");
-        wrapper.find("button").trigger("click");
+        wrapper.get("input").trigger("click");
+        wrapper.get("button").trigger("click");
         expect(emitSpy).toHaveBeenCalledWith("save-banner", {
             message: "some message",
-            activated: false
+            activated: false,
         });
     });
 
@@ -72,8 +72,8 @@ describe("BannerPresenter", () => {
             localVue: await createProjectAdminBannerLocalVue(),
             propsData: {
                 message: "some message",
-                loading: true
-            }
+                loading: true,
+            },
         });
 
         expect(wrapper.element).toMatchSnapshot();
@@ -84,8 +84,8 @@ describe("BannerPresenter", () => {
             localVue: await createProjectAdminBannerLocalVue(),
             propsData: {
                 message: "somme message",
-                loading: false
-            }
+                loading: false,
+            },
         });
 
         const emitSpy = jest.spyOn(wrapper.vm, "$emit");
@@ -93,10 +93,10 @@ describe("BannerPresenter", () => {
 
         wrapper.setData({ current_message: updated_message });
 
-        wrapper.find("button").trigger("click");
+        wrapper.get("button").trigger("click");
         expect(emitSpy).toHaveBeenCalledWith("save-banner", {
             message: updated_message,
-            activated: true
+            activated: true,
         });
     });
 
@@ -105,15 +105,15 @@ describe("BannerPresenter", () => {
             localVue: await createProjectAdminBannerLocalVue(),
             propsData: {
                 message: "some message",
-                loading: false
-            }
+                loading: false,
+            },
         });
 
         const emitSpy = jest.spyOn(wrapper.vm, "$emit");
 
         wrapper.setData({ current_message: "" });
 
-        wrapper.find("button").trigger("click");
+        wrapper.get("button").trigger("click");
         expect(emitSpy).not.toHaveBeenCalled();
     });
 });

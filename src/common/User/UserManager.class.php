@@ -22,6 +22,7 @@
 use Tuleap\CookieManager;
 use Tuleap\Dashboard\User\AtUserCreationDefaultWidgetsCreator;
 use Tuleap\Dashboard\Widget\DashboardWidgetDao;
+use Tuleap\User\Account\DisplaySecurityController;
 use Tuleap\User\ForgeUserGroupPermission\RESTReadOnlyAdmin\RestReadOnlyAdminPermission;
 use Tuleap\User\InvalidSessionException;
 use Tuleap\User\SessionManager;
@@ -518,7 +519,7 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
      *
      * @param PFUser $user
      *
-     * @return Array
+     * @return array{last_auth_success: string, last_auth_failure: string, nb_auth_failure: string, prev_auth_success: string}
      */
     public function getUserAccessInfo($user)
     {
@@ -572,7 +573,7 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $exception->getMessage());
         } catch (User_PasswordExpiredException $exception) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $exception->getMessage());
-            $GLOBALS['Response']->redirect('/account/change_pw.php?user_id=' . $exception->getUser()->getId());
+            $GLOBALS['Response']->redirect(DisplaySecurityController::URL);
         } catch (User_StatusInvalidException $exception) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $exception->getMessage());
         } catch (SessionNotCreatedException $exception) {
@@ -640,7 +641,6 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
      * error. Moreover, in case of errors, messages are displayed as warning
      * instead of info.
      *
-     * @param PFUser $user
      */
     private function warnUserAboutAuthenticationAttempts(PFUser $user)
     {
@@ -703,7 +703,6 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
     /**
      * Open a session for user
      *
-     * @param PFUser $user
      * @return type
      * @throws UserNotExistException
      * @throws UserNotActiveException
@@ -818,7 +817,6 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 
     /**
      * Update db entry of 'user' table with values in object
-     * @param PFUser $user
      */
     public function updateDb(PFUser $user)
     {
@@ -884,7 +882,6 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
      * Should probably be merged with updateDb but I don't know the impact of
      * validating keys each time we update a user
      *
-     * @param PFUser $user
      * @param string[] $keys
      */
     public function updateUserSSHKeys(PFUser $user, array $keys)
@@ -955,7 +952,7 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
             $user->getMailSiteUpdates(),
             $user->getMailVA(),
             $user->getStickyLogin(),
-            $user->getAuthorizedKeys(),
+            $user->getAuthorizedKeysRaw(),
             $user->getNewMail(),
             $user->getTimezone(),
             $user->getLanguageID(),
@@ -1007,7 +1004,6 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
             new DashboardWidgetDao(
                 $factory
             ),
-            $factory,
             EventManager::instance()
         );
     }
@@ -1046,10 +1042,5 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
     {
         $dao = $this->getDao();
         $dao->removeConfirmHash($confirm_hash);
-    }
-
-    public function setEmailChangeConfirm($user_id, $confirm_hash, $email_new)
-    {
-        return $this->getDao()->setEmailChangeConfirm($user_id, $confirm_hash, $email_new);
     }
 }

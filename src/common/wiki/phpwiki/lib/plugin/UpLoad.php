@@ -41,17 +41,17 @@ class WikiPlugin_UpLoad extends WikiPlugin
     // TODO: use PagePerms instead
     public $only_authenticated = false; // allow only authenticated users may upload.
 
-    function getName()
+    public function getName()
     {
         return "UpLoad";
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Upload files to the local InterWiki Upload:<filename>");
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('logfile'  => false,
                  // add a link of the fresh file automatically to the
@@ -61,7 +61,7 @@ class WikiPlugin_UpLoad extends WikiPlugin
                  );
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $this->disallowed_extensions = explode(
             "\n",
@@ -166,7 +166,7 @@ ws[cfh]"
                 $userfile->getTmpName()
             );
             if ($rev >= 0) {
-                $prev = $rev+1;
+                $prev = $rev + 1;
                 $interwiki = new PageType_interwikimap();
                 $link = $interwiki->link("Upload:$prev/$userfile_name");
                 $message->pushContent(HTML::h2(_("File successfully uploaded.")));
@@ -230,12 +230,12 @@ ws[cfh]"
             $wa = $wai->current();
 
             $filename = basename($wa->getFilename());
-            $url = getUploadDataPath().urlencode($filename);
+            $url = getUploadDataPath() . urlencode($filename);
 
             $line = HTML::tr();
             $line->pushContent(HTML::td(HTML::a(
                 array('href' => $url),
-                "Attach:".$filename
+                "Attach:" . $filename
             )));
             $line->pushContent(HTML::td($wa->count()));
             $attchTab->pushContent($line);
@@ -251,15 +251,15 @@ ws[cfh]"
 
         $url = WikiURL("UpLoad");
         if (!empty($_REQUEST['pv'])) {
-            $url .= '&pv='.$_REQUEST['pv'];
+            $url .= '&pv=' . $_REQUEST['pv'];
         }
         $attchList->pushContent(HTML::a(
-            array('href' => $url.'&offset='.($offset-$limit)),
+            array('href' => $url . '&offset=' . ($offset - $limit)),
             "<- Previous"
         ));
         $attchList->pushContent(" - ");
         $attchList->pushContent(HTML::a(
-            array('href' => $url.'&offset='.($offset+$limit)),
+            array('href' => $url . '&offset=' . ($offset + $limit)),
             "Next ->"
         ));
         /// }}}
@@ -272,7 +272,7 @@ ws[cfh]"
         return $result;
     }
 
-    function log($userfile, $upload_log, &$message)
+    public function log($userfile, $upload_log, &$message)
     {
         global $WikiTheme;
         $user = $GLOBALS['request']->_user;
@@ -281,7 +281,7 @@ ws[cfh]"
         } elseif (!$log_handle = fopen($upload_log, "a")) {
             trigger_error(_("Can't open the upload logfile."), E_USER_WARNING);
         } else {        // file size in KB; precision of 0.1
-            $file_size = round(($userfile->getSize())/1024, 1);
+            $file_size = round(($userfile->getSize()) / 1024, 1);
             if ($file_size <= 0) {
                 $file_size = "&lt; 0.1";
             }

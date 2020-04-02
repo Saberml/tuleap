@@ -28,6 +28,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 use Response;
+use Tuleap\Layout\IncludeAssets;
 use User_SSHKeyValidator;
 
 class AdminGerritControllerTest extends TestCase
@@ -45,7 +46,6 @@ class AdminGerritControllerTest extends TestCase
     private $factory;
     private $admin_page_renderer;
     private $admin;
-    private $request_update_existing_server;
     private $a_brand_new_server;
     private $an_existing_server;
 
@@ -59,18 +59,6 @@ class AdminGerritControllerTest extends TestCase
         $this->request->set('action', 'add-gerrit-server');
 
         $this->admin_page_renderer = \Mockery::spy(\Tuleap\Admin\AdminPageRenderer::class);
-
-        $this->request_update_existing_server = array(
-            'host'                 => 'g.example.com',
-            'ssh_port'             => '1234',
-            'http_port'            => '80',
-            'login'                => 'new_login',
-            'identity_file'        => '/path/to/file',
-            'replication_key'      => 'replication_key',
-            'use_ssl'              => 0,
-            'http_password'        => 'azerty',
-            'replication_password' => 'replication_password',
-        );
 
         $this->a_brand_new_server = new Git_RemoteServer_GerritServer(
             0,
@@ -114,7 +102,8 @@ class AdminGerritControllerTest extends TestCase
             $this->admin_page_renderer,
             \Mockery::spy(GerritServerResourceRestrictor::class),
             \Mockery::spy(RemoteServer\Gerrit\Restrictor::class),
-            new AdminGerritBuilder(\Mockery::spy(User_SSHKeyValidator::class))
+            new AdminGerritBuilder(\Mockery::spy(User_SSHKeyValidator::class)),
+            \Mockery::mock(IncludeAssets::class)
         );
     }
 

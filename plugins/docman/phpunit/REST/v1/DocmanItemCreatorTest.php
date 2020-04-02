@@ -28,7 +28,6 @@ use Docman_MetadataValueDao;
 use Docman_Wiki;
 use Luracast\Restler\RestException;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
-use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
 use Tuleap\Docman\REST\v1\EmbeddedFiles\DocmanEmbeddedPOSTRepresentation;
 use Tuleap\Docman\REST\v1\EmbeddedFiles\EmbeddedPropertiesPOSTPATCHRepresentation;
@@ -90,10 +89,6 @@ class DocmanItemCreatorTest extends TestCase
      * @var \Mockery\MockInterface|DocumentToUploadCreator
      */
     private $document_to_upload_creator;
-    /**
-     * @var vfsStreamDirectory
-     */
-    private $docman_file_system;
     /**
      * @var \Mockery\MockInterface|EmptyFileToUploadFinisher
      */
@@ -172,7 +167,7 @@ class DocmanItemCreatorTest extends TestCase
 
         $this->metadata_obsolesence_date_retriever
             ->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')
-            ->withArgs([ItemRepresentation::OBSOLESCENCE_DATE_NONE,$current_time])
+            ->withArgs([ItemRepresentation::OBSOLESCENCE_DATE_NONE, $current_time])
             ->andReturn((int) ItemRepresentation::OBSOLESCENCE_DATE_NONE);
 
         $created_item = \Mockery::mock(Docman_Empty::class);
@@ -182,7 +177,7 @@ class DocmanItemCreatorTest extends TestCase
 
         $this->item_factory
             ->shouldReceive('createWithoutOrdering')
-            ->with('Title', '', 11, 100, 0, 222, PLUGIN_DOCMAN_ITEM_TYPE_EMPTY, null, null)
+            ->with('Title', '', 11, 100, 0, 222, PLUGIN_DOCMAN_ITEM_TYPE_EMPTY, \Mockery::any(), \Mockery::any(), null, null)
             ->once()
             ->andReturns($created_item);
 
@@ -246,7 +241,7 @@ class DocmanItemCreatorTest extends TestCase
         );
 
         $this->metadata_obsolesence_date_retriever->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')->andReturn(
-            (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE
+            (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE
         );
 
         $created_item = \Mockery::mock(Docman_Wiki::class);
@@ -272,7 +267,7 @@ class DocmanItemCreatorTest extends TestCase
 
         $this->item_factory
             ->shouldReceive('createWithoutOrdering')
-            ->with('Title', '', 11, 100, (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE, 222, PLUGIN_DOCMAN_ITEM_TYPE_WIKI, "Monchichi", null)
+            ->with('Title', '', 11, 100, (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE, 222, PLUGIN_DOCMAN_ITEM_TYPE_WIKI, \Mockery::any(), \Mockery::any(), "Monchichi", null)
             ->once()
             ->andReturns($created_item);
 
@@ -362,7 +357,7 @@ class DocmanItemCreatorTest extends TestCase
         );
 
         $this->metadata_obsolesence_date_retriever->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')->andReturn(
-            (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE
+            (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE
         );
 
         $this->item_factory->shouldReceive('doesTitleCorrespondToExistingDocument')->andReturn(false);
@@ -482,7 +477,7 @@ class DocmanItemCreatorTest extends TestCase
             ->andReturn(PLUGIN_DOCMAN_ITEM_STATUS_NONE);
 
         $this->metadata_obsolesence_date_retriever->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')->andReturn(
-            (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE
+            (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE
         );
 
         if ($permissions_for_groups_set !== null) {
@@ -516,6 +511,8 @@ class DocmanItemCreatorTest extends TestCase
                 0,
                 222,
                 PLUGIN_DOCMAN_ITEM_TYPE_LINK,
+                \Mockery::any(),
+                \Mockery::any(),
                 null,
                 'https://my.example.test'
             )
@@ -565,7 +562,7 @@ class DocmanItemCreatorTest extends TestCase
             ->andReturn(PLUGIN_DOCMAN_ITEM_STATUS_NONE);
 
         $this->metadata_obsolesence_date_retriever->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')->andReturn(
-            (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE
+            (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE
         );
 
         if ($permissions_for_groups_set !== null) {
@@ -591,7 +588,7 @@ class DocmanItemCreatorTest extends TestCase
 
         $this->item_factory
             ->shouldReceive('createWithoutOrdering')
-            ->with('Title', '', 11, 100, 0, 222, PLUGIN_DOCMAN_ITEM_TYPE_FOLDER, null, null)
+            ->with('Title', '', 11, 100, 0, 222, PLUGIN_DOCMAN_ITEM_TYPE_FOLDER, \Mockery::any(), \Mockery::any(), null, null)
             ->once()
             ->andReturns($created_item);
 
@@ -638,7 +635,7 @@ class DocmanItemCreatorTest extends TestCase
         );
 
         $this->metadata_obsolesence_date_retriever->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')->andReturn(
-            (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE
+            (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE
         );
 
         if ($permissions_for_groups_set !== null) {
@@ -665,7 +662,7 @@ class DocmanItemCreatorTest extends TestCase
 
         $this->item_factory
             ->shouldReceive('createWithoutOrdering')
-            ->with('Embedded file', '', 11, 100, 0, 222, PLUGIN_DOCMAN_ITEM_TYPE_EMBEDDEDFILE, null, null)
+            ->with('Embedded file', '', 11, 100, 0, 222, PLUGIN_DOCMAN_ITEM_TYPE_EMBEDDEDFILE, \Mockery::any(), \Mockery::any(), null, null)
             ->once()
             ->andReturns($created_item);
 
@@ -791,7 +788,7 @@ class DocmanItemCreatorTest extends TestCase
         );
 
         $this->metadata_obsolesence_date_retriever->shouldReceive('getTimeStampOfDateWithoutPeriodValidity')->andReturn(
-            (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE
+            (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE
         );
 
         $created_item = \Mockery::mock(Docman_Folder::class);
@@ -809,6 +806,8 @@ class DocmanItemCreatorTest extends TestCase
                 0,
                 222,
                 PLUGIN_DOCMAN_ITEM_TYPE_FOLDER,
+                \Mockery::any(),
+                \Mockery::any(),
                 null,
                 null
             )
@@ -872,7 +871,7 @@ class DocmanItemCreatorTest extends TestCase
 
         $this->item_factory
             ->shouldReceive('createWithoutOrdering')
-            ->with('Title', '', 11, 100, $obsolescence_date_time_stamp, 222, PLUGIN_DOCMAN_ITEM_TYPE_EMPTY, null, null)
+            ->with('Title', '', 11, 100, $obsolescence_date_time_stamp, 222, PLUGIN_DOCMAN_ITEM_TYPE_EMPTY, \Mockery::any(), \Mockery::any(), null, null)
             ->once()
             ->andReturns($created_item);
 
@@ -941,6 +940,8 @@ class DocmanItemCreatorTest extends TestCase
                 $obsolescence_date_time_stamp,
                 222,
                 PLUGIN_DOCMAN_ITEM_TYPE_EMBEDDEDFILE,
+                \Mockery::any(),
+                \Mockery::any(),
                 null,
                 null
             )
@@ -1012,6 +1013,8 @@ class DocmanItemCreatorTest extends TestCase
                 $obsolescence_date_time_stamp,
                 222,
                 PLUGIN_DOCMAN_ITEM_TYPE_LINK,
+                \Mockery::any(),
+                \Mockery::any(),
                 null,
                 'https://my.example.test'
             )
@@ -1087,6 +1090,8 @@ class DocmanItemCreatorTest extends TestCase
                 $obsolescence_date_time_stamp,
                 222,
                 PLUGIN_DOCMAN_ITEM_TYPE_WIKI,
+                \Mockery::any(),
+                \Mockery::any(),
                 "Monchocho",
                 null
             )

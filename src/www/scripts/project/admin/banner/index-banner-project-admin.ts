@@ -18,7 +18,7 @@
  */
 
 import Vue from "vue";
-import { initVueGettext } from "../../../tuleap/gettext/vue-gettext-init";
+import { initVueGettext, getPOFileFromLocale } from "../../../tuleap/gettext/vue-gettext-init";
 import App from "./src/components/App.vue";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -32,14 +32,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     await initVueGettext(Vue, (locale: string) =>
-        import(/* webpackChunkName: "project-admin-banner-po-" */ `./po/${locale}.po`)
+        import(
+            /* webpackChunkName: "project-admin-banner-po-" */ "./po/" + getPOFileFromLocale(locale)
+        )
     );
 
     const AppComponent = Vue.extend(App);
     new AppComponent({
         propsData: {
             message: vue_mount_point.dataset.bannerMessage || "",
-            project_id: parseInt(vue_mount_point.dataset.projectId, 10)
-        }
+            project_id: parseInt(vue_mount_point.dataset.projectId, 10),
+        },
     }).$mount(vue_mount_point);
 });

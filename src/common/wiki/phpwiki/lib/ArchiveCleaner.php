@@ -20,12 +20,12 @@
 
 class ArchiveCleaner
 {
-    function __construct($expire_params)
+    public function __construct($expire_params)
     {
         $this->expire_params = $expire_params;
     }
 
-    function isMergeable($revision)
+    public function isMergeable($revision)
     {
         if (! $revision->get('is_minor_edit')) {
             return false;
@@ -40,7 +40,7 @@ class ArchiveCleaner
             && $author_id == $previous->get('author_id');
     }
 
-    function cleanDatabase($dbi)
+    public function cleanDatabase($dbi)
     {
         $iter = $dbi->getAllPages();
         while ($page = $iter->next()) {
@@ -48,9 +48,8 @@ class ArchiveCleaner
         }
     }
 
-    function cleanPageRevisions($page)
+    public function cleanPageRevisions($page)
     {
-
         $expire = &$this->expire_params;
         foreach (array('major', 'minor', 'author') as $class) {
             $counter[$class] = new ArchiveCleaner_Counter($expire[$class]);
@@ -92,9 +91,8 @@ class ArchiveCleaner
  */
 class ArchiveCleaner_Counter
 {
-    function __construct($params)
+    public function __construct($params)
     {
-
         if (!empty($params)) {
             extract($params);
         }
@@ -124,7 +122,7 @@ class ArchiveCleaner_Counter
         $this->previous_supplanted = false;
     }
 
-    function computeAge($revision)
+    public function computeAge($revision)
     {
         $supplanted = $revision->get('_supplanted');
 
@@ -154,7 +152,7 @@ class ArchiveCleaner_Counter
         return ($this->now - $supplanted) / (24 * 3600);
     }
 
-    function keep($revision)
+    public function keep($revision)
     {
         $count = ++$this->count;
         $age = $this->computeAge($revision);

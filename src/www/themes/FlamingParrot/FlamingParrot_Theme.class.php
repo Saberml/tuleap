@@ -93,7 +93,7 @@ class FlamingParrot_Theme extends Layout
     {
         $title = $GLOBALS['sys_name'];
         if (!empty($params['title'])) {
-            $title = $params['title'] .' - '. $title;
+            $title = $params['title'] . ' - ' . $title;
         }
 
         $current_user    = UserManager::instance()->getCurrentUser();
@@ -142,9 +142,9 @@ class FlamingParrot_Theme extends Layout
         $print_css_url = $core_flaming_parrot_include_assets->getFileURL('print.css');
         echo '<link rel="stylesheet" type="text/css" href="' . $print_css_url . '" media="print" />';
 
-        $custom_dir = $GLOBALS['codendi_dir'].'/src/www'.$this->getStylesheetTheme('').'custom';
-        foreach (glob($custom_dir.'/*.css') as $custom_css_file) {
-            echo '<link rel="stylesheet" type="text/css" href="'. $this->getStylesheetTheme('custom/'.basename($custom_css_file)) .'" />';
+        $custom_dir = $GLOBALS['codendi_dir'] . '/src/www' . $this->getStylesheetTheme('') . 'custom';
+        foreach (glob($custom_dir . '/*.css') as $custom_css_file) {
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getStylesheetTheme('custom/' . basename($custom_css_file)) . '" />';
         }
     }
 
@@ -152,11 +152,10 @@ class FlamingParrot_Theme extends Layout
     {
         $current_user = UserManager::instance()->getCurrentUser();
 
-        $theme_variant     = new ThemeVariant();
-        $css_file_provider = new FlamingParrot_CSSFilesProvider($theme_variant, $include_assets);
-        $variant_used      = $theme_variant->getVariantForUser($current_user);
+        $theme_variant = new ThemeVariant();
+        $variant_used  = $theme_variant->getVariantForUser($current_user);
 
-        return $css_file_provider->getCSSFileForVariant($variant_used);
+        return $include_assets->getFileURL($variant_used . '.css');
     }
 
     private function body($params)
@@ -204,7 +203,7 @@ class FlamingParrot_Theme extends Layout
 
     private function navbar($params, PFUser $current_user, $selected_top_tab)
     {
-        list($search_options, $selected_entry, $hidden_fields) = $this->getSearchEntries();
+        [$search_options, $selected_entry, $hidden_fields] = $this->getSearchEntries();
 
         $project_id_from_params = $this->getProjectIdFromParams($params);
         $event_manager          = EventManager::instance();
@@ -254,8 +253,6 @@ class FlamingParrot_Theme extends Layout
             $current_project_navbar_info,
             $_SERVER['REQUEST_URI'],
             $selected_top_tab,
-            HTTPRequest::instance(),
-            $params['title'],
             $search_form_presenter,
             $this->displayNewAccount(),
             $this->getMOTD(),

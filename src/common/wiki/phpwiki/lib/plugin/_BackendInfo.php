@@ -24,17 +24,17 @@ rcs_id('$Id: _BackendInfo.php,v 1.24 2005/01/29 19:47:43 rurban Exp $');
 require_once('lib/Template.php');
 class WikiPlugin__BackendInfo extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("DebugInfo");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return sprintf(_("Get debugging information for %s."), '[pagename]');
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -43,12 +43,12 @@ class WikiPlugin__BackendInfo extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('page' => '[pagename]');
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         extract($args);
@@ -92,14 +92,13 @@ class WikiPlugin__BackendInfo extends WikiPlugin
     /**
      * Really should have a _fixupPagedata and _fixupVersiondata, but this works.
      */
-    function _fixupData(&$data)
+    public function _fixupData(&$data)
     {
         global $request;
         $user = $request->getUser();
 
         foreach ($data as $key => $val) {
             if (is_integer($key)) {
-                ;
             } elseif ($key == 'passwd' and !$user->isAdmin()) {
                 $data[$key] = $val ? _("<not displayed>") : _("<empty>");
             } elseif ($key and $key == '_cached_html') {
@@ -141,7 +140,7 @@ class WikiPlugin__BackendInfo extends WikiPlugin
         unset($data['%pagedata']); // problem in backend
     }
 
-    function _showhash($heading, $hash, $pagename = '')
+    public function _showhash($heading, $hash, $pagename = '')
     {
         $rows = array();
         if ($heading) {
@@ -177,7 +176,7 @@ class WikiPlugin__BackendInfo extends WikiPlugin
         }
         return $rows;
     }
-};
+}
 
 // $Log: _BackendInfo.php,v $
 // Revision 1.24  2005/01/29 19:47:43  rurban

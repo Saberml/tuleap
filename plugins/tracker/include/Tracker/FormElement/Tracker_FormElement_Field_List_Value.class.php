@@ -73,10 +73,8 @@ abstract class Tracker_FormElement_Field_List_Value implements Tracker_IProvideJ
      *
      * If you are looking for a JSon representation of the current object,
      * @see Tracker_FormElement_Field_List_Value::fetchFormattedForJson
-     *
-     * @return type
      */
-    public function fetchForOpenListJson()
+    public function fetchForOpenListJson(): array
     {
         return array(
             'id'         => $this->getId(),
@@ -119,7 +117,7 @@ abstract class Tracker_FormElement_Field_List_Value implements Tracker_IProvideJ
 
     public function getXMLId()
     {
-        return self::XML_ID_PREFIX.$this->getId();
+        return self::XML_ID_PREFIX . $this->getId();
     }
 
     public function getFullRESTValue(Tracker_FormElement_Field $field)

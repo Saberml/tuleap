@@ -39,7 +39,7 @@ if (USE_HTMLAREA) {
 
 class PageEditor
 {
-    function __construct(&$request)
+    public function __construct(&$request)
     {
         $this->request = &$request;
 
@@ -92,9 +92,8 @@ class PageEditor
         }
     }
 
-    function editPage()
+    public function editPage()
     {
-
         global $WikiTheme;
         $saveFailed = false;
         $tokens = &$this->tokens;
@@ -179,7 +178,7 @@ class PageEditor
         return $this->output('editpage', _("Edit: %s"));
     }
 
-    function output($template, $title_fs)
+    public function output($template, $title_fs)
     {
         global $WikiTheme;
         $selected = &$this->selected;
@@ -204,7 +203,7 @@ class PageEditor
     }
 
 
-    function viewSource()
+    public function viewSource()
     {
         assert($this->isInitialEdit());
         assert($this->selected);
@@ -214,9 +213,9 @@ class PageEditor
         return $this->output('viewsource', _("View Source: %s"));
     }
 
-    function updateLock()
+    public function updateLock()
     {
-        if ((bool)$this->page->get('locked') == (bool)$this->locked) {
+        if ((bool) $this->page->get('locked') == (bool) $this->locked) {
             return false;       // Not changed.
         }
 
@@ -225,14 +224,14 @@ class PageEditor
             return false;         // not allowed.
         }
 
-        $this->page->set('locked', (bool)$this->locked);
+        $this->page->set('locked', (bool) $this->locked);
         $this->tokens['LOCK_CHANGED_MSG']
             = $this->locked ? _("Page now locked.") : _("Page now unlocked.");
 
         return true;            // lock changed.
     }
 
-    function savePage()
+    public function savePage()
     {
         $request = &$this->request;
 
@@ -283,7 +282,7 @@ class PageEditor
 
             // Save succeded. We raise an event.
             $new = $this->version + 1;
-            $difflink = WikiURL($page->getName(), array('action'=>'diff'), true);
+            $difflink = WikiURL($page->getName(), array('action' => 'diff'), true);
             $difflink .= "&versions%5b%5d=" . $this->version . "&versions%5b%5d=" . $new;
             $eM = EventManager::instance();
             $uM = UserManager::instance();
@@ -341,23 +340,23 @@ class PageEditor
         return true;
     }
 
-    function isConcurrentUpdate()
+    public function isConcurrentUpdate()
     {
         assert($this->current->getVersion() >= $this->_currentVersion);
         return $this->current->getVersion() != $this->_currentVersion;
     }
 
-    function canEdit()
+    public function canEdit()
     {
         return !$this->page->get('locked') || $this->user->isAdmin();
     }
 
-    function isInitialEdit()
+    public function isInitialEdit()
     {
         return $this->_initialEdit;
     }
 
-    function isUnchanged()
+    public function isUnchanged()
     {
         $current = &$this->current;
 
@@ -368,14 +367,14 @@ class PageEditor
         return $this->_content == $current->getPackedContent();
     }
 
-    function getPreview()
+    public function getPreview()
     {
         include_once('lib/PageType.php');
         $this->_content = $this->getContent();
         return new TransformedText($this->page, $this->_content, $this->meta);
     }
 
-    function getConvertedPreview()
+    public function getConvertedPreview()
     {
         include_once('lib/PageType.php');
         $this->_content = $this->getContent();
@@ -385,7 +384,7 @@ class PageEditor
     }
 
     // possibly convert HTMLAREA content back to Wiki markup
-    function getContent()
+    public function getContent()
     {
         if (USE_HTMLAREA) {
             $xml_output = Edit_HtmlArea_ConvertAfter($this->_content);
@@ -396,7 +395,7 @@ class PageEditor
         }
     }
 
-    function getLockedMessage()
+    public function getLockedMessage()
     {
         return
             HTML(
@@ -407,7 +406,7 @@ class PageEditor
             );
     }
 
-    function getConflictMessage($unresolved = false)
+    public function getConflictMessage($unresolved = false)
     {
         /*
          xgettext only knows about c/c++ line-continuation strings
@@ -420,8 +419,8 @@ class PageEditor
         if ($unresolved) {
             $message =  HTML::p(fmt(
                 "Some of the changes could not automatically be combined.  Please look for sections beginning with '%s', and ending with '%s'.  You will need to edit those sections by hand before you click Save.",
-                "<<<<<<< ". _("Your version"),
-                ">>>>>>> ". _("Other version")
+                "<<<<<<< " . _("Your version"),
+                ">>>>>>> " . _("Other version")
             ));
         } else {
             $message = HTML::p(_("Please check it through before saving."));
@@ -443,7 +442,7 @@ class PageEditor
     }
 
 
-    function getTextArea()
+    public function getTextArea()
     {
         $request = &$this->request;
 
@@ -455,7 +454,7 @@ class PageEditor
         }
 
         $textarea = HTML::textarea(
-            array('class'=> 'wikiedit',
+            array('class' => 'wikiedit',
                                          'name' => 'edit[content]',
                                          'id'   => 'edit[content]',
                                          'rows' => $request->getPref('editHeight'),
@@ -470,7 +469,7 @@ class PageEditor
         }
     }
 
-    function getFormElements()
+    public function getFormElements()
     {
         global $WikiTheme;
         $request = &$this->request;
@@ -546,22 +545,22 @@ class PageEditor
         return $el;
     }
 
-    function _redirectToBrowsePage()
+    public function _redirectToBrowsePage()
     {
         $this->request->redirect(WikiURL($this->page, false, 'absolute_url'));
     }
 
-    function redirectAfterSavingPage($pagename)
+    public function redirectAfterSavingPage($pagename)
     {
         $url     = WikiURL($this->page, false, 'absolute_url');
-        $link    = '<a href="' . $url . '">'.$pagename.'</a>';
+        $link    = '<a href="' . $url . '">' . $pagename . '</a>';
         $message = fmt("Saved: %s", $link)->asString();
 
         $GLOBALS['Response']->addFeedback('info', $message, CODENDI_PURIFIER_LIGHT);
         $GLOBALS['Response']->redirect($url);
     }
 
-    function _restoreState()
+    public function _restoreState()
     {
         $request = &$this->request;
 
@@ -614,7 +613,7 @@ class PageEditor
         return true;
     }
 
-    function _initializeState()
+    public function _initializeState()
     {
         $request = &$this->request;
         $current = &$this->current;
@@ -643,7 +642,7 @@ class PageEditor
             $is_new_markup = $selected->get('markup') >= 2.0;
         }
 
-        $this->meta['markup'] = $is_new_markup ? 2.0: false;
+        $this->meta['markup'] = $is_new_markup ? 2.0 : false;
         $this->meta['pagetype'] = $selected->get('pagetype');
         if ($this->meta['pagetype'] == 'wikiblog') {
             $this->meta['summary'] = $selected->get('summary'); // keep blog title
@@ -656,7 +655,7 @@ class PageEditor
 
 class LoadFileConflictPageEditor extends PageEditor
 {
-    function editPage($saveFailed = true)
+    public function editPage($saveFailed = true)
     {
         $tokens = &$this->tokens;
 
@@ -720,7 +719,7 @@ class LoadFileConflictPageEditor extends PageEditor
         // FIXME: this doesn't display
     }
 
-    function output($template, $title_fs)
+    public function output($template, $title_fs)
     {
         $selected = &$this->selected;
         $current = &$this->current;
@@ -741,7 +740,7 @@ class LoadFileConflictPageEditor extends PageEditor
         return true;
     }
 
-    function getConflictMessage($unresolved = false)
+    public function getConflictMessage($unresolved = false)
     {
         $message = HTML(HTML::p(
             fmt(

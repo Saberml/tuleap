@@ -58,7 +58,6 @@ abstract class Tracker_FormElement_Container extends Tracker_FormElement
     /**
      * Accessor for visitors
      *
-     * @param Tracker_FormElement_Visitor $visitor
      */
     public function accept(Tracker_FormElement_Visitor $visitor)
     {
@@ -144,7 +143,7 @@ abstract class Tracker_FormElement_Container extends Tracker_FormElement
     {
         $purifier  = Codendi_HTMLPurifier::instance();
         $prefix   .= $purifier->purify($this->getLabel());
-        $html      = '<optgroup id="'. $id_prefix . $this->id .'" label="'. $prefix .'">';
+        $html      = '<optgroup id="' . $id_prefix . $this->id . '" label="' . $prefix . '">';
         $optgroups = '';
         foreach ($this->getFormElements() as $formElement) {
             if ($formElement->userCanRead()) {
@@ -174,7 +173,7 @@ abstract class Tracker_FormElement_Container extends Tracker_FormElement
         $subfields = $this->getAllFormElements();
         $child = $root->addChild('formElements');
         foreach ($subfields as $subfield) {
-            $grandchild = $child->addChild('formElement');
+            $grandchild = $child->addChild($subfield->getTagNameForXMLExport());
             $subfield->exportToXML($grandchild, $xmlMapping, $project_export_context, $user_xml_exporter);
         }
     }
@@ -191,7 +190,7 @@ abstract class Tracker_FormElement_Container extends Tracker_FormElement
     /**
      * Verifies the consistency of the imported Tracker
      *
-     * @return true if Tracker is ok
+     * @return bool true if Tracker is ok
      */
     public function testImport()
     {
@@ -228,7 +227,6 @@ abstract class Tracker_FormElement_Container extends Tracker_FormElement
     /**
      * Fetch the element for the update artifact form
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return string html
      */
@@ -253,7 +251,6 @@ abstract class Tracker_FormElement_Container extends Tracker_FormElement
     /**
      * Fetch the element for the update artifact form
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return string html
      */

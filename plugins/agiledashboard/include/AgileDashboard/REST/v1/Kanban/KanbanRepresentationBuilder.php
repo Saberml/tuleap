@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2014-2015. All Rights Reserved.
+ * Copyright (c) Enalean, 2014-Present. All Rights Reserved.
  *
  * Tuleap is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,11 +54,10 @@ class KanbanRepresentationBuilder
     }
 
     /**
-     * @return Tuleap\AgileDashboard\REST\v1\Kanban\KanbanRepresentation
+     * @return KanbanRepresentation
      */
     public function build(AgileDashboard_Kanban $kanban, PFUser $user)
     {
-
         try {
             $this->kanban_actions_checker->checkUserCanAddInPlace($user, $kanban);
             $user_can_add_in_place = true;

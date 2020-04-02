@@ -10,14 +10,13 @@
 require_once('Docman_View_View.class.php');
 require_once('Docman_View_ItemTreeUlVisitor.class.php');
 
-require_once(dirname(__FILE__).'/../Docman_ItemFactory.class.php');
+require_once(dirname(__FILE__) . '/../Docman_ItemFactory.class.php');
 
 class Docman_View_RawTree extends Docman_View_View
 {
 
-    /* protected */ function _content($params)
+    /* protected */ public function _content($params)
     {
-
         $itemFactory = new Docman_ItemFactory($params['group_id']);
 
         $itemTree = $itemFactory->getItemSubTree($params['item'], $params['user']);
@@ -38,16 +37,16 @@ class Docman_View_RawTree extends Docman_View_View
 
         echo $displayItemTreeVisitor->toHtml();
     }
-    function getActionOnIconForFolder(&$folder, $force_collapse = true)
+    public function getActionOnIconForFolder(&$folder, $force_collapse = true)
     {
-        return $force_collapse || !(user_get_preference(PLUGIN_DOCMAN_EXPAND_FOLDER_PREF.'_'.$folder->getGroupId().'_'.$folder->getId()) === false) ? 'collapseFolder' : 'expandFolder';
+        return $force_collapse || !(user_get_preference(PLUGIN_DOCMAN_EXPAND_FOLDER_PREF . '_' . $folder->getGroupId() . '_' . $folder->getId()) === false) ? 'collapseFolder' : 'expandFolder';
     }
-    function getClassForFolderLink()
+    public function getClassForFolderLink()
     {
         return 'docman_item_type_folder';
     }
 
-    function _javascript($params)
+    public function _javascript($params)
     {
         // force docman object to watch click on pen icon
         $this->javascript .= "docman.initShowOptions();\n";

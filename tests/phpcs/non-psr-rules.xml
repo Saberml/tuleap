@@ -15,6 +15,28 @@
     <!-- Exclude generated files -->
     <exclude-pattern>plugins/tracker/include/Tracker/Report/Query/Advanced/Grammar/Parser.php</exclude-pattern>
 
+    <!-- Forbid useless semicolon `;` -->
+    <rule ref="SlevomatCodingStandard.PHP.UselessSemicolon"/>
+    <!-- Forbid spaces around square brackets -->
+    <rule ref="Squiz.Arrays.ArrayBracketSpacing"/>
+    <!-- Require that single line arrays have the correct spacing: no space around brackets and one space after comma -->
+    <rule ref="SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace"/>
+    <!-- Forbid blank line after function opening brace -->
+    <rule ref="Squiz.WhiteSpace.FunctionOpeningBraceSpace"/>
+    <!-- Forbid spaces around `->` operator -->
+    <rule ref="Squiz.WhiteSpace.ObjectOperatorSpacing">
+        <properties>
+            <property name="ignoreNewlines" value="true"/>
+        </properties>
+    </rule>
+    <!-- Forbid spaces before semicolon `;` -->
+    <rule ref="Squiz.WhiteSpace.SemicolonSpacing"/>
+    <!-- Force whitespace after a type cast -->
+    <rule ref="Generic.Formatting.SpaceAfterCast">
+        <properties>
+            <property name="spacing" value="1"/>
+        </properties>
+    </rule>
     <!-- Comments -->
     <!-- Forbid comments starting with # -->
     <rule ref="PEAR.Commenting.InlineComment"/>
@@ -51,6 +73,8 @@
             </property>
         </properties>
     </rule>
+  <!-- Forbid useless inherit doc comment -->
+  <rule ref="SlevomatCodingStandard.Commenting.UselessInheritDocComment"/>
     <!-- Forbid unused use statements -->
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses">
         <properties>
@@ -62,6 +86,12 @@
     <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility"/>
     <!-- Require ? when default value is null -->
     <rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/>
+    <!-- Require one space between typehint and variable, require no space between nullability sign and typehint -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing"/>
+    <!-- Forbid useless @param annotations -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint.UselessAnnotation"/>
+    <!-- Forbid useless @return annotations -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation"/>
     <!-- Require use of short versions of scalar types (i.e. int instead of integer) -->
     <rule ref="SlevomatCodingStandard.TypeHints.LongTypeHints"/>
     <!-- Require usage of ::class instead of __CLASS__, get_class(), get_class($this), get_called_class() and get_parent_class() -->
@@ -87,6 +117,10 @@
     <rule ref="SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash"/>
     <!-- Forbid useless alias for classes, constants and functions -->
     <rule ref="SlevomatCodingStandard.Namespaces.UselessAlias"/>
+    <!-- Forbid dead code -->
+    <rule ref="SlevomatCodingStandard.Classes.UnusedPrivateElements"/>
+    <!-- Require /* @var type $foo */ and similar simple inline annotations to be replaced by assert() -->
+    <rule ref="SlevomatCodingStandard.PHP.RequireExplicitAssertion"/>
 
     <!-- Ensure code is compatible with the targeted version of PHP -->
     <rule ref="PHPCompatibility"/>

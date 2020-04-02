@@ -21,6 +21,7 @@
 namespace Tuleap\AgileDashboard\Kanban;
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PFUser;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 
@@ -78,10 +79,10 @@ class KanbanXmlImporterTest extends TestCase
         $this->kanban_factory                        = \Mockery::spy(\AgileDashboard_KanbanFactory::class);
         $this->mappings_registry                     = new \Tuleap\XML\MappingsRegistry;
 
-        $this->user                = (new \UserTestBuilder())->withId(101)->build();
+        $this->user                = new PFUser(['user_id' => 101, 'language_id' => 'en']);
         $this->project             = \Mockery::spy(\Project::class, ['getID' => 100, 'getUnixName' => false, 'isPublic' => false]);
         $this->kanban_xml_importer = new KanbanXmlImporter(
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             $this->kanban_manager,
             $this->agile_dashboard_configuration_manager,
             $this->kanban_column_manager,

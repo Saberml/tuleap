@@ -65,7 +65,7 @@ final class GerritRESTTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->logger      = \Mockery::mock(Logger::class);
+        $this->logger      = \Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->http_client = new Client();
 
         $this->response_factory = HTTPFactoryBuilder::responseFactory();
@@ -110,7 +110,7 @@ final class GerritRESTTest extends TestCase
         assert($request instanceof RequestInterface);
         $this->assertEquals('PUT', $request->getMethod());
         $request_uri = $request->getUri();
-        $this->assertEquals('/a/groups/'.urlencode($group_name).'/groups/'.urlencode($included_group_name), $request_uri->getPath());
+        $this->assertEquals('/a/groups/' . urlencode($group_name) . '/groups/' . urlencode($included_group_name), $request_uri->getPath());
         $this->assertEquals($this->gerrit_server->getHost(), $request_uri->getHost());
     }
 
@@ -591,6 +591,25 @@ final class GerritRESTTest extends TestCase
         $this->assertEquals($this->gerrit_server->getHost(), $request_uri->getHost());
     }
 
+    public function testTriesToDeleteAnAlreadyDeletedProjectWithoutThrowingAnException(): void
+    {
+        $this->logger->shouldReceive('info')->twice();
+
+        $this->http_client->addResponse(
+            $this->response_factory->createResponse(404)
+        );
+
+        $project_name = 'gerrit/already_deleted_project_name';
+        $this->driver->deleteProject($this->gerrit_server, $project_name);
+
+        $request = $this->http_client->getLastRequest();
+        assert($request instanceof RequestInterface);
+        $this->assertEquals('POST', $request->getMethod());
+        $request_uri = $request->getUri();
+        $this->assertEquals('/a/projects/' . urlencode($project_name) . '/delete-project~delete', $request_uri->getPath());
+        $this->assertEquals($this->gerrit_server->getHost(), $request_uri->getHost());
+    }
+
     private function buildGitRepository(string $project_name, string $repo_name): \GitRepository
     {
         $repo = \Mockery::mock(\GitRepository::class);
@@ -961,7 +980,7 @@ final class GerritRESTTest extends TestCase
         $this->assertJsonStringEqualsJsonString($expected_json_data, $request->getBody()->getContents());
         $this->assertEquals(Git_Driver_GerritREST::MIME_JSON, $request->getHeaderLine(Git_Driver_GerritREST::HEADER_CONTENT_TYPE));
         $request_uri = $request->getUri();
-        $this->assertEquals('/a/groups/'. urlencode($group_name) .'/groups.delete', $request_uri->getPath());
+        $this->assertEquals('/a/groups/' . urlencode($group_name) . '/groups.delete', $request_uri->getPath());
         $this->assertEquals($this->gerrit_server->getHost(), $request_uri->getHost());
     }
 }

@@ -40,16 +40,16 @@ describe("Given a release widget", () => {
     beforeEach(() => {
         component_options.propsData = {
             project_id,
-            is_browser_IE11: false
+            is_browser_IE11: false,
         };
 
         store_options = {
             state: {
-                is_loading: false
+                is_loading: false,
             },
             getters: {
-                has_rest_error: false
-            }
+                has_rest_error: false,
+            },
         };
     });
 
@@ -85,7 +85,7 @@ describe("Given a release widget", () => {
         store_options.getters.has_rest_error = true;
 
         const wrapper = await getPersonalWidgetInstance(store_options);
-        expect(wrapper.find("[data-test=show-error-message]").text()).toEqual(
+        expect(wrapper.get("[data-test=show-error-message]").text()).toEqual(
             "Oops, an error occurred!"
         );
     });

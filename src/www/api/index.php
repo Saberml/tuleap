@@ -18,9 +18,11 @@
  */
 
 define('IS_SCRIPT', true);
-require_once __DIR__. '/../include/pre.php';
+require_once __DIR__ . '/../include/pre.php';
 require_once __DIR__ . '/../project/admin/permissions.php';
 
+use Tuleap\Instrument\Prometheus\Prometheus;
+use Tuleap\Request\RequestInstrumentation;
 use Tuleap\REST\BasicAuthentication;
 use Tuleap\REST\TuleapRESTAuthentication;
 use Tuleap\REST\GateKeeper;
@@ -37,12 +39,14 @@ $minimal_request = new \Tuleap\Http\Server\NullServerRequest();
 $response        = $cors_middleware->process($minimal_request, $request_handler);
 (new SapiEmitter())->emit($response);
 
+$request_instrumentation = new RequestInstrumentation(Prometheus::instance());
+
 $http_request = HTTPRequest::instance();
 try {
     $gate_keeper = new GateKeeper();
     $gate_keeper->assertAccess(UserManager::instance()->getCurrentUser(), $http_request);
 } catch (Exception $exception) {
-    \Tuleap\Request\RequestInstrumentation::incrementRest(403);
+    $request_instrumentation->incrementRest(403);
     header("HTTP/1.0 403 Forbidden");
     $GLOBALS['Response']->sendJSON(array(
         'error' => $exception->getMessage()
@@ -77,8 +81,8 @@ if (ForgeConfig::get('DEBUG_MODE')) {
     $restler->setSupportedFormats('JsonFormat', 'XmlFormat');
 }
 
-$restler->onComplete(static function () use ($restler) {
-    \Tuleap\Request\RequestInstrumentation::incrementRest($restler->responseCode);
+$restler->onComplete(static function () use ($restler, $request_instrumentation) {
+    $request_instrumentation->incrementRest($restler->responseCode);
 
     if ($restler->exception === null || $restler->responseCode !== 500) {
         return;
@@ -88,8 +92,8 @@ $restler->onComplete(static function () use ($restler) {
     if ($initial_exception === null) {
         return;
     }
-    $logger = new \Tuleap\REST\RESTLogger();
-    $logger->error('Unhandled exception', $initial_exception);
+    $logger = \Tuleap\REST\RESTLogger::getLogger();
+    $logger->error('Unhandled exception', ['exception' => $initial_exception]);
 });
 
 // Do not let Restler find itself the domain, when behind a reverse proxy, it's
@@ -100,16 +104,7 @@ $restler->setAPIVersion($version);
 $core_resources_injector = new Tuleap\REST\ResourcesInjector();
 $core_resources_injector->populate($restler);
 
-switch ($version) {
-    case 2:
-        $event = Event::REST_RESOURCES_V2;
-        break;
-    default:
-        $event = Event::REST_RESOURCES;
-        break;
-}
-
-EventManager::instance()->processEvent($event, array('restler' => $restler));
+EventManager::instance()->processEvent(Event::REST_RESOURCES, array('restler' => $restler));
 $restler->addAPIClass('Explorer');
 
 $restler->addAuthenticationClass('\\' . TuleapRESTAuthentication::class);

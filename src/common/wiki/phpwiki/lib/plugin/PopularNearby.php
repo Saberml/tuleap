@@ -40,17 +40,17 @@ require_once('lib/PageList.php');
 
 class WikiPlugin_PopularNearby extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("PopularNearby");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("List the most popular pages nearby.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -59,7 +59,7 @@ class WikiPlugin_PopularNearby extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('pagename' => '[pagename]',
                      'mode'     => 'nearby', // or 'incoming' or 'outgoing'
@@ -69,7 +69,7 @@ class WikiPlugin_PopularNearby extends WikiPlugin
                     );
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         extract($args);
@@ -106,8 +106,8 @@ class WikiPlugin_PopularNearby extends WikiPlugin
                 break;
         }
         $html = HTML($header);
-        for ($i=0; $i<count($links); $i++) {
-            $html->pushContent($links[$i]['format'], $i<count($links)-1?', ':'');
+        for ($i = 0; $i < count($links); $i++) {
+            $html->pushContent($links[$i]['format'], $i < count($links) - 1 ? ', ' : '');
         }
         return $html;
     }
@@ -125,7 +125,7 @@ class WikiPlugin_PopularNearby extends WikiPlugin
      *
      * @return Array of sorted links
      */
-    function sortedLinks($pages, $direction = false, $limit = 5)
+    public function sortedLinks($pages, $direction = false, $limit = 5)
     {
         $links = array();
         if (is_array($pages)) {
@@ -167,7 +167,7 @@ class WikiPlugin_PopularNearby extends WikiPlugin
         return $this->sortByHits($links);
     }
 
-    function sortByHits($links)
+    public function sortByHits($links)
     {
         if (!$links) {
             return array();
@@ -176,7 +176,7 @@ class WikiPlugin_PopularNearby extends WikiPlugin
         reset($links);
         return $links;
     }
-};
+}
 
 function cmp_by_hits($a, $b)
 {

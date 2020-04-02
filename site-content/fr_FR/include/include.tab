@@ -24,7 +24,6 @@ include_account	dns_error	Les noms de projet ne peuvent comporter de caractères
 include_account	used_by_svn	Ce nom n'est pas disponible : Un répertoire SVN existe déjà avec ce nom.
 include_account	used_by_cvs	Ce nom n'est pas disponible : Un répertoire CVS existe déjà avec ce nom.
 include_account	used_by_sys	Ce nom n'est pas disponible : Un home projet  existe déjà avec ce nom.
-include_account	change_pwd_err	Merci de mettre à jour votre mot de passe d'abord
 
 #
 #-----------------------------------------------
@@ -301,8 +300,6 @@ include_utils	prio_colors	Échelle de couleurs des priorités
 include_utils	address_problem	Les adresses suivantes présentent une anomalie
 include_utils	email_explain	Les adresses e-mail doivent être soit des noms de login utilisateur (par exemple 'jmartin') ou une adresse e-mail complète (par exemple jean.martin@mon.domaine.com). Plusieurs adresses e-mail peuvent être saisies si elles sont séparées par une virgule ou un point-virgule.
 include_utils	invalid_email	Format d'email invalide
-include_utils	time_ago	il y a $1
-include_utils	time_in_future	dans $1
 include_utils	1_minute	1 minute
 include_utils	less_1_minute	moins d'une minute
 include_utils	less_than_one_second	moins d'une seconde

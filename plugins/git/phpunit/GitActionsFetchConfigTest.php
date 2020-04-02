@@ -23,7 +23,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tuleap\GlobalResponseMock;
 
-require_once __DIR__.'/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class GitActionsFetchConfigTest extends TestCase
@@ -94,7 +94,7 @@ class GitActionsFetchConfigTest extends TestCase
             \Mockery::spy(\ProjectManager::class),
             $this->git_permissions_manager,
             $url_manager,
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             \Mockery::spy(\Git_Mirror_MirrorDataMapper::class),
             \Mockery::spy(\ProjectHistoryDao::class),
             \Mockery::spy(\GitRepositoryMirrorUpdater::class),

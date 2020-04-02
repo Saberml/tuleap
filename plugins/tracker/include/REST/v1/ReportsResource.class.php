@@ -86,10 +86,11 @@ class ReportsResource extends AuthenticatedResource
      *
      * @url GET {id}
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param int $id Id of the report
      *
-     * @return Tuleap\Tracker\REST\ReportRepresentation
+     * @return ReportRepresentation
      * @throws RestException 403
      * @throws RestException 404
      */
@@ -144,6 +145,7 @@ class ReportsResource extends AuthenticatedResource
      *
      * @url GET {id}/artifacts
      * @access hybrid
+     * @oauth2-scope read:tracker
      *
      * @param int $id Id of the report
      * @param string $values Which fields to include in the response. Default is no field values {@from path}{@choice ,all}
@@ -220,7 +222,7 @@ class ReportsResource extends AuthenticatedResource
         return array_values(array_filter($list_of_artifact_representation));
     }
 
-    /** @return Tracker_Report */
+    /** @return \Tracker_Report */
     private function getReportById(\PFUser $user, $id)
     {
         $store_in_session = false;

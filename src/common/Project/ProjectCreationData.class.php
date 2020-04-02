@@ -49,10 +49,10 @@ class ProjectCreationData //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNa
     private $inherit_from_template = true;
     private $access;
 
-    public function __construct(DefaultProjectVisibilityRetriever $default_project_visibility_retriever, ?Logger $logger = null)
+    public function __construct(DefaultProjectVisibilityRetriever $default_project_visibility_retriever, ?\Psr\Log\LoggerInterface $logger = null)
     {
         if ($logger === null) {
-            $this->logger = new Log_NoopLogger();
+            $this->logger = new \Psr\Log\NullLogger();
         } else {
             $this->logger = new WrapperLogger($logger, self::class);
         }
@@ -189,7 +189,7 @@ class ProjectCreationData //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNa
 
     private function getAccessFromProjectArrayData(array $project)
     {
-        if ((int) ForgeConfig::get('sys_user_can_choose_project_privacy') === 0) {
+        if ((int) ForgeConfig::get(ProjectManager::SYS_USER_CAN_CHOOSE_PROJECT_PRIVACY) === 0) {
             return $this->default_project_visibility_retriever->getDefaultProjectVisibility();
         }
 
@@ -219,7 +219,7 @@ class ProjectCreationData //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNa
         SimpleXMLElement $xml,
         ?XML_RNGValidator $xml_validator = null,
         ?ServiceManager $service_manager = null,
-        ?Logger $logger = null,
+        ?\Psr\Log\LoggerInterface $logger = null,
         ?DefaultProjectVisibilityRetriever $default_project_visibility_retriever = null,
         ?ExternalFieldsExtractor $external_fields_extractor = null
     ) {
@@ -252,8 +252,9 @@ class ProjectCreationData //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNa
         }
 
         $this->logger->debug("Start import from XML, validate RNG");
-        $rng_path = realpath(dirname(__FILE__).'/../xml/resources/project/project.rng');
-        $partial_element = clone $xml;
+        $rng_path = realpath(dirname(__FILE__) . '/../xml/resources/project/project.rng');
+
+        $partial_element = new SimpleXMLElement((string) $xml->asXML());
         $external_fields_extractor->extractExternalFieldFromProjectElement($partial_element);
         $xml_validator->validate($partial_element, $rng_path);
         $this->logger->debug("RNG validated, feed the data");
@@ -269,7 +270,7 @@ class ProjectCreationData //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNa
         $this->trove_data    = array();
         $this->data_services = array();
         $this->data_fields   = array(
-            'form_101' => (string)$xml->$long_description_tagname
+            'form_101' => (string) $xml->$long_description_tagname
         );
         $this->is_built_from_xml = true;
 
@@ -325,7 +326,6 @@ class ProjectCreationData //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNa
     /**
      * @param array $project
      *
-     * @return string
      */
     public function setAccessFromProjectData(array $project): string
     {

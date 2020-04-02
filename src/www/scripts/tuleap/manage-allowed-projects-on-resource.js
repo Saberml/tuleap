@@ -16,8 +16,8 @@
  */
 
 /* global tlp:readonly tuleap:readonly */
-!(function($) {
-    $(function() {
+!(function ($) {
+    $(function () {
         bindAllowAllEvent();
         bindFilterEvent();
         bindCheckboxesEvent();
@@ -26,8 +26,50 @@
     });
 
     function bindAllowAllEvent() {
-        $("#allowed-projects-all-allowed").on("change", function() {
-            $("#" + $(this).attr("data-form-id")).submit();
+        const switch_button = document.getElementById("allowed-projects-all-allowed");
+        if (!switch_button) {
+            return;
+        }
+        const restrict_modal_id = switch_button.dataset.targetRestrictModalId;
+        const allow_modal_id = switch_button.dataset.targetAllowModalId;
+        const form = switch_button.form;
+
+        if (!form) {
+            return;
+        }
+
+        let allow_modal = null;
+        let restrict_modal = null;
+        if (allow_modal_id) {
+            const modal_element = document.getElementById(allow_modal_id);
+            if (!modal_element) {
+                throw Error("Unable to find confirmation allow modal " + allow_modal_id);
+            }
+            allow_modal = tlp.modal(modal_element);
+            allow_modal.addEventListener("tlp-modal-hidden", function () {
+                form.reset();
+            });
+        }
+        if (restrict_modal_id) {
+            const modal_element = document.getElementById(restrict_modal_id);
+            if (!modal_element) {
+                throw Error("Unable to find confirmation restrict modal " + restrict_modal_id);
+            }
+
+            restrict_modal = tlp.modal(modal_element);
+            restrict_modal.addEventListener("tlp-modal-hidden", function () {
+                form.reset();
+            });
+        }
+
+        switch_button.addEventListener("change", function () {
+            if (switch_button.checked && allow_modal) {
+                allow_modal.show();
+            } else if (!switch_button.checked && restrict_modal) {
+                restrict_modal.show();
+            } else {
+                form.submit();
+            }
         });
     }
 
@@ -43,13 +85,13 @@
             select_all = $("#check-all");
 
         (function toggleAll() {
-            select_all.change(function() {
+            select_all.change(function () {
                 if ($(this).is(":checked")) {
-                    checkboxes.each(function() {
+                    checkboxes.each(function () {
                         $(this).prop("checked", "checked");
                     });
                 } else {
-                    checkboxes.each(function() {
+                    checkboxes.each(function () {
                         $(this).prop("checked", "");
                     });
                 }
@@ -59,7 +101,7 @@
         })();
 
         (function projectCheckboxesEvent() {
-            checkboxes.change(function() {
+            checkboxes.change(function () {
                 select_all.prop("checked", "");
                 toggleRevokeSelectedButton();
             });
@@ -83,11 +125,11 @@
         if (dom_natures_modal_create) {
             var tlp_natures_modal_create = tlp.modal(dom_natures_modal_create);
 
-            $("#revoke-project").on("click", function() {
+            $("#revoke-project").on("click", function () {
                 tlp_natures_modal_create.toggle();
             });
 
-            $("#revoke-confirm").click(function() {
+            $("#revoke-confirm").click(function () {
                 $("<input>")
                     .attr("type", "hidden")
                     .attr("name", "revoke-project")
@@ -104,7 +146,7 @@
 
         if (autocompleter) {
             tuleap.autocomplete_projects_for_select2(autocompleter, {
-                include_private_projects: 1
+                include_private_projects: 1,
             });
         }
     }

@@ -104,9 +104,6 @@ class Workflow_Transition_ConditionFactory
         return $this->fieldnotempty_factory->getFieldNotEmpty($transition);
     }
 
-    /**
-     * @return Workflow_Transition_Condition_CommentNotEmpty
-     */
     public function getCommentNotEmptyCondition(Transition $transition) : Workflow_Transition_Condition_CommentNotEmpty
     {
         return $this->formatCommentNotEmptyCondition(
@@ -198,7 +195,7 @@ class Workflow_Transition_ConditionFactory
      */
     private function getInstanceFromXML($xml, &$xmlMapping, Transition $transition, Project $project)
     {
-        $type      = (string)$xml['type'];
+        $type      = (string) $xml['type'];
         $condition = null;
         switch ($type) {
             case 'perms':

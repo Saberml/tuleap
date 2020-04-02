@@ -59,7 +59,6 @@ class ThemeManager
     }
 
     /**
-     * @param PFUser $current_user
      * @return \Tuleap\Theme\BurningParrot\BurningParrotTheme
      */
     public function getBurningParrot(PFUser $current_user)
@@ -74,14 +73,14 @@ class ThemeManager
             $GLOBALS['sys_user_theme'] = $name;
             $path = $this->getThemeClassPath($theme_basedir_root, $name);
 
-            return $this->instantiateTheme($current_user, $name, $path, '/themes/'.$name);
+            return $this->instantiateTheme($current_user, $name, $path, '/themes/' . $name);
         }
         return null;
     }
 
     private function instantiateTheme(PFUser $current_user, $name, $path, $webroot)
     {
-        if (preg_match('`'. preg_quote(self::$LEGACY_EXTENSION, '`') .'$`', $path)) {
+        if (preg_match('`' . preg_quote(self::$LEGACY_EXTENSION, '`') . '$`', $path)) {
             $klass = $name . '_Theme';
             include_once $path;
             return new $klass($webroot);

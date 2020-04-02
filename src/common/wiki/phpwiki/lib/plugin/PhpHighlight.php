@@ -57,17 +57,17 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
 {
     // Four required functions in a WikiPlugin.
 
-    function getName()
+    public function getName()
     {
         return _("PhpHighlight");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("PHP syntax highlighting");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -77,7 +77,7 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
     }
 
     // Establish default values for each of this plugin's arguments.
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         // TODO: results of ini_get() should be static for multiple
         // invocations of plugin on one WikiPage
@@ -90,9 +90,8 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
                      );
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
-
         extract($this->getArgs($argstr, $request));
         $source = $this->source;
 
@@ -134,7 +133,7 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
         return new RawXml($str);
     }
 
-    function handle_plugin_args_cruft(&$argstr, &$args)
+    public function handle_plugin_args_cruft(&$argstr, &$args)
     {
         $this->source = $argstr;
     }
@@ -143,7 +142,7 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
      * Make sure color argument is valid
      * See http://www.w3.org/TR/REC-html40/types.html#h-6.5
      */
-    function sanify_colors($string, $comment, $keyword, $bg, $default, $html)
+    public function sanify_colors($string, $comment, $keyword, $bg, $default, $html)
     {
         static $html4colors = array("black", "silver", "gray", "white",
                                     "maroon", "red", "purple", "fuchsia",
@@ -172,7 +171,7 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
         }
     }
 
-    function set_colors($string, $comment, $keyword, $bg, $default, $html)
+    public function set_colors($string, $comment, $keyword, $bg, $default, $html)
     {
         // set highlight colors
         $this->oldstring = ini_set('highlight.string', $string);
@@ -182,7 +181,7 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
         $this->oldhtml = ini_set('highlight.html', $html);
     }
 
-    function restore_colors()
+    public function restore_colors()
     {
         // restore previous default highlight colors
         ini_set('highlight.string', $this->oldstring);
@@ -191,7 +190,7 @@ class WikiPlugin_PhpHighlight extends WikiPlugin
         ini_set('highlight.default', $this->olddefault);
         ini_set('highlight.html', $this->oldhtml);
     }
-};
+}
 
 // $Log: PhpHighlight.php,v $
 // Revision 1.9  2004/04/10 07:25:24  rurban

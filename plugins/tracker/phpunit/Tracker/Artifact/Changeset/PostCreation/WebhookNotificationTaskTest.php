@@ -27,7 +27,7 @@ use Tuleap\Tracker\Webhook\Webhook;
 use Tuleap\Tracker\Webhook\WebhookFactory;
 use Tuleap\Webhook\Emitter;
 
-require_once __DIR__.'/../../../../bootstrap.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
 class WebhookNotificationTaskTest extends TestCase
 {
@@ -35,7 +35,7 @@ class WebhookNotificationTaskTest extends TestCase
 
     public function testConfiguredWebhooksAreSent()
     {
-        $logger  = \Mockery::mock(\Logger::class);
+        $logger  = \Mockery::mock(\Psr\Log\LoggerInterface::class);
         $emitter = \Mockery::mock(Emitter::class);
         $factory = \Mockery::mock(WebhookFactory::class);
 

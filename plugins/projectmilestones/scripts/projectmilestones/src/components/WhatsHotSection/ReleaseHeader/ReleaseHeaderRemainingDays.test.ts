@@ -43,13 +43,13 @@ describe("ReleaseHeaderRemainingDays", () => {
 
     beforeEach(() => {
         store_options = {
-            state: {}
+            state: {},
         };
 
         component_options = {
             propsData: {
-                release_data
-            }
+                release_data,
+            },
         };
     });
 
@@ -58,17 +58,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: 10,
-                number_days_since_start: 0
+                number_days_since_start: 0,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("0.00%");
             expect(remaining_day_text.classes()).toContain("release-remaining-value-success");
@@ -81,17 +81,17 @@ describe("ReleaseHeaderRemainingDays", () => {
         it("When there number of start days but null, Then 0 is displayed and a message in tooltip", async () => {
             release_data = {
                 id: 2,
-                number_days_since_start: null
+                number_days_since_start: null,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("No start date defined.");
             expect(remaining_day_text.classes()).toContain("release-remaining-value-disabled");
@@ -105,17 +105,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: -10,
-                number_days_since_start: -10
+                number_days_since_start: -10,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("0.00%");
             expect(wrapper.classes()).not.toContain("release-remaining-value-disabled");
@@ -130,17 +130,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: -10,
-                number_days_since_start: 10
+                number_days_since_start: 10,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("100.00%");
             expect(wrapper.classes()).not.toContain("release-remaining-value-disabled");
@@ -155,17 +155,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: 0,
-                number_days_since_start: 10
+                number_days_since_start: 10,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("100.00%");
             expect(wrapper.classes()).not.toContain("release-remaining-value-danger");
@@ -183,17 +183,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_since_start: 10,
-                number_days_until_end: null
+                number_days_until_end: null,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("No end date defined.");
             expect(remaining_day_text.classes()).toContain("release-remaining-value-disabled");
@@ -207,17 +207,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: 5,
-                number_days_since_start: 5
+                number_days_since_start: 5,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("50.00%");
             expect(remaining_day_text.classes()).toContain("release-remaining-value-success");
@@ -231,17 +231,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: 2,
-                number_days_since_start: 8
+                number_days_since_start: 8,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("80.00%");
             expect(remaining_day_text.classes()).toContain("release-remaining-value-danger");
@@ -255,17 +255,17 @@ describe("ReleaseHeaderRemainingDays", () => {
             release_data = {
                 id: 2,
                 number_days_until_end: 1,
-                number_days_since_start: 10
+                number_days_since_start: 10,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            const remaining_day_text = wrapper.find("[data-test=display-remaining-day-text]");
-            const remaining_day_value = wrapper.find("[data-test=display-remaining-day-value]");
+            const remaining_day_text = wrapper.get("[data-test=display-remaining-day-text]");
+            const remaining_day_value = wrapper.get("[data-test=display-remaining-day-value]");
 
             expect(wrapper.attributes("data-tlp-tooltip")).toEqual("90.91%");
             expect(remaining_day_text.classes()).toContain("release-remaining-value-danger");

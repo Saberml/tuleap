@@ -21,7 +21,7 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class MembershipManagerProjectAdminOwnerOfEverythingTest extends TestCase
@@ -68,7 +68,7 @@ class MembershipManagerProjectAdminOwnerOfEverythingTest extends TestCase
                 $this->driver_factory,
                 $this->gerrit_user_manager,
                 Mockery::mock('Git_RemoteServer_GerritServerFactory'),
-                Mockery::mock('Logger'),
+                Mockery::mock(\Psr\Log\LoggerInterface::class),
                 $this->ugroup_manager,
                 $this->project_manager
             ]

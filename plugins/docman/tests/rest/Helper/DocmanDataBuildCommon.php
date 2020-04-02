@@ -69,12 +69,6 @@ class DocmanDataBuildCommon extends REST_TestDataBuilder
     }
 
     /**
-     * @param int    $user_id
-     * @param int    $docman_root_id
-     * @param string $title
-     * @param int    $item_type
-     * @param string $link_url
-     * @param string $wiki_page
      *
      * @return bool|int
      */
@@ -161,9 +155,6 @@ class DocmanDataBuildCommon extends REST_TestDataBuilder
         return $version_factory->create($version);
     }
 
-    /**
-     * @return \Project
-     */
     public function getProject(): \Project
     {
         return $this->project;
@@ -280,7 +271,7 @@ class DocmanDataBuildCommon extends REST_TestDataBuilder
         $file_path       = __DIR__ . '/../_fixtures/docmanFile/embeddedFile';
         $version_id = $this->addFileVersion($item_id, $file_version_title, 'application/pdf', $file_path);
 
-        $this->addApprovalTable($file_name, (int)$version_id, $approval_status, 'version_id');
+        $this->addApprovalTable($file_name, (int) $version_id, $approval_status, 'version_id');
     }
 
     /**

@@ -24,7 +24,7 @@ import CardWithRemainingEffort from "../Card/CardWithRemainingEffort.vue";
 
 function createWrapper(column: ColumnDefinition, swimlane: Swimlane): Wrapper<SoloSwimlaneCell> {
     return shallowMount(SoloSwimlaneCell, {
-        propsData: { column, swimlane }
+        propsData: { column, swimlane },
     });
 }
 
@@ -34,7 +34,7 @@ describe(`SoloSwimlaneCell`, () => {
             id: 3,
             label: "Done",
             is_collapsed: false,
-            mappings: [{ accepts: [{ id: 103 }, { id: 104 }] }]
+            mappings: [{ accepts: [{ id: 103 }, { id: 104 }] }],
         } as ColumnDefinition;
 
         const swimlane = { card: { id: 43, mapped_list_value: { id: 103 } } } as Swimlane;
@@ -52,14 +52,14 @@ describe(`SoloSwimlaneCell`, () => {
                 assignees: [] as User[],
                 is_open: true,
                 is_in_edit_mode: true,
-                mapped_list_value: { id: 103 }
+                mapped_list_value: { id: 103 },
             } as Card;
 
             done_column = {
                 id: 3,
                 label: "Done",
                 is_collapsed: false,
-                mappings: [{ accepts: [{ id: 103 }] }]
+                mappings: [{ accepts: [{ id: 103 }] }],
             } as ColumnDefinition;
 
             swimlane = { card } as Swimlane;
@@ -70,7 +70,7 @@ describe(`SoloSwimlaneCell`, () => {
 
             const wrapper = createWrapper(done_column, swimlane);
 
-            const solo_card = wrapper.find(CardWithRemainingEffort);
+            const solo_card = wrapper.get(CardWithRemainingEffort);
 
             expect(solo_card.classes()).toContain("taskboard-draggable-item");
             expect(solo_card.attributes("draggable")).toBe("true");
@@ -81,7 +81,7 @@ describe(`SoloSwimlaneCell`, () => {
 
             const wrapper = createWrapper(done_column, swimlane);
 
-            const solo_card = wrapper.find(CardWithRemainingEffort);
+            const solo_card = wrapper.get(CardWithRemainingEffort);
 
             expect(solo_card.classes()).not.toContain("taskboard-draggable-item");
             expect(solo_card.attributes("draggable")).toBeFalsy();

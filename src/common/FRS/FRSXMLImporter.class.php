@@ -29,10 +29,7 @@ class FRSXMLImporter
 
     public const MAPPING_KEY = 'frs_release_mapping';
 
-    /** @var XML_RNGValidator */
-    private $xml_validator;
-
-    /** @var Logger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
     /** @var FRSPackageFactory */
@@ -67,8 +64,7 @@ class FRSXMLImporter
     private $links_updater;
 
     public function __construct(
-        Logger $logger,
-        XML_RNGValidator $xml_validator,
+        \Psr\Log\LoggerInterface $logger,
         FRSPackageFactory $package_factory,
         FRSReleaseFactory $release_factory,
         FRSFileFactory $file_factory,
@@ -82,7 +78,6 @@ class FRSXMLImporter
         ?PermissionsManager $permission_manager = null
     ) {
         $this->logger             = new WrapperLogger($logger, "FRSXMLImporter");
-        $this->xml_validator      = $xml_validator;
         $this->package_factory    = $package_factory;
         $this->release_factory    = $release_factory;
         $this->file_factory       = $file_factory;
@@ -187,10 +182,10 @@ class FRSXMLImporter
     {
         $ugroup_ids = array();
         foreach ($permission_xmlnode->ugroup as $ugroup) {
-            $ugroup_name = (string)$ugroup;
+            $ugroup_name = (string) $ugroup;
             $ugroup = $this->ugroup_manager->getUGroupByName($project, $ugroup_name);
             if ($ugroup === null) {
-                $this->logger->warn("Could not find any ugroup named $ugroup_name, skip it.");
+                $this->logger->warning("Could not find any ugroup named $ugroup_name, skip it.");
                 continue;
             }
             array_push($ugroup_ids, $ugroup->getId());
@@ -218,7 +213,7 @@ class FRSXMLImporter
         $package->setApproveLicense(true);
         $package->setPackageID($this->package_factory->create($package->toArray()));
 
-        $this->logger->debug('Start import of package '.$package->getName());
+        $this->logger->debug('Start import of package ' . $package->getName());
         $read_perms = array();
         foreach ($xml_pkg->{'read-access'} as $perm) {
             $ugroup_name = (string) $perm->ugroup;
@@ -240,7 +235,7 @@ class FRSXMLImporter
                 $created_id_map['package'][$id] = $package->getPackageID();
             }
         }
-        $this->logger->debug('Import of package '.$package->getName().' completed');
+        $this->logger->debug('Import of package ' . $package->getName() . ' completed');
     }
 
     private function importRelease(
@@ -258,8 +253,8 @@ class FRSXMLImporter
 
         $release = new FRSRelease();
         $release->setProject($project);
-        $release->setReleaseDate(strtotime($attrs['time']));
-        $release->setName((string)$attrs['name']);
+        $release->setReleaseDate(strtotime((string) $attrs['time']));
+        $release->setName((string) $attrs['name']);
         $release->setStatusID(FRSRelease::STATUS_ACTIVE);
         $release->setPackageID($package->getPackageID());
         $release->setNotes((string) $xml_rel->notes);
@@ -267,7 +262,7 @@ class FRSXMLImporter
         $release->setPreformatted($attrs['preformatted'] == '1' || $attrs['preformatted'] == 'true');
         $release->setReleasedBy($user->getId());
 
-        $this->logger->debug('Start import of release '.$release->getName());
+        $this->logger->debug('Start import of release ' . $release->getName());
 
         $created_release_id = $this->release_factory->create($release->toArray());
         $release->setReleaseID($created_release_id);
@@ -300,7 +295,7 @@ class FRSXMLImporter
             }
         }
 
-        $this->logger->debug('Import of release '.$release->getName().' completed');
+        $this->logger->debug('Import of release ' . $release->getName() . ' completed');
     }
 
     private function importFile(Project $project, FRSRelease $release, PFUser $user, SimpleXMLElement $xml_file, $extraction_path)
@@ -310,13 +305,13 @@ class FRSXMLImporter
         $user  = empty($xml_file->user) ? $user : $this->user_finder->getUser($xml_file->user);
         $attrs = $xml_file->attributes();
         $src   = $extraction_path . '/' . $attrs['src'];
-        $name  = isset($attrs['name']) ? (string)$attrs['name'] : basename($src);
+        $name  = isset($attrs['name']) ? (string) $attrs['name'] : basename($src);
         $md5   = strtolower(md5_file($src));
-        $time  = strtotime($attrs['release-time']);
-        $date  = strtotime($attrs['post-date']);
+        $time  = strtotime((string) $attrs['release-time']);
+        $date  = strtotime((string) $attrs['post-date']);
         $desc  = "";
 
-        $this->logger->debug('metadata gathered for file '.$name);
+        $this->logger->debug('metadata gathered for file ' . $name);
 
         $type_id = null;
         if (isset($attrs['filetype']) && !empty($attrs['filetype'])) {
@@ -342,10 +337,10 @@ class FRSXMLImporter
         }
 
         if (isset($attrs['md5sum'])) {
-            $expected_md5 = strtolower($attrs['md5sum']);
+            $expected_md5 = strtolower((string) $attrs['md5sum']);
             if ($expected_md5 != $md5) {
                 throw new Exception(
-                    "Import of file $src failed because the file is corrupted ".
+                    "Import of file $src failed because the file is corrupted " .
                     "(expected MD5 $expected_md5, got $md5)"
                 );
             }
@@ -376,7 +371,7 @@ class FRSXMLImporter
         $this->logger->debug('Create file into DB & move to final location');
         $this->file_factory->createFile($newFile);
 
-        $this->logger->debug('Import of file '.$name.' completed');
+        $this->logger->debug('Import of file ' . $name . ' completed');
     }
 
     private function importLink(FRSRelease $release, PFUser $user, SimpleXMLElement $xml_link)
@@ -393,6 +388,6 @@ class FRSXMLImporter
             )
         );
 
-        $this->links_updater->update($release_links, $user, $release, strtotime($attrs['release-time']));
+        $this->links_updater->update($release_links, $user, $release, strtotime((string) $attrs['release-time']));
     }
 }

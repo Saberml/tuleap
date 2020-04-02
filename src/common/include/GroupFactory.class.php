@@ -31,7 +31,7 @@ class GroupFactory
      *
      *    @return bool success.
      */
-    function __construct()
+    public function __construct()
     {
             return true;
     }
@@ -41,7 +41,7 @@ class GroupFactory
      *
      *    @return    resultset
      */
-    function getAllGroups()
+    public function getAllGroups()
     {
         global $Language;
         if (user_isloggedin()) {
@@ -61,7 +61,7 @@ class GroupFactory
             return false;
         }
 
-        $sql="SELECT group_id,group_name,unix_group_name FROM groups
+        $sql = "SELECT group_id,group_name,unix_group_name FROM groups
 			WHERE group_id <> 100 AND status = 'A'
 			$access_condition
 			ORDER BY group_name ASC";
@@ -86,7 +86,7 @@ class GroupFactory
      *
      *    @return    resultset
      */
-    function getMemberGroups()
+    public function getMemberGroups()
     {
                 global $Language;
         if (!user_isloggedin()) {
@@ -96,10 +96,10 @@ class GroupFactory
 
         $db_escaped_user_id = db_ei(UserManager::instance()->getCurrentUser()->getId());
 
-        $sql="SELECT g.group_id,g.group_name ".
-        "FROM groups g, user_group ug ".
-        "WHERE g.group_id <> 100 AND g.status = 'A' AND g.group_id = ug.group_id ".
-        "AND ug.user_id=".$db_escaped_user_id." ".
+        $sql = "SELECT g.group_id,g.group_name " .
+        "FROM groups g, user_group ug " .
+        "WHERE g.group_id <> 100 AND g.status = 'A' AND g.group_id = ug.group_id " .
+        "AND ug.user_id=" . $db_escaped_user_id . " " .
         "ORDER BY g.group_name ASC";
 
      //echo $sql;
@@ -120,7 +120,7 @@ class GroupFactory
      *
      *    @return    array of {Group}
      */
-    function getMyGroups()
+    public function getMyGroups()
     {
         global $Language;
         $result_my_groups = $this->getMemberGroups();

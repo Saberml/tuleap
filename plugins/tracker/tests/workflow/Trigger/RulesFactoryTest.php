@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2013-2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2013-Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -18,7 +18,7 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class Tracker_Workflow_Trigger_RulesFactory_getRuleFromRequest_Test extends TuleapTestCase
 {
@@ -39,7 +39,7 @@ class Tracker_Workflow_Trigger_RulesFactory_getRuleFromRequest_Test extends Tule
         $rules_manager = mock('Tracker_Workflow_Trigger_RulesManager');
         $this->validator = mock('Tracker_Workflow_Trigger_TriggerValidator');
         $this->factory = new Tracker_Workflow_Trigger_RulesFactory($this->formelement_factory, $this->validator);
-        $this->json_input = json_decode(file_get_contents(dirname(__FILE__).'/_fixtures/add_rule.json'));
+        $this->json_input = json_decode(file_get_contents(dirname(__FILE__) . '/_fixtures/add_rule.json'));
     }
 }
 
@@ -275,6 +275,14 @@ class Tracker_Workflow_Trigger_RulesFactory_JsonInputOutput_TriggerTest extends 
             ->withId($this->target_value_id)
             ->withLabel('Target Value Label')
             ->build();
+
+        $target_bind_static = new Tracker_FormElement_Field_List_Bind_Static(
+            null,
+            null,
+            [$target_field_value],
+            null,
+            null
+        );
         $target_field = aSelectBoxField()
             ->withId($this->target_field_id)
             ->withLabel('Target Field Label')
@@ -284,13 +292,7 @@ class Tracker_Workflow_Trigger_RulesFactory_JsonInputOutput_TriggerTest extends 
                     ->withName($this->tracker_name)
                     ->build()
             )
-            ->withBind(
-                aBindStatic()->withValues(
-                    array(
-                        $target_field_value,
-                    )
-                )->build()
-            )
+            ->withBind($target_bind_static)
             ->build();
         stub($this->formelement_factory)->getUsedFormElementFieldById("$this->target_field_id")->returns($target_field);
 
@@ -300,6 +302,13 @@ class Tracker_Workflow_Trigger_RulesFactory_JsonInputOutput_TriggerTest extends 
             ->withId(852)
             ->withLabel('Triggering Value Label 1')
             ->build();
+        $trigger_bind_static = new Tracker_FormElement_Field_List_Bind_Static(
+            null,
+            null,
+            [$this->trigger_field_value_1],
+            null,
+            null
+        );
         $this->trigger_field_1 = aSelectBoxField()
             ->withId($this->trigger_field_id_1)
             ->withLabel('Triggering Field Label 1')
@@ -310,13 +319,7 @@ class Tracker_Workflow_Trigger_RulesFactory_JsonInputOutput_TriggerTest extends 
                     ->withParent($this->tracker)
                     ->build()
             )
-            ->withBind(
-                aBindStatic()->withValues(
-                    array(
-                        $this->trigger_field_value_1,
-                    )
-                )->build()
-            )
+            ->withBind($trigger_bind_static)
             ->build();
         stub($this->formelement_factory)->getUsedFormElementFieldById("$this->trigger_field_id_1")->returns($this->trigger_field_1);
     }

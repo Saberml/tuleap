@@ -61,7 +61,7 @@ class TimePeriodWithoutWeekEnd implements TimePeriod
         );
     }
 
-    public static function buildFromEndDate(?int $start_date, ?int $end_date, Logger $logger): TimePeriodWithoutWeekEnd
+    public static function buildFromEndDate(?int $start_date, ?int $end_date, \Psr\Log\LoggerInterface $logger): TimePeriodWithoutWeekEnd
     {
         if ($start_date === null) {
             return new self(null, null, $end_date);
@@ -71,7 +71,7 @@ class TimePeriodWithoutWeekEnd implements TimePeriod
         }
 
         if ($end_date < $start_date) {
-            $logger->warn(
+            $logger->warning(
                 sprintf(
                     'Inconsistent TimePeriod: end date %s is lesser than start date %s.',
                     (new \DateTimeImmutable())->setTimestamp($end_date)->format('Y-m-d'),
@@ -185,7 +185,7 @@ class TimePeriodWithoutWeekEnd implements TimePeriod
     {
         $day_offsets_excluding_we = array();
         $day_offset = 0;
-        while (count($day_offsets_excluding_we)-1 !== $duration) {
+        while (count($day_offsets_excluding_we) - 1 !== $duration) {
             $day = self::getNextDay($day_offset, $start_date);
             if (self::isNotWeekendDay($day)) {
                 $day_offsets_excluding_we[] = $day_offset;

@@ -41,7 +41,7 @@ abstract class Rule
      * @param String $val Value to check.
      * @return bool
      */
-    abstract function isValid($val);
+    abstract public function isValid($val);
 
     /**
      * Default error message if rule is not apply on value.
@@ -49,7 +49,7 @@ abstract class Rule
      * @param string $key
      * @return string
      */
-    function getErrorMessage($key = '')
+    public function getErrorMessage($key = '')
     {
         return $this->error;
     }
@@ -65,7 +65,7 @@ class Rule_Date extends Rule
 {
     public const DAY_REGEX     = '/^(\d{1,4})-(\d{1,2})-(\d{1,2}?)$/';
 
-    function isValid($val)
+    public function isValid($val)
     {
         if (preg_match(self::DAY_REGEX, $val, $m)) {
             return checkdate($m[2], $m[3], $m[1]);
@@ -79,12 +79,12 @@ class Rule_Date_Time extends Rule
 {
     public const DAYTIME_REGEX = '/^(\d{1,4})-(\d{1,2})-(\d{1,2}?) (\d{2}):(\d{2})(?::\d{2})?$/';
 
-    function isValid($val)
+    public function isValid($val)
     {
         if (! preg_match(self::DAYTIME_REGEX, $val, $m)) {
             return false;
         }
-        return (bool)strtotime($val);
+        return (bool) strtotime($val);
     }
 }
 
@@ -92,7 +92,7 @@ class Rule_Timestamp extends Rule
 {
     public const TIMESTAMP_REGEX = '/^[0-9]+$/';
 
-    function isValid($val)
+    public function isValid($val)
     {
         return preg_match(self::TIMESTAMP_REGEX, $val);
     }
@@ -107,7 +107,7 @@ abstract class Rule_Comparator extends Rule
      * @access private
      */
     public $ref;
-    function __construct($ref)
+    public function __construct($ref)
     {
         $this->ref = $ref;
     }
@@ -115,7 +115,7 @@ abstract class Rule_Comparator extends Rule
 
 class Rule_GreaterThan extends Rule_Comparator
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (is_numeric($val) && $val > $this->ref) {
             return true;
@@ -126,7 +126,7 @@ class Rule_GreaterThan extends Rule_Comparator
 
 class Rule_LessThan extends Rule_Comparator
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (is_numeric($val) && $val < $this->ref) {
             return true;
@@ -137,7 +137,7 @@ class Rule_LessThan extends Rule_Comparator
 
 class Rule_GreaterOrEqual extends Rule_Comparator
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (is_numeric($val) && $val >= $this->ref) {
             return true;
@@ -148,7 +148,7 @@ class Rule_GreaterOrEqual extends Rule_Comparator
 
 class Rule_lessOrEqual extends Rule_Comparator
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (is_numeric($val) && $val <= $this->ref) {
             return true;
@@ -164,7 +164,7 @@ class Rule_lessOrEqual extends Rule_Comparator
  */
 class Rule_WhiteList extends Rule_Comparator
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (is_array($this->ref)
            && count($this->ref) > 0
@@ -185,7 +185,7 @@ class Rule_Int extends Rule
      * @see http://php.net/int
      * @access private
      */
-    function checkFormat($val)
+    public function checkFormat($val)
     {
         if (preg_match('/^([+-]?[1-9][0-9]*|[+-]?0)$/', $val)) {
             return true;
@@ -194,7 +194,7 @@ class Rule_Int extends Rule
         }
     }
 
-    function isValid($val)
+    public function isValid($val)
     {
         // Need to check with the regexp because of octal form '0123' that is
         // equal to '123' with string '==' comparison.
@@ -216,7 +216,7 @@ class Rule_Int extends Rule
  */
 class Rule_String extends Rule
 {
-    function isValid($val)
+    public function isValid($val)
     {
         return is_string($val);
     }
@@ -227,7 +227,7 @@ class Rule_String extends Rule
  */
 class Rule_Array extends Rule
 {
-    function isValid($val)
+    public function isValid($val)
     {
         return is_array($val);
     }
@@ -238,7 +238,7 @@ class Rule_Array extends Rule
  */
 class Rule_NoCr extends Rule
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (is_string($val) && strpos($val, 0x0A) === false && strpos($val, 0x0D) === false
            && strpos($val, 0x00) === false) {
@@ -311,16 +311,16 @@ class Rule_Email extends Rule
      *
      * Spaces are allowed at the beginning and the end of the address.
      */
-    function validEmail($email)
+    public function validEmail($email)
     {
-        $valid_chars='-!#$%&\'*+0-9=?A-Z^_`a-z{|}~\.';
+        $valid_chars = '-!#$%&\'*+0-9=?A-Z^_`a-z{|}~\.';
         if (array_key_exists('sys_disable_subdomains', $GLOBALS)
             && $GLOBALS['sys_disable_subdomains']) {
-            $valid_domain='['.$valid_chars.']+';
+            $valid_domain = '[' . $valid_chars . ']+';
         } else {
-            $valid_domain='['.$valid_chars.']+\.['.$valid_chars.']+';
+            $valid_domain = '[' . $valid_chars . ']+\.[' . $valid_chars . ']+';
         }
-        $regexp = '/^['.$valid_chars.']+'.'@'.$valid_domain.'$/D';
+        $regexp = '/^[' . $valid_chars . ']+' . '@' . $valid_domain . '$/D';
         return preg_match($regexp, $email);
     }
 }
@@ -444,14 +444,14 @@ class Rule_UserName extends Rule
      */
     public function isReservedName($val)
     {
-        $is_reserved_name = preg_match('/^('.
-             '(www[0-9]?)|(cvs[0-9]?)|(shell[0-9]?)|(ftp[0-9]?)|(irc[0-9]?)|(news[0-9]?)'.
-             '|(mail[0-9]?)|(ns[0-9]?)|(download[0-9]?)|(pub)|(users)|(compile)|(lists)'.
-             '|(slayer)|(orbital)|(tokyojoe)|(webdev)|(projects)|(cvs)|(monitor)|(mirrors?)'.
-             '|(root)|(bin)|(daemon)|(adm)|(lp)|(sync)|(shutdown)|(halt)|(mail)'.
-             '|(uucp)|(operator)|(games)|(mysql)|(httpd)|(nobody)|(dummy)'.
-             '|(munin)|(mailman)|(ftpadmin)|(codendiadm)|(imadmin-bot)|(apache)|(nscd)'.
-             '|(git)|(gitolite)'.
+        $is_reserved_name = preg_match('/^(' .
+             '(www[0-9]?)|(cvs[0-9]?)|(shell[0-9]?)|(ftp[0-9]?)|(irc[0-9]?)|(news[0-9]?)' .
+             '|(mail[0-9]?)|(ns[0-9]?)|(download[0-9]?)|(pub)|(users)|(compile)|(lists)' .
+             '|(slayer)|(orbital)|(tokyojoe)|(webdev)|(projects)|(cvs)|(monitor)|(mirrors?)' .
+             '|(root)|(bin)|(daemon)|(adm)|(lp)|(sync)|(shutdown)|(halt)|(mail)' .
+             '|(uucp)|(operator)|(games)|(mysql)|(httpd)|(nobody)|(dummy)' .
+             '|(munin)|(mailman)|(ftpadmin)|(codendiadm)|(imadmin-bot)|(apache)|(nscd)' .
+             '|(git)|(gitolite)' .
              ')$/i', $val);
         $is_reserved_prefix = $this->isReservedPrefix($val);
 
@@ -684,7 +684,6 @@ class Rule_ProjectName extends Rule_UserName
      */
     public function isNameAvailable($val)
     {
-
         $backendSVN = $this->_getBackend('SVN');
         if (!$backendSVN->isNameAvailable($val)) {
             $this->error = $GLOBALS['Language']->getText('include_account', 'used_by_svn');
@@ -702,6 +701,7 @@ class Rule_ProjectName extends Rule_UserName
                 } else {
                     $result = true;
                     // Add Hook for plugins to check the name validity under plugins directories
+                    $error = '';
                     $this->getEventManager()->processEvent(
                         'file_exists_in_data_dir',
                         array('new_name'  => $val,
@@ -807,29 +807,16 @@ class Rule_ProjectFullName extends Rule_UserName
  * size because MAX_FILE_SIZE (used by PHP to check allowed size) is submitted
  * by the client.
  *
- * By default the maxSize is defined by 'sys_max_size_upload' Codendi
- * variable but may be customized with setMaxSize.
+ * By default the maxSize is defined by 'sys_max_size_upload'
  */
 require_once __DIR__ . '/../../www/file/file_utils.php'; // Needed for 2 GB workaround
 class Rule_File extends Rule
 {
     public $maxSize;
-    public $i18nPageName;
 
-    function __construct()
+    public function __construct()
     {
         $this->maxSize = ForgeConfig::get('sys_max_size_upload');
-        $this->i18nPageName = 'rule_file';
-    }
-
-    function setMaxSize($max)
-    {
-        $this->maxSize = $max;
-    }
-
-    function geti18nError($key, $params = "")
-    {
-        return $GLOBALS['Language']->getText($this->i18nPageName, $key, $params);
     }
 
     /**
@@ -838,7 +825,7 @@ class Rule_File extends Rule
      * @param  Array   One entry in $_FILES superarray (e.g. $_FILES['test'])
      * @return bool Is file upload valid or not.
      */
-    function isValid($file)
+    public function isValid($file)
     {
         $ok = false;
         if (is_array($file)) {
@@ -849,29 +836,26 @@ class Rule_File extends Rule
                     break;
                 case UPLOAD_ERR_INI_SIZE:
                 case UPLOAD_ERR_FORM_SIZE:
-                    $this->error = $this->geti18nError('error_upload_size', $file['error']);
+                    $this->error = $GLOBALS['Language']->getText('rule_file', 'error_upload_size', $file['error']);
                     break;
                 case UPLOAD_ERR_PARTIAL:
-                    $this->error = $this->geti18nError('error_upload_partial', $file['error']);
+                    $this->error = $GLOBALS['Language']->getText('rule_file', 'error_upload_partial', $file['error']);
                     break;
                 case UPLOAD_ERR_NO_FILE:
-                    $this->error = $this->geti18nError('error_upload_nofile', $file['error']);
+                    $this->error = $GLOBALS['Language']->getText('rule_file', 'error_upload_nofile', $file['error']);
                     break;
-                //case UPLOAD_ERR_NO_TMP_DIR: PHP 5.0.3
-                //case UPLOAD_ERR_CANT_WRITE: PHP 5.1.0
-                //case UPLOAD_ERR_EXTENSION: PHP 5.2.0
                 default:
-                    $this->error = $this->geti18nError('error_upload_unknown', $file['error']);
+                    $this->error = $GLOBALS['Language']->getText('rule_file', 'error_upload_unknown', $file['error']);
             }
             if ($ok && $file['name'] == '') {
                 $ok = false;
-                $this->error = $this->geti18nError('error_upload');
+                $this->error = $GLOBALS['Language']->getText('rule_file', 'error_upload');
             }
             if ($ok) {
                 // Re-check filesize (do not trust uploaded MAX_FILE_SIZE)
                 if (file_utils_get_size($file['tmp_name']) > $this->maxSize) {
                     $ok = false;
-                    $this->error = $this->geti18nError('error_upload_size', 1);
+                    $this->error = $GLOBALS['Language']->getText('rule_file', 'error_upload_size', 1);
                 }
             }
         }
@@ -881,7 +865,7 @@ class Rule_File extends Rule
 
 class Rule_FRSFileName extends Rule
 {
-    function isValid($val)
+    public function isValid($val)
     {
         if (preg_match("/[`!\"$%^,&*();=|{}<>?\/]/", $val)) {
             return false;

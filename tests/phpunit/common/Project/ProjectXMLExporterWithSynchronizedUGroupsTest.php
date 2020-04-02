@@ -30,7 +30,7 @@ use PHPUnit\Framework\TestCase;
 use Project;
 use ProjectUGroup;
 use ProjectXMLExporter;
-use ProjectXMLExporterLogger;
+use Psr\Log\LoggerInterface;
 use Tuleap\Project\UGroups\SynchronizedProjectMembershipDetector;
 use Tuleap\Test\Builders as B;
 use UGroupManager;
@@ -65,7 +65,7 @@ class ProjectXMLExporterWithSynchronizedUGroupsTest extends TestCase
         $this->ugroup_manager = M::spy(UGroupManager::class);
         $xml_validator        = new XML_RNGValidator();
         $user_xml_exporter    = new UserXMLExporter(M::spy(UserManager::class), M::spy(UserXMLExportedCollection::class));
-        $this->project        = M::spy(Project::class, [ 'getPublicName' => 'Project01']);
+        $this->project        = M::spy(Project::class, ['getPublicName' => 'Project01']);
         $this->synch_detector   = M::mock(SynchronizedProjectMembershipDetector::class);
 
         $this->xml_exporter   = new ProjectXMLExporter(
@@ -74,7 +74,7 @@ class ProjectXMLExporterWithSynchronizedUGroupsTest extends TestCase
             $xml_validator,
             $user_xml_exporter,
             $this->synch_detector,
-            M::spy(ProjectXMLExporterLogger::class)
+            M::spy(LoggerInterface::class)
         );
 
         $this->options = array(

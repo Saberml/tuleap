@@ -23,15 +23,17 @@ import {
     MilestoneData,
     ParametersRequestWithId,
     ParametersRequestWithoutId,
-    ArtifactMilestone
+    ArtifactMilestone,
 } from "../type";
 
 export {
     getCurrentMilestones,
     getOpenSprints,
     getMilestonesContent,
-    getBurndownData,
-    getNbOfClosedSprints
+    getChartData,
+    getNbOfClosedSprints,
+    getNbOfPastRelease,
+    getLastRelease,
 };
 
 function recursiveGetProjectMilestonesWithQuery(
@@ -44,18 +46,18 @@ function recursiveGetProjectMilestonesWithQuery(
         params: {
             limit,
             offset,
-            query
-        }
+            query,
+        },
     });
 }
 
 function getCurrentMilestones({
     project_id,
     limit,
-    offset
+    offset,
 }: ParametersRequestWithId): Promise<MilestoneData[]> {
     const query = JSON.stringify({
-        period: "current"
+        period: "current",
     });
 
     return recursiveGetProjectMilestonesWithQuery(project_id, query, limit, offset);
@@ -66,20 +68,20 @@ function getOpenSprints(
     { limit, offset }: ParametersRequestWithoutId
 ): Promise<MilestoneData[]> {
     const query = JSON.stringify({
-        status: "open"
+        status: "open",
     });
     return recursiveGet(`/api/v1/milestones/${encodeURIComponent(milestone_id)}/milestones`, {
         params: {
             limit,
             offset,
-            query
-        }
+            query,
+        },
     });
 }
 
 async function getNbOfClosedSprints(milestone_id: number): Promise<number> {
     const query = JSON.stringify({
-        status: "closed"
+        status: "closed",
     });
     const response = await get(
         `/api/v1/milestones/${encodeURIComponent(milestone_id)}/milestones`,
@@ -87,8 +89,8 @@ async function getNbOfClosedSprints(milestone_id: number): Promise<number> {
             params: {
                 offset: 0,
                 limit: 1,
-                query
-            }
+                query,
+            },
         }
     );
 
@@ -102,8 +104,8 @@ function getMilestonesContent(
     return recursiveGet(`/api/v1/milestones/${encodeURIComponent(id_release)}/content`, {
         params: {
             limit,
-            offset
-        }
+            offset,
+        },
     });
 }
 
@@ -115,8 +117,44 @@ function getPaginationSizeFromHeader(header: Headers): number {
     return Number.parseInt(pagination_size_header, 10);
 }
 
-async function getBurndownData(milestone_id: number): Promise<ArtifactMilestone> {
-    const burndown_data = await get(`/api/v1/artifacts/${encodeURIComponent(milestone_id)}`);
+async function getChartData(milestone_id: number): Promise<ArtifactMilestone> {
+    const chart_data = await get(`/api/v1/artifacts/${encodeURIComponent(milestone_id)}`);
+    return chart_data.json();
+}
 
-    return burndown_data.json();
+async function getNbOfPastRelease({ project_id }: ParametersRequestWithId): Promise<number> {
+    const query = JSON.stringify({
+        status: "closed",
+    });
+    const response = await get(`/api/v1/projects/${encodeURIComponent(project_id)}/milestones`, {
+        params: {
+            limit: 1,
+            offset: 0,
+            query,
+        },
+    });
+
+    return getPaginationSizeFromHeader(response.headers);
+}
+
+async function getLastRelease(
+    project_id: number,
+    nb_past_releases: number
+): Promise<MilestoneData[] | null> {
+    const query = JSON.stringify({
+        status: "closed",
+    });
+    if (nb_past_releases === 0) {
+        return null;
+    }
+
+    const milestones = await get(`/api/v1/projects/${encodeURIComponent(project_id)}/milestones`, {
+        params: {
+            limit: 1,
+            offset: nb_past_releases - 1,
+            query,
+        },
+    });
+
+    return milestones.json();
 }

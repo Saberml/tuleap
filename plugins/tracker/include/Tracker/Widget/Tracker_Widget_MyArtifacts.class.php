@@ -49,7 +49,20 @@ class Tracker_Widget_MyArtifacts extends Widget
 
     public function getTitle()
     {
-        return $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'my_arts') . ' [' . $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', strtolower($this->artifact_show)) . ']';
+        switch (strtolower($this->artifact_show)) {
+            case 'a':
+                $abbreviation = $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'a');
+                break;
+            case 's':
+                $abbreviation = $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 's');
+                break;
+            case 'as':
+            default:
+                $abbreviation = $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'as');
+                break;
+        }
+
+        return $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'my_arts') . ' [' . $abbreviation . ']';
     }
 
     public function updatePreferences(Codendi_Request $request)
@@ -90,22 +103,22 @@ class Tracker_Widget_MyArtifacts extends Widget
 
         return '
             <div class="tlp-form-element">
-                <label class="tlp-label" for="show-'. (int)$widget_id .'">
-                    '. $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'display_arts')) .'
+                <label class="tlp-label" for="show-' . (int) $widget_id . '">
+                    ' . $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'display_arts')) . '
                 </label>
                 <select type="text"
                     class="tlp-select"
-                    id="show-'. (int)$widget_id .'"
+                    id="show-' . (int) $widget_id . '"
                     name="show"
                 >
-                    <option value="A" '. $selected_a .'>
-                        '. $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'a_info')) .'
+                    <option value="A" ' . $selected_a . '>
+                        ' . $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'a_info')) . '
                     </option>
-                    <option value="S" '. $selected_s .'>
-                        '. $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 's_info')) .'
+                    <option value="S" ' . $selected_s . '>
+                        ' . $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 's_info')) . '
                     </option>
-                    <option value="AS" '. $selected_as .'>
-                        '. $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'as_info')) .'
+                    <option value="AS" ' . $selected_as . '>
+                        ' . $purifier->purify($GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'as_info')) . '
                     </option>
                 </select>
             </div>
@@ -188,9 +201,9 @@ class Tracker_Widget_MyArtifacts extends Widget
                 $classname           = Toggler::getClassname($div_id);
                 $group_id            = $tracker->getGroupId();
                 $project             = ProjectManager::instance()->getProject($group_id);
-                $project_and_tracker = $project->getUnconvertedPublicName() . ' - ' . $tracker->getName();
+                $project_and_tracker = $project->getPublicName() . ' - ' . $tracker->getName();
 
-                $html_my_artifacts .= '<div>';
+                $html_my_artifacts .= '<div data-test="dashboard-my-artifacts-content">';
                 $html_my_artifacts .= '<div class="' . $classname . ' tracker-widget-artifacts-toggler" id="' . $div_id . '">';
                 $html_my_artifacts .= '<a href="/plugins/tracker/?tracker=' . $tracker->getId() . '" class="tracker-widget-artifacts">';
                 $html_my_artifacts .= '<strong>' . $hp->purify($project_and_tracker, CODENDI_PURIFIER_CONVERT_HTML) . '</strong>';
@@ -230,11 +243,11 @@ class Tracker_Widget_MyArtifacts extends Widget
         return $GLOBALS['Language']->getText('plugin_tracker_widget_myartifacts', 'description');
     }
 
-    public function getStylesheetDependencies()
+    public function getStylesheetDependencies(): CssAssetCollection
     {
         $include_assets = new IncludeAssets(
-            __DIR__ . '/../../../../../src/www/assets/tracker/themes',
-            '/assets/tracker/themes'
+            __DIR__ . '/../../../../../src/www/assets/trackers',
+            '/assets/trackers'
         );
         return new CssAssetCollection([new CssAsset($include_assets, 'tracker-bp')]);
     }

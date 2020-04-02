@@ -17,12 +17,12 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ChartPropsBurndownWhithoutTooltip, XYScale } from "./type";
+import { ChartPropsWhithoutTooltip, XYScale } from "./type";
 import { Selection } from "d3-selection";
 
 export function buildChartLayout(
     chart_container: HTMLElement | null,
-    { graph_width, graph_height, margins }: ChartPropsBurndownWhithoutTooltip,
+    { graph_width, graph_height, margins }: ChartPropsWhithoutTooltip,
     scales: XYScale,
     ticks?: number,
     tick_padding?: number

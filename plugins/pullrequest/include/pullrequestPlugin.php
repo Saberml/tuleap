@@ -28,6 +28,7 @@ use Tuleap\Git\Events\AfterRepositoryForked;
 use Tuleap\Git\GitAdditionalActionEvent;
 use Tuleap\Git\GitRepositoryDeletionEvent;
 use Tuleap\Git\GitViews\RepoManagement\Pane\PanesCollection;
+use Tuleap\Git\Hook\PostReceiveExecuteEvent;
 use Tuleap\Git\MarkTechnicalReference;
 use Tuleap\Git\Permissions\AccessControlVerifier;
 use Tuleap\Git\Permissions\FineGrainedDao;
@@ -71,7 +72,6 @@ use Tuleap\PullRequest\InlineComment\Dao as InlineCommentDao;
 use Tuleap\PullRequest\InlineComment\InlineCommentUpdater;
 use Tuleap\PullRequest\Label\LabeledItemCollector;
 use Tuleap\PullRequest\Label\PullRequestLabelDao;
-use Tuleap\PullRequest\Logger;
 use Tuleap\PullRequest\MergeSetting\MergeSettingDAO;
 use Tuleap\PullRequest\MergeSetting\MergeSettingRetriever;
 use Tuleap\PullRequest\NavigationTab\NavigationTabPresenterBuilder;
@@ -135,7 +135,7 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
             $this->addHook(REST_GIT_PULL_REQUEST_GET_FOR_REPOSITORY);
             $this->addHook(GIT_ADDITIONAL_BODY_CLASSES);
             $this->addHook(GIT_ADDITIONAL_PERMITTED_ACTIONS);
-            $this->addHook(GIT_HOOK_POSTRECEIVE_REF_UPDATE, 'gitHookPostReceive');
+            $this->addHook(PostReceiveExecuteEvent::NAME);
             $this->addHook(GitRepositoryDeletionEvent::NAME);
             $this->addHook(GitAdditionalActionEvent::NAME);
             $this->addHook(AdditionalInformationRepresentationRetriever::NAME);
@@ -169,21 +169,20 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
 
     public function collectAssets(CollectAssets $retriever)
     {
+        $assets = new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/pullrequest',
+            '/assets/pullrequest'
+        );
+
         $css_assets = new CssAsset(
-            new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/pullrequest/themes',
-                '/assets/pullrequest/themes'
-            ),
+            $assets,
             'repository'
         );
         $retriever->addStylesheet($css_assets);
 
-        $scripts_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/pullrequest/scripts',
-            '/assets/pullrequest/scripts'
-        );
 
-        $create_pullrequest = new ScriptAsset($scripts_assets, 'create-pullrequest-button.js');
+
+        $create_pullrequest = new ScriptAsset($assets, 'create-pullrequest-button.js');
         $retriever->addScript($create_pullrequest);
     }
 
@@ -263,15 +262,15 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
         }
     }
 
-    public function gitHookPostReceive($params)
+    public function postReceiveExecuteEvent(PostReceiveExecuteEvent $event)
     {
-        $refname     = $params['refname'];
+        $refname     = $event->getRefname();
         $branch_name = $this->getBranchNameFromRef($refname);
 
         if ($branch_name != null) {
-            $new_rev    = $params['newrev'];
-            $repository = $params['repository'];
-            $user       = $params['user'];
+            $new_rev    = $event->getNewrev();
+            $repository = $event->getRepository();
+            $user       = $event->getUser();
 
             if ($new_rev == '0000000000000000000000000000000000000000') {
                 $this->abandonFromSourceBranch($user, $repository, $branch_name);
@@ -291,7 +290,7 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
                         new GitPullRequestReferenceDAO(),
                         new GitPullRequestReferenceNamespaceAvailabilityChecker()
                     ),
-                    PullRequestNotificationSupport::buildDispatcher(new Logger())
+                    PullRequestNotificationSupport::buildDispatcher(self::getLogger())
                 );
                 $pull_request_updater->updatePullRequests($user, $repository, $branch_name, $new_rev);
             }
@@ -342,7 +341,7 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
                 new MergeSettingRetriever(new MergeSettingDAO())
             ),
             $this->getTimelineEventCreator(),
-            PullRequestNotificationSupport::buildDispatcher(new Logger())
+            PullRequestNotificationSupport::buildDispatcher(self::getLogger())
         );
     }
 
@@ -531,6 +530,11 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
         (new GitPullRequestReferenceRemover)->removeAll(GitExec::buildFromRepository($event->getRepository()));
     }
 
+    public static function getLogger()
+    {
+        return BackendLogger::getDefaultLogger('pullrequest_syslog');
+    }
+
     public function dailyExecution()
     {
         $pull_request_git_reference_dao            = new GitPullRequestReferenceDAO();
@@ -542,7 +546,7 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
             ),
             $this->getPullRequestFactory(),
             $this->getRepositoryFactory(),
-            new Logger()
+            self::getLogger(),
         );
         $pull_request_git_reference_bulk_converter->convertAllPullRequestsWithoutAGitReference();
     }
@@ -727,7 +731,6 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
     {
         $header_builder = new GitRepositoryHeaderDisplayerBuilder();
         return new PullrequestDisplayer(
-            $this->getThemeManager(),
             $this->getPullRequestFactory(),
             $this->getTemplateRenderer(),
             new MergeSettingRetriever(new MergeSettingDAO()),
@@ -736,9 +739,6 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
         );
     }
 
-    /**
-     * @return HTMLURLBuilder
-     */
     private function getHTMLBuilder(): HTMLURLBuilder
     {
         return new HTMLURLBuilder(

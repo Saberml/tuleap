@@ -35,7 +35,7 @@ class Tracker_DateReminder_Role_Commenter implements Tracker_DateReminder_Role
      *
      * @return String
      */
-    function getLabel()
+    public function getLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'role_COMMENTER');
     }
@@ -43,11 +43,10 @@ class Tracker_DateReminder_Role_Commenter implements Tracker_DateReminder_Role
     /**
      * Retrieve commentator recipients for a given artifact
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return Array of PFUser
      */
-    function getRecipientsFromArtifact(Tracker_Artifact $artifact)
+    public function getRecipientsFromArtifact(Tracker_Artifact $artifact)
     {
         $recipients   = array();
         $userManager  = $artifact->getUserManager();

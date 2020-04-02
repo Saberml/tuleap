@@ -44,7 +44,7 @@ class ArtifactCanned
      *  @param    array    (all fields from artifact_file_user_vw) OR id from database.
      *  @return bool success.
      */
-    function __construct(&$ArtifactType, $data = false)
+    public function __construct(&$ArtifactType, $data = false)
     {
         global $Language;
 
@@ -54,12 +54,12 @@ class ArtifactCanned
             return false;
         }
         if (!is_object($ArtifactType)) {
-            $this->setError('ArtifactCanned: '.$Language->getText('tracker_common_canned', 'not_valid'));
+            $this->setError('ArtifactCanned: ' . $Language->getText('tracker_common_canned', 'not_valid'));
             return false;
         }
      //did ArtifactType have an error?
         if ($ArtifactType->isError()) {
-            $this->setError('ArtifactCanned: '.$Artifact->getErrorMessage());
+            $this->setError('ArtifactCanned: ' . $Artifact->getErrorMessage());
             return false;
         }
         $this->ArtifactType = $ArtifactType;
@@ -86,13 +86,13 @@ class ArtifactCanned
      *    @param    string    The item body.
      *  @return id on success / false on failure.
      */
-    function create($title, $body)
+    public function create($title, $body)
     {
         global $Language;
 
      //    data validation
         if (!$title || !$body) {
-            $this->setError('ArtifactCanned: '.$Language->getText('tracker_common_canned', 'name_requ'));
+            $this->setError('ArtifactCanned: ' . $Language->getText('tracker_common_canned', 'name_requ'));
             return false;
         }
         if (!$this->ArtifactType->userIsAdmin()) {
@@ -100,11 +100,11 @@ class ArtifactCanned
             return false;
         }
 
-        $sql="INSERT INTO artifact_canned_responses (group_artifact_id,title,body)
-			VALUES ('". db_ei($this->ArtifactType->getID()) ."',
-			'". db_es(htmlspecialchars($title)) ."','". db_es(htmlspecialchars($body))  ."')";
+        $sql = "INSERT INTO artifact_canned_responses (group_artifact_id,title,body)
+			VALUES ('" . db_ei($this->ArtifactType->getID()) . "',
+			'" . db_es(htmlspecialchars($title)) . "','" . db_es(htmlspecialchars($body))  . "')";
 
-        $result=db_query($sql);
+        $result = db_query($sql);
 
         if ($result && db_affected_rows($result) > 0) {
             $this->clearError();
@@ -130,13 +130,13 @@ class ArtifactCanned
      *    @param int    The ID number.
      *    @return bool success.
      */
-    function fetchData($id)
+    public function fetchData($id)
     {
         global $Language;
 
-        $res=db_query("SELECT * FROM artifact_canned_responses WHERE artifact_canned_id='". db_ei($id) ."' AND group_artifact_id='". db_ei($this->atid) ."'");
+        $res = db_query("SELECT * FROM artifact_canned_responses WHERE artifact_canned_id='" . db_ei($id) . "' AND group_artifact_id='" . db_ei($this->atid) . "'");
         if (!$res || db_numrows($res) < 1) {
-            $this->setError('ArtifactCanned: '.$Language->getText('tracker_common_canned', 'invalid_id'));
+            $this->setError('ArtifactCanned: ' . $Language->getText('tracker_common_canned', 'invalid_id'));
             return false;
         }
         $this->data_array = db_fetch_array($res);
@@ -149,7 +149,7 @@ class ArtifactCanned
      *
      *    @return ArtifactType.
      */
-    function getArtifactType()
+    public function getArtifactType()
     {
         return $this->ArtifactType;
     }
@@ -159,7 +159,7 @@ class ArtifactCanned
      *
      *    @return    int    The id #.
      */
-    function getID()
+    public function getID()
     {
         return $this->data_array['artifact_canned_id'];
     }
@@ -169,7 +169,7 @@ class ArtifactCanned
      *
      *    @return    string    The title.
      */
-    function getTitle()
+    public function getTitle()
     {
         return $this->data_array['title'];
     }
@@ -179,7 +179,7 @@ class ArtifactCanned
      *
      *    @return    string    The message body.
      */
-    function getBody()
+    public function getBody()
     {
         return $this->data_array['body'];
     }
@@ -191,7 +191,7 @@ class ArtifactCanned
      *  @param    string    Body of the message.
      *  @return bool success.
      */
-    function delete($artifact_canned_id)
+    public function delete($artifact_canned_id)
     {
         global $Language;
 
@@ -200,11 +200,11 @@ class ArtifactCanned
             return false;
         }
 
-        $sql="delete from artifact_canned_responses
+        $sql = "delete from artifact_canned_responses
 
-			WHERE group_artifact_id='".  db_ei($this->ArtifactType->getID())  ."' AND artifact_canned_id='".  db_ei($artifact_canned_id)  ."'";
+			WHERE group_artifact_id='" .  db_ei($this->ArtifactType->getID())  . "' AND artifact_canned_id='" .  db_ei($artifact_canned_id)  . "'";
 
-        $result=db_query($sql);
+        $result = db_query($sql);
 
         if (!$result) {
             $this->setError(db_error());
@@ -221,7 +221,7 @@ class ArtifactCanned
      *  @param    string    Body of the message.
      *  @return bool success.
      */
-    function update($title, $body)
+    public function update($title, $body)
     {
         global $Language;
 
@@ -234,11 +234,11 @@ class ArtifactCanned
             return false;
         }
 
-        $sql="UPDATE artifact_canned_responses
-			SET title='". db_es(htmlspecialchars($title))  ."',body='". db_es(htmlspecialchars($body))  ."'
-			WHERE group_artifact_id='".  db_ei($this->ArtifactType->getID())  ."' AND artifact_canned_id='".  db_ei($this->getID())  ."'";
+        $sql = "UPDATE artifact_canned_responses
+			SET title='" . db_es(htmlspecialchars($title))  . "',body='" . db_es(htmlspecialchars($body))  . "'
+			WHERE group_artifact_id='" .  db_ei($this->ArtifactType->getID())  . "' AND artifact_canned_id='" .  db_ei($this->getID())  . "'";
 
-        $result=db_query($sql);
+        $result = db_query($sql);
 
         if ($result && db_affected_rows($result) > 0) {
             return true;

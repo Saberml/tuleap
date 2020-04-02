@@ -21,7 +21,7 @@
 
 declare(strict_types=1);
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
 use TuleapCfg\Command\ProcessFactory;
@@ -30,4 +30,6 @@ $application = new Application();
 $application->add(new \TuleapCfg\Command\ConfigureCommand());
 $application->add(new \TuleapCfg\Command\SystemControlCommand(new ProcessFactory()));
 $application->add(new \TuleapCfg\Command\DockerAioRunCommand(new ProcessFactory()));
+$application->add(new \TuleapCfg\Command\SetupMysqlCommand());
+$application->add(new \TuleapCfg\Command\SetupMysqlInitCommand());
 $application->run();

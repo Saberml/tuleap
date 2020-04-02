@@ -35,15 +35,12 @@ class Search_SearchController
 
     private $search_types = array();
 
-    /** @var PluginManager */
-    private $plugin_manager;
-
     public function __construct(EventManager $event_manager)
     {
         $this->event_manager = $event_manager;
         $this->renderer = TemplateRendererFactory::build()->getRenderer(
             array(
-                 ForgeConfig::get('codendi_dir') .'/src/templates/search',
+                 ForgeConfig::get('codendi_dir') . '/src/templates/search',
             )
         );
         $this->search_types = array(
@@ -53,8 +50,6 @@ class Search_SearchController
             Search_SearchForum::NAME     => new Search_SearchForum(new ForumDao()),
             Search_SearchWiki::NAME      => new Search_SearchWiki(new WikiDao()),
         );
-
-        $this->plugin_manager = PluginManager::instance();
     }
 
     public function index(Codendi_Request $request)
@@ -148,7 +143,7 @@ class Search_SearchController
 
         $search_panes = array();
         if (! $query->getProject()->isError()) {
-            $project_name = util_unconvert_htmlspecialchars($query->getProject()->getPublicName());
+            $project_name = $query->getProject()->getPublicName();
             $search_panes[] = new Search_SearchPanePresenter(
                 $GLOBALS['Language']->getText('search_index', 'project_wide_search', $project_name),
                 $project_search_types,
@@ -188,11 +183,11 @@ class Search_SearchController
         $search_types = array(
             new Search_SearchTypePresenter(
                 Search_SearchProject::NAME,
-                $GLOBALS['Language']->getText('search_index', Search_SearchProject::NAME)
+                $GLOBALS['Language']->getText('search_index', 'soft')
             ),
             new Search_SearchTypePresenter(
                 Search_SearchPeople::NAME,
-                $GLOBALS['Language']->getText('search_index', Search_SearchPeople::NAME)
+                $GLOBALS['Language']->getText('search_index', 'people')
             ),
         );
 
@@ -204,7 +199,6 @@ class Search_SearchController
     }
 
     /**
-     * @param Search_SearchQuery $query
      * @return Search_SearchResults
      */
     private function doSearch(Search_SearchQuery $query)
@@ -233,7 +227,7 @@ class Search_SearchController
         $presenter = $this->search_types[$query->getTypeOfSearch()]->search($query, $results);
         if ($presenter) {
             if ($query->isAjax() && $query->getOffset() > 0) {
-                $results->setResultsHtml($this->renderer->renderToString($presenter->getTemplate().'-more', $presenter));
+                $results->setResultsHtml($this->renderer->renderToString($presenter->getTemplate() . '-more', $presenter));
             } else {
                 $results->setResultsHtml($this->renderer->renderToString($presenter->getTemplate(), $presenter));
             }

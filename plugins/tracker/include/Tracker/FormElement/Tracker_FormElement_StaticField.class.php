@@ -30,66 +30,6 @@
  */
 abstract class Tracker_FormElement_StaticField extends Tracker_FormElement
 {
-
-    /**
-     * getLabel - the label of this Tracker_FormElement_Line_Break
-     * The tracker label can be internationalized.
-     * To do this, fill the name field with the ad-hoc format.
-     *
-     * @return string label, the name if the name is not internationalized, or the localized text if so
-     */
-    function getLabel()
-    {
-        global $Language;
-        if ($this->isLabelMustBeLocalized()) {
-            return $Language->getText('plugin_tracker_common_staticfield', $this->label);
-        } else {
-            return $this->label;
-        }
-    }
-
-    /**
-     * Returns if the static field name must be localized or not.
-     * The 'form element static field' name must be localized if the name looks like staticfield_{$field_id}_lbl_key
-     *
-     * @return true if the static field name must be localized, false otherwise.
-     */
-    function isLabelMustBeLocalized()
-    {
-        $pattern = "/staticfield_(.*)_lbl_key/";
-        return preg_match($pattern, $this->label);
-    }
-
-    /**
-     * getDescriptionText - the text of the description of this Tracker_FormElement_FieldSet
-     * The tracker descripiton can be internationalized.
-     * To do this, fill the description field with the ad-hoc format.
-     *
-     * @return string description, the description text if the description is not internationalized, or the localized text if so
-     */
-    function getDescriptionText()
-    {
-        global $Language;
-        if ($this->isDescriptionMustBeLocalized()) {
-            return $Language->getText('plugin_tracker_common_staticfield', $this->description);
-        } else {
-            return $this->description;
-        }
-    }
-
-    /**
-     * Returns if the static field description must be localized or not.
-     * The static field description must be localized if the name looks like staticfield_{$field_id}_desc_key
-     *
-     * @return true if the static field description must be localized, false otherwise.
-     */
-    function isDescriptionMustBeLocalized()
-    {
-        $pattern = "/staticfield_(.*)_desc_key/";
-        return preg_match($pattern, $this->description);
-    }
-
-
     // TODO : remove these functions (no need for that kind of "fields"
     public function fetchAddCriteria($used, $prefix = '')
     {
@@ -109,7 +49,6 @@ abstract class Tracker_FormElement_StaticField extends Tracker_FormElement
     /**
      * Fetch the element for the update artifact form
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return string html
      */
@@ -123,7 +62,6 @@ abstract class Tracker_FormElement_StaticField extends Tracker_FormElement
 
     /**
      *
-     * @param Tracker_Artifact $artifact
      * @return string html
      */
     public function fetchArtifactForOverlay(Tracker_Artifact $artifact, array $submitted_values)
@@ -139,7 +77,6 @@ abstract class Tracker_FormElement_StaticField extends Tracker_FormElement
     /**
      * Fetch the element for the artifact in read only mode
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return string html
      */
@@ -228,7 +165,6 @@ abstract class Tracker_FormElement_StaticField extends Tracker_FormElement
     /**
      * Accessor for visitors
      *
-     * @param Tracker_FormElement_Visitor $visitor
      */
     public function accept(Tracker_FormElement_Visitor $visitor)
     {

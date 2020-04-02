@@ -72,6 +72,14 @@ class KanbanColumnsResource
 
     /** @var TrackerFactory */
     private $tracker_factory;
+    /**
+     * @var NodeJSClient
+     */
+    private $node_js_client;
+    /**
+     * @var Tracker_Permission_PermissionsSerializer
+     */
+    private $permissions_serializer;
 
     public function __construct()
     {
@@ -104,7 +112,7 @@ class KanbanColumnsResource
             HttpClientFactory::createClient(),
             HTTPFactoryBuilder::requestFactory(),
             HTTPFactoryBuilder::streamFactory(),
-            new BackendLogger()
+            BackendLogger::getDefaultLogger()
         );
         $this->permissions_serializer = new Tracker_Permission_PermissionsSerializer(
             new Tracker_Permission_PermissionRetrieveAssignee(UserManager::instance())

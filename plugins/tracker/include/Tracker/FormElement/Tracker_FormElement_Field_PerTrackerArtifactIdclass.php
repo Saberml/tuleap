@@ -35,7 +35,7 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
 
     public function getQuerySelect()
     {
-        return "a.per_tracker_artifact_id AS `". $this->name ."`";
+        return "a.per_tracker_artifact_id AS `" . $this->name . "`";
     }
 
     /**
@@ -53,7 +53,7 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
             $from_aid_content = "&from_aid=$from_aid";
         }
 
-        return '<a class="direct-link-to-artifact" href="'.TRACKER_BASE_URL.'/?'. http_build_query(array('aid' => (int)$artifact_id )).'" $from_aid_content>'. $value .'</a>';
+        return '<a class="direct-link-to-artifact" href="' . TRACKER_BASE_URL . '/?' . http_build_query(array('aid' => (int) $artifact_id )) . '" $from_aid_content>' . $value . '</a>';
     }
 
     public function getFullRESTValue(PFUser $user, Tracker_Artifact_Changeset $changeset)
@@ -64,7 +64,7 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
             $this->getId(),
             Tracker_FormElementFactory::instance()->getType($this),
             $this->getLabel(),
-            (int)$changeset->getArtifact()->getPerTrackerArtifactId()
+            (int) $changeset->getArtifact()->getPerTrackerArtifactId()
         );
         return $artifact_field_value_full_representation;
     }
@@ -79,15 +79,12 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
      */
     public function fetchArtifactValueReadOnly(Tracker_Artifact $artifact, ?Tracker_Artifact_ChangesetValue $value = null)
     {
-        return '<a href="'.TRACKER_BASE_URL.'/?'. http_build_query(array('aid' => (int)$artifact->id )).'">'. (int)$artifact->getPerTrackerArtifactId().'</a>';
+        return '<a href="' . TRACKER_BASE_URL . '/?' . http_build_query(array('aid' => (int) $artifact->id )) . '">' . (int) $artifact->getPerTrackerArtifactId() . '</a>';
     }
 
     /**
      * Fetch artifact value for email
-     * @param Tracker_Artifact $artifact
-     * @param PFUser $user
      * @param bool $ignore_perms
-     * @param Tracker_Artifact_ChangesetValue $value
      * @param string $format
      *
      * @return string
@@ -103,7 +100,7 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
         switch ($format) {
             case 'html':
                 $proto   = ForgeConfig::get('sys_https_host') ? 'https' : 'http';
-                $output .= '<a href= "'.$proto.'://'. $GLOBALS['sys_default_domain'].TRACKER_BASE_URL.'/?'. http_build_query(array('aid' => (int)$artifact->id )).'">'. $artifact->getPerTrackerArtifactId() .'</a>';
+                $output .= '<a href= "' . $proto . '://' . $GLOBALS['sys_default_domain'] . TRACKER_BASE_URL . '/?' . http_build_query(array('aid' => (int) $artifact->id )) . '">' . $artifact->getPerTrackerArtifactId() . '</a>';
                 break;
             default:
                 $output .= $artifact->getPerTrackerArtifactId();
@@ -119,37 +116,25 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
     protected function fetchAdminFormElement()
     {
         $html = '';
-        $html .= '<a href="#'.TRACKER_BASE_URL.'/?aid=123" onclick="return false;">3</a>';
+        $html .= '<a href="#' . TRACKER_BASE_URL . '/?aid=123" onclick="return false;">3</a>';
         return $html;
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'artifactInTrackerId_label');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'artifactInTrackerId_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-perTrackerId.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-perTrackerId--plus.png');
@@ -159,7 +144,6 @@ class Tracker_FormElement_Field_PerTrackerArtifactId extends Tracker_FormElement
     /**
      * Fetch the html code to display the field value in tooltip
      *
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue $value The changeset value of this field
      * @return string The html code to display the field value in tooltip
      */

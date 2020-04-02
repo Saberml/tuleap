@@ -57,17 +57,17 @@ rcs_id('$Id: Template.php,v 1.4 2005/09/11 13:30:22 rurban Exp $');
 
 class WikiPlugin_Template extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("Template");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Parametrized page inclusion.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -76,7 +76,7 @@ class WikiPlugin_Template extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array(
                      'page'    => false, // the page to include
@@ -87,7 +87,7 @@ class WikiPlugin_Template extends WikiPlugin
                      );
     }
 
-    function getWikiPageLinks($argstr, $basepage)
+    public function getWikiPageLinks($argstr, $basepage)
     {
         extract($this->getArgs($argstr));
         if ($page) {
@@ -100,7 +100,7 @@ class WikiPlugin_Template extends WikiPlugin
         return array($page->name);
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         extract($this->getArgs($argstr, $request));
         if ($page) {
@@ -183,7 +183,7 @@ class WikiPlugin_Template extends WikiPlugin
             }
             foreach (array("SERVER_URL", "DATA_PATH", "SCRIPT_NAME", "PHPWIKI_BASE_URL") as $c) {
                 // constants are not overridable
-                if (preg_match('/%%'.$c.'%%/', $initial_content)) {
+                if (preg_match('/%%' . $c . '%%/', $initial_content)) {
                     $var[$c] = constant($c);
                 }
             }
@@ -205,7 +205,7 @@ class WikiPlugin_Template extends WikiPlugin
 
         return HTML::div(array('class' => 'template'), $content);
     }
-};
+}
 
 // $Log: Template.php,v $
 // Revision 1.4  2005/09/11 13:30:22  rurban

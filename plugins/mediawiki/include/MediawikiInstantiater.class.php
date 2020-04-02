@@ -26,7 +26,7 @@ class MediaWikiInstantiater
 
     public const MW_123_PATH = '/usr/share/mediawiki-tuleap-123';
 
-    /** @var BackendLogger */
+    /** @var \Psr\Log\LoggerInterface */
     private $logger;
 
     /** @var string */
@@ -63,13 +63,6 @@ class MediaWikiInstantiater
      */
     private $mleb_manager;
 
-    /**
-     * @param Project $project
-     * @param MediawikiManager $mediawiki_manager
-     * @param MediawikiLanguageManager $language_manager
-     * @param MediawikiVersionManager $version_manager
-     * @param MediawikiMLEBExtensionManager $mleb_manager
-     */
     public function __construct(
         Project $project,
         MediawikiManager $mediawiki_manager,
@@ -77,7 +70,7 @@ class MediaWikiInstantiater
         MediawikiVersionManager $version_manager,
         MediawikiMLEBExtensionManager $mleb_manager
     ) {
-        $this->logger              = new BackendLogger();
+        $this->logger              = BackendLogger::getDefaultLogger();
         $this->project             = $project;
         $this->project_name        = $project->getUnixName();
         $this->project_id          = $project->getID();
@@ -164,11 +157,11 @@ class MediaWikiInstantiater
         }
 
         if ($dir_exists && ! $db_name) {
-            throw new MediawikiInstantiaterException('Project dir ' . $this->project_name_dir . ' exists, but database '.$db_name.' cannot be found');
+            throw new MediawikiInstantiaterException('Project dir ' . $this->project_name_dir . ' exists, but database ' . $db_name . ' cannot be found');
         }
 
         if (! $dir_exists && $db_name) {
-            throw new MediawikiInstantiaterException('Project dir ' . $this->project_name_dir . ' does not exist, but database '.$db_name.' found');
+            throw new MediawikiInstantiaterException('Project dir ' . $this->project_name_dir . ' does not exist, but database ' . $db_name . ' found');
         }
 
         $this->ensureDatabaseIsCorrect($db_name);

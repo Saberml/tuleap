@@ -21,13 +21,21 @@ import {
     getCurrentMilestones,
     getOpenSprints,
     getMilestonesContent,
-    getBurndownData,
-    getNbOfClosedSprints
+    getChartData,
+    getNbOfClosedSprints,
+    getNbOfPastRelease,
+    getLastRelease,
 } from "./rest-querier";
 
 import * as tlp from "tlp";
 import { mockFetchSuccess } from "../../../../../../src/www/themes/common/tlp/mocks/tlp-fetch-mock-helper";
-import { ArtifactMilestone, BurndownData, MilestoneContent, MilestoneData } from "../type";
+import {
+    ArtifactMilestone,
+    BurndownData,
+    MilestoneContent,
+    MilestoneData,
+    ParametersRequestWithId,
+} from "../type";
 
 jest.mock("tlp");
 
@@ -41,8 +49,8 @@ describe("getProject() -", () => {
         const milestones: MilestoneData[] = [
             {
                 id: 1,
-                start_date: new Date().toDateString()
-            } as MilestoneData
+                start_date: new Date().toDateString(),
+            } as MilestoneData,
         ];
 
         const tlpRecursiveGetMock = jest.spyOn(tlp, "recursiveGet");
@@ -51,11 +59,11 @@ describe("getProject() -", () => {
         const result = await getCurrentMilestones({
             project_id,
             limit,
-            offset
+            offset,
         });
 
         const query = JSON.stringify({
-            period: "current"
+            period: "current",
         });
 
         expect(tlpRecursiveGetMock).toHaveBeenCalledWith(
@@ -64,8 +72,8 @@ describe("getProject() -", () => {
                 params: {
                     limit,
                     offset,
-                    query
-                }
+                    query,
+                },
             }
         );
 
@@ -76,8 +84,8 @@ describe("getProject() -", () => {
         const sprints: MilestoneData[] = [
             {
                 id: 1,
-                start_date: new Date().toDateString()
-            } as MilestoneData
+                start_date: new Date().toDateString(),
+            } as MilestoneData,
         ];
 
         const tlpRecursiveGetMock = jest.spyOn(tlp, "recursiveGet");
@@ -85,11 +93,11 @@ describe("getProject() -", () => {
 
         const result = await getOpenSprints(milestone_id, {
             limit,
-            offset
+            offset,
         });
 
         const query = JSON.stringify({
-            status: "open"
+            status: "open",
         });
 
         expect(tlpRecursiveGetMock).toHaveBeenCalledWith(
@@ -98,8 +106,8 @@ describe("getProject() -", () => {
                 params: {
                     limit,
                     offset,
-                    query
-                }
+                    query,
+                },
             }
         );
 
@@ -112,18 +120,18 @@ describe("getProject() -", () => {
                 initial_effort: 5,
                 artifact: {
                     tracker: {
-                        id: 1
-                    }
-                }
+                        id: 1,
+                    },
+                },
             },
             {
                 initial_effort: 8,
                 artifact: {
                     tracker: {
-                        id: 2
-                    }
-                }
-            }
+                        id: 2,
+                    },
+                },
+            },
         ];
 
         const tlpRecursiveGetMock = jest.spyOn(tlp, "recursiveGet");
@@ -131,7 +139,7 @@ describe("getProject() -", () => {
 
         const result = await getMilestonesContent(milestone_id, {
             limit,
-            offset
+            offset,
         });
 
         expect(tlpRecursiveGetMock).toHaveBeenCalledWith(
@@ -139,27 +147,21 @@ describe("getProject() -", () => {
             {
                 params: {
                     limit,
-                    offset
-                }
+                    offset,
+                },
             }
         );
 
         expect(result).toEqual(user_stories);
     });
 
-    it("the REST API will be queried and the burndown_data of milestone returned", async () => {
+    it("the REST API will be queried and charts data of milestone returned", async () => {
         const burndown_data: BurndownData = {
-            start_date: "",
-            is_under_calculation: false,
-            duration: 2,
-            capacity: 10,
-            points: [],
-            opening_days: [],
-            points_with_date: []
-        };
+            start_date: new Date().toDateString(),
+        } as BurndownData;
 
         const artifact_chart = {
-            values: [{ value: burndown_data }]
+            values: [{ value: burndown_data }, {}],
         } as ArtifactMilestone;
 
         const tlpGetMock = jest.spyOn(tlp, "get");
@@ -167,12 +169,12 @@ describe("getProject() -", () => {
         mockFetchSuccess(tlpGetMock, {
             headers: {
                 // X-PAGINATION-SIZE
-                get: (): number => 2
+                get: (): number => 2,
             },
-            return_json: artifact_chart
+            return_json: artifact_chart,
         });
 
-        const result = await getBurndownData(milestone_id);
+        const result = await getChartData(milestone_id);
 
         expect(tlpGetMock).toHaveBeenCalledWith(
             `/api/v1/artifacts/${encodeURIComponent(milestone_id)}`
@@ -185,12 +187,12 @@ describe("getProject() -", () => {
         const sprints: MilestoneData[] = [
             {
                 id: 1,
-                start_date: new Date().toDateString()
+                start_date: new Date().toDateString(),
             } as MilestoneData,
             {
                 id: 2,
-                start_date: new Date().toDateString()
-            } as MilestoneData
+                start_date: new Date().toDateString(),
+            } as MilestoneData,
         ];
 
         const tlpGetMock = jest.spyOn(tlp, "get");
@@ -198,15 +200,15 @@ describe("getProject() -", () => {
         mockFetchSuccess(tlpGetMock, {
             headers: {
                 // X-PAGINATION-SIZE
-                get: (): number => 2
+                get: (): number => 2,
             },
-            return_json: sprints
+            return_json: sprints,
         });
 
         const result = await getNbOfClosedSprints(milestone_id);
 
         const query = JSON.stringify({
-            status: "closed"
+            status: "closed",
         });
 
         expect(tlpGetMock).toHaveBeenCalledWith(
@@ -215,11 +217,69 @@ describe("getProject() -", () => {
                 params: {
                     limit: 1,
                     offset: 0,
-                    query
-                }
+                    query,
+                },
             }
         );
 
         expect(result).toEqual(sprints.length);
+    });
+
+    it("the REST API will be queried and the past milestones returned", async () => {
+        const tlpGetMock = jest.spyOn(tlp, "get");
+
+        mockFetchSuccess(tlpGetMock, {
+            headers: {
+                // X-PAGINATION-SIZE
+                get: (): number => 10,
+            },
+        });
+
+        const query = JSON.stringify({
+            status: "closed",
+        });
+
+        const result = await getNbOfPastRelease({ project_id } as ParametersRequestWithId);
+        expect(tlp.get).toHaveBeenCalledWith("/api/v1/projects/" + project_id + "/milestones", {
+            params: { limit: 1, offset: 0, query },
+        });
+
+        expect(result).toEqual(10);
+    });
+
+    describe("getLastMiletsone", () => {
+        it("the REST API will be queried and the last closed milestone is returned", async () => {
+            const last_release: MilestoneData = {
+                label: "last",
+                id: 10,
+            } as MilestoneData;
+
+            const tlpGetMock = jest.spyOn(tlp, "get");
+
+            mockFetchSuccess(tlpGetMock, {
+                headers: {
+                    // X-PAGINATION-SIZE
+                    get: (): number => 1,
+                },
+                return_json: last_release,
+            });
+
+            const query = JSON.stringify({
+                status: "closed",
+            });
+
+            const result = await getLastRelease(project_id, 100);
+            expect(tlp.get).toHaveBeenCalledWith("/api/v1/projects/" + project_id + "/milestones", {
+                params: { limit: 1, offset: 99, query },
+            });
+
+            expect(result).toEqual(last_release);
+        });
+
+        it("When there isn't last release, Then null is returned", async () => {
+            const result = await getLastRelease(project_id, 0);
+
+            expect(result).toEqual(null);
+        });
     });
 });

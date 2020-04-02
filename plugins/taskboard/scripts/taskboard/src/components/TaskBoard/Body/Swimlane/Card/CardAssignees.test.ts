@@ -38,17 +38,17 @@ async function getWrapper(
         localVue: await createTaskboardLocalVue(),
         mocks: {
             $store: createStoreMock({
-                state: { swimlane: {} } as RootState
+                state: { swimlane: {} } as RootState,
             }),
             getters: {
-                "swimlane/assignable_users": (): UserForPeoplePicker[] => []
-            }
+                "swimlane/assignable_users": (): UserForPeoplePicker[] => [],
+            },
         },
         propsData: {
             card,
             tracker,
-            value: [] as number[]
-        }
+            value: [] as number[],
+        },
     });
 }
 
@@ -64,12 +64,12 @@ describe("CardAssignees", () => {
         const steeve: User = {
             id: 101,
             display_name: "Steeve",
-            avatar_url: "steeve.png"
+            avatar_url: "steeve.png",
         };
         const bob: User = {
             id: 102,
             display_name: "Bob",
-            avatar_url: "Boob.png"
+            avatar_url: "Boob.png",
         };
         const wrapper = await getWrapper({ assignees: [steeve, bob] } as Card);
 
@@ -82,7 +82,7 @@ describe("CardAssignees", () => {
     it("switches the assignee to edit mode if the card is in edit mode", async () => {
         const wrapper = await getWrapper({
             assignees: [] as User[],
-            is_in_edit_mode: true
+            is_in_edit_mode: true,
         } as Card);
 
         expect(wrapper.classes()).toContain("taskboard-card-edit-mode-assignees");
@@ -109,7 +109,7 @@ describe("CardAssignees", () => {
             { assigned_to_field: { id: 123 } } as Tracker
         );
 
-        const icon = wrapper.find("[data-test=icon]");
+        const icon = wrapper.get("[data-test=icon]");
         expect(icon.classes()).toContain("fa");
         expect(icon.classes()).toContain("fa-user-plus");
         expect(icon.classes()).toContain("taskboard-card-assignees-add-icon");
@@ -119,17 +119,17 @@ describe("CardAssignees", () => {
         const steeve: User = {
             id: 101,
             display_name: "Steeve",
-            avatar_url: "steeve.png"
+            avatar_url: "steeve.png",
         };
         const wrapper = await getWrapper(
             {
                 assignees: [steeve],
-                is_in_edit_mode: true
+                is_in_edit_mode: true,
             } as Card,
             { assigned_to_field: { id: 123 } } as Tracker
         );
 
-        const icon = wrapper.find("[data-test=icon]");
+        const icon = wrapper.get("[data-test=icon]");
         expect(icon.classes()).toContain("fa");
         expect(icon.classes()).toContain("fa-tlp-user-pencil");
         expect(icon.classes()).toContain("taskboard-card-assignees-edit-icon");
@@ -140,7 +140,7 @@ describe("CardAssignees", () => {
         const wrapper = await getWrapper(
             {
                 assignees: [] as User[],
-                is_in_edit_mode: true
+                is_in_edit_mode: true,
             } as Card,
             tracker
         );
@@ -148,6 +148,7 @@ describe("CardAssignees", () => {
             [{ id: 1, display_name: "Steeve" }] as UserForPeoplePicker[];
 
         wrapper.trigger("click");
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith(
             "swimlane/loadPossibleAssignees",
@@ -158,7 +159,7 @@ describe("CardAssignees", () => {
         expect(wrapper.classes()).not.toContain("taskboard-card-assignees-edit-mode");
         expect(wrapper.contains(PeoplePicker)).toBe(false);
 
-        const icon = wrapper.find("[data-test=icon]");
+        const icon = wrapper.get("[data-test=icon]");
         expect(icon.classes()).toContain("fa");
         expect(icon.classes()).toContain("fa-circle-o-notch");
         expect(icon.classes()).toContain("fa-spin");
@@ -169,7 +170,7 @@ describe("CardAssignees", () => {
         const wrapper = await getWrapper(
             {
                 assignees: [] as User[],
-                is_in_edit_mode: false
+                is_in_edit_mode: false,
             } as Card,
             { assigned_to_field: { id: 123 } } as Tracker
         );

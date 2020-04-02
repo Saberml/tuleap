@@ -39,7 +39,6 @@ class XML_RNGValidator
     /**
      * Create a dom document based on a SimpleXMLElement
      *
-     * @param SimpleXMLElement $xml_element
      *
      * @return \DOMDocument
      */
@@ -52,7 +51,6 @@ class XML_RNGValidator
     }
 
     /**
-     * @param DOMDocument $dom
      * @param             $rng_path
      * @throws XML_ParseException
      */
@@ -74,7 +72,7 @@ class XML_RNGValidator
         }
 
         try {
-            $jing   = __DIR__ .'/../../utils/xml/jing.jar';
+            $jing   = __DIR__ . '/../../utils/xml/jing.jar';
             $system_command->exec('java -jar ' . escapeshellarg($jing) . ' ' .  escapeshellarg($rng_path) . ' ' . escapeshellarg($temp));
         } catch (System_Command_CommandException $ex) {
             $errors = [];

@@ -27,7 +27,7 @@ describe("CustomMetadataText", () => {
         factory = (props = {}) => {
             return shallowMount(CustomMetadataText, {
                 localVue,
-                propsData: { ...props }
+                propsData: { ...props },
             });
         };
     });
@@ -38,10 +38,10 @@ describe("CustomMetadataText", () => {
             is_required: true,
             name: "field",
             type: "text",
-            short_name: "short_name"
+            short_name: "short_name",
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
-        const date_input = wrapper.find("[data-test=document-text-input]");
+        const date_input = wrapper.get("[data-test=document-text-input]");
 
         expect(date_input.element.value).toEqual("text value");
         expect(date_input.element.required).toBe(true);
@@ -54,10 +54,10 @@ describe("CustomMetadataText", () => {
             is_required: false,
             name: "field",
             type: "text",
-            short_name: "short_name"
+            short_name: "short_name",
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
-        const date_input = wrapper.find("[data-test=document-text-input]");
+        const date_input = wrapper.get("[data-test=document-text-input]");
 
         expect(date_input.element.value).toEqual("");
         expect(date_input.element.required).toBe(false);
@@ -71,7 +71,7 @@ describe("CustomMetadataText", () => {
             is_required: false,
             name: "field",
             short_name: "text",
-            type: "text"
+            type: "text",
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
 

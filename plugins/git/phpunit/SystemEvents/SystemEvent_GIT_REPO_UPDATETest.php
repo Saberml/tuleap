@@ -21,7 +21,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 class SystemEvent_GIT_REPO_UPDATETest extends \PHPUnit\Framework\TestCase
 {
@@ -39,15 +39,12 @@ class SystemEvent_GIT_REPO_UPDATETest extends \PHPUnit\Framework\TestCase
         $this->repository->shouldReceive('getBackend')->andReturns($this->backend);
 
         $this->repository_factory   = \Mockery::spy(\GitRepositoryFactory::class);
-        $this->system_event_dao     = \Mockery::spy(\SystemEventDao::class);
         $this->system_event_manager = \Mockery::spy(\Git_SystemEventManager::class);
 
         $this->event = \Mockery::mock(\SystemEvent_GIT_REPO_UPDATE::class)->makePartial()->shouldAllowMockingProtectedMethods();
         $this->event->setParameters("$this->repository_id");
         $this->event->injectDependencies(
             $this->repository_factory,
-            $this->system_event_dao,
-            \Mockery::spy(\Logger::class),
             $this->system_event_manager
         );
     }

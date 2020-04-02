@@ -20,7 +20,6 @@
 namespace User\XML\Import;
 
 use UserManager;
-use Logger;
 use SimpleXMLElement;
 use PFUser;
 use XML_Security;
@@ -43,17 +42,12 @@ class UsersToBeImportedCollectionBuilder
     /** @var UserManager */
     private $user_manager;
 
-    /** @var Logger */
-    private $logger;
-
     public function __construct(
         UserManager $user_manager,
-        Logger $logger,
         XML_Security $security,
         XML_RNGValidator $xml_validator
     ) {
         $this->user_manager  = $user_manager;
-        $this->logger        = $logger;
         $this->security      = $security;
         $this->xml_validator = $xml_validator;
     }
@@ -86,7 +80,6 @@ class UsersToBeImportedCollectionBuilder
 
     /**
      *
-     * @param ArchiveInterface $archive
      * @return SimpleXMLElement
      * @throws UsersXMLNotFoundException
      */
@@ -99,7 +92,7 @@ class UsersToBeImportedCollectionBuilder
 
         $xml_element = $this->security->loadString($xml_contents);
 
-        $rng_path = realpath(__DIR__ .'/../../../xml/resources/users.rng');
+        $rng_path = realpath(__DIR__ . '/../../../xml/resources/users.rng');
         $this->xml_validator->validate($xml_element, $rng_path);
 
         return $xml_element;

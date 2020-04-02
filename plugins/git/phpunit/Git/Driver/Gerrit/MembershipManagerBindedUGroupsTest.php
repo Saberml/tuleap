@@ -21,7 +21,7 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class MembershipManagerBindedUGroupsTest extends TestCase
@@ -53,7 +53,7 @@ class MembershipManagerBindedUGroupsTest extends TestCase
                 $this->driver_factory,
                 $this->gerrit_user_manager,
                 $this->remote_server_factory,
-                Mockery::mock('Logger'),
+                Mockery::mock(\Psr\Log\LoggerInterface::class),
                 Mockery::mock('UGroupManager'),
                 $this->project_manager
             ]
@@ -123,7 +123,10 @@ class MembershipManagerBindedUGroupsTest extends TestCase
 
     public function testItAddsMembersOfPreviousSourceAsHardCodedMembersOnRemove(): void
     {
-        $user = (new \UserTestBuilder())->withLdapId('blabla')->build();
+        $user = new PFUser([
+            'language_id' => 'en',
+            'ldap_id' => 'blabla'
+        ]);
         $gerrit_user = \Mockery::spy(\Git_Driver_Gerrit_User::class);
         $this->gerrit_user_manager->shouldReceive('getGerritUser')->with($user)->andReturns($gerrit_user);
 

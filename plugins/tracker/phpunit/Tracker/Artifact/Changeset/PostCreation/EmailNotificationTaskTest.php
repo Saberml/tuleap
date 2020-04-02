@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2017-2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2017-Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -20,11 +20,11 @@
 
 namespace Tuleap\Tracker\Artifact\Changeset\PostCreation;
 
-require_once __DIR__.'/../../../../bootstrap.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
-use Tuleap\Mail\MailLogger;
+use Psr\Log\LoggerInterface;
 use Tuleap\Tracker\Artifact\MailGateway\MailGatewayConfig;
 use Tuleap\Tracker\Notifications\ConfigNotificationEmailCustomSender;
 use Tuleap\Tracker\Notifications\RecipientsManager;
@@ -38,7 +38,6 @@ class EmailNotificationTaskTest extends TestCase
     private $config_notification_assigned_to;
     private $mail_gateway_recipient_factory;
     private $user_helper;
-    private $actions_runner_dao;
     private $custom_email_sender;
 
     private $tracker;
@@ -47,12 +46,11 @@ class EmailNotificationTaskTest extends TestCase
 
     protected function setUp() : void
     {
-        $this->logger                          = \Mockery::spy(MailLogger::class);
+        $this->logger                          = \Mockery::spy(LoggerInterface::class);
         $this->mail_gateway_config             = \Mockery::spy(MailGatewayConfig::class);
         $this->config_notification_assigned_to = \Mockery::spy(\ConfigNotificationAssignedTo::class);
         $this->mail_gateway_recipient_factory  = \Mockery::spy(\Tracker_Artifact_MailGateway_RecipientFactory::class);
         $this->user_helper                     = \Mockery::spy(\UserHelper::class);
-        $this->actions_runner_dao              = \Mockery::spy(ActionsRunnerDao::class);
         $this->custom_email_sender = \Mockery::mock(ConfigNotificationEmailCustomSender::class);
 
         $this->custom_email_sender->shouldReceive('getCustomSender')->andReturns(array('format' => '', 'enabled' => 0));

@@ -22,52 +22,52 @@
 class FRSFileTest extends \PHPUnit\Framework\TestCase  // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
 
-    function testGetContentWholeFile()
+    public function testGetContentWholeFile()
     {
         $file = new FRSFile();
-        $file->file_location = dirname(__FILE__).'/_fixtures/file_sample';
-        $file->file_size     = filesize(dirname(__FILE__).'/_fixtures/file_sample');
+        $file->file_location = dirname(__FILE__) . '/_fixtures/file_sample';
+        $file->file_size     = filesize(dirname(__FILE__) . '/_fixtures/file_sample');
 
-        $this->assertSame(file_get_contents(dirname(__FILE__).'/_fixtures/file_sample'), $file->getContent());
+        $this->assertSame(file_get_contents(dirname(__FILE__) . '/_fixtures/file_sample'), $file->getContent());
     }
 
-    function testGetContentWithStartOffset()
+    public function testGetContentWithStartOffset()
     {
         $file = new FRSFile();
-        $file->file_location = dirname(__FILE__).'/_fixtures/file_sample';
+        $file->file_location = dirname(__FILE__) . '/_fixtures/file_sample';
 
         $this->assertSame('"The quick', $file->getContent(0, 10));
     }
 
-    function testGetContentWithOffsetAndSize()
+    public function testGetContentWithOffsetAndSize()
     {
         $file = new FRSFile();
-        $file->file_location = dirname(__FILE__).'/_fixtures/file_sample';
+        $file->file_location = dirname(__FILE__) . '/_fixtures/file_sample';
 
         $this->assertSame(' brown fox', $file->getContent(10, 10));
     }
 
-    function testGetContentWithOffsetAndEof()
+    public function testGetContentWithOffsetAndEof()
     {
         $file = new FRSFile();
-        $file->file_location = dirname(__FILE__).'/_fixtures/file_sample';
+        $file->file_location = dirname(__FILE__) . '/_fixtures/file_sample';
 
         $this->assertSame("arts.\n", $file->getContent(380, 10));
     }
 
-    function testGetContentWholeByOffset()
+    public function testGetContentWholeByOffset()
     {
         $file = new FRSFile();
-        $file->file_location = dirname(__FILE__).'/_fixtures/file_sample';
+        $file->file_location = dirname(__FILE__) . '/_fixtures/file_sample';
 
         $content  = $file->getContent(0, 100);
         $content .= $file->getContent(100, 100);
         $content .= $file->getContent(200, 100);
         $content .= $file->getContent(300, 100);
-        $this->assertSame(file_get_contents(dirname(__FILE__).'/_fixtures/file_sample'), $content);
+        $this->assertSame(file_get_contents(dirname(__FILE__) . '/_fixtures/file_sample'), $content);
     }
 
-    function testGetfilePath()
+    public function testGetfilePath()
     {
         $file = new FRSFile();
         $filepath = 'path';

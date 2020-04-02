@@ -3,8 +3,10 @@
 set -euo pipefail
 
 MAX_TEST_EXECUTION_TIME='30m'
+READLINK="$(command -v greadlink || echo readlink)"
+TIMEOUT="$(command -v gtimeout || echo timeout)"
 
-BASEDIR="$(dirname "$(readlink -f "$0")")/../../../"
+BASEDIR="$(dirname "$($READLINK -f "$0")")/../../../"
 export BASEDIR
 pushd "$BASEDIR"
 DOCKERCOMPOSE="docker-compose --project-name db-${BUILD_TAG:-$RANDOM} -f tests/integration/docker-compose.yml"
@@ -18,6 +20,20 @@ function cleanup {
 trap cleanup EXIT
 
 case "${1:-}" in
+    "73")
+    export PHP_VERSION="php73"
+    ;;
+    "74")
+    export PHP_VERSION="php74"
+    ;;
+    *)
+    echo "A PHP version must be provided as parameter. Allowed values are:"
+    echo "* 73"
+    echo "* 74"
+    exit 1
+esac
+
+case "${2:-}" in
     "mysql57")
     export DB_HOST="mysql57"
     ;;
@@ -35,5 +51,5 @@ if [ -n "${SETUP_ONLY:-}" ] && [ "$SETUP_ONLY" != "0" ]; then
     $DOCKERCOMPOSE up -d "$DB_HOST"
     $DOCKERCOMPOSE run -e SETUP_ONLY=1 tests /usr/share/tuleap/tests/integration/bin/run.sh
 else
-    timeout "$MAX_TEST_EXECUTION_TIME" $DOCKERCOMPOSE up --abort-on-container-exit --exit-code-from=tests "$DB_HOST" tests
+    $TIMEOUT "$MAX_TEST_EXECUTION_TIME" $DOCKERCOMPOSE up --abort-on-container-exit --exit-code-from=tests "$DB_HOST" tests
 fi

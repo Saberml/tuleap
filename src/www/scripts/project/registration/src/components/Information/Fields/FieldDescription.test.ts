@@ -28,42 +28,44 @@ describe("FieldDescription -", () => {
     let factory: Wrapper<FieldDescription>;
     beforeEach(async () => {
         const state: State = {
-            is_description_required: false
+            is_description_required: false,
         } as State;
 
         const getters = {
             has_error: false,
-            is_template_selected: false
+            is_template_selected: false,
         };
 
         const store_options = {
             state,
-            getters
+            getters,
         };
 
         const store = createStoreMock(store_options);
 
         factory = shallowMount(FieldDescription, {
             localVue: await createProjectRegistrationLocalVue(),
-            mocks: { $store: store }
+            mocks: { $store: store },
         });
     });
-    it("add correct attribute when description is required", () => {
+    it("add correct attribute when description is required", async () => {
         const wrapper = factory;
         wrapper.vm.$store.state.is_description_required = true;
 
-        const description = wrapper.find("[data-test=project-description]")
+        const description = wrapper.get("[data-test=project-description]")
             .element as HTMLTextAreaElement;
+        await wrapper.vm.$nextTick();
 
         expect(description.required).toBe(true);
     });
 
-    it("add correct attribute when description is NOT requried", () => {
+    it("add correct attribute when description is NOT requried", async () => {
         const wrapper = factory;
         wrapper.vm.$store.state.is_description_required = false;
 
-        const description = wrapper.find("[data-test=project-description]")
+        const description = wrapper.get("[data-test=project-description]")
             .element as HTMLTextAreaElement;
+        await wrapper.vm.$nextTick();
 
         expect(description.required).toBe(false);
     });

@@ -22,13 +22,12 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 class SystemEvent_GIT_EDIT_SSH_KEYSTest extends \PHPUnit\Framework\TestCase
 {
 
     use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration, \Tuleap\GlobalLanguageMock;
-    private $event;
     private $user_account_manager;
     private $logger;
     private $user;
@@ -44,7 +43,7 @@ class SystemEvent_GIT_EDIT_SSH_KEYSTest extends \PHPUnit\Framework\TestCase
         $this->sshkey_dumper        = \Mockery::spy(\Git_Gitolite_SSHKeyDumper::class);
         $this->user_account_manager = \Mockery::spy(\Git_UserAccountManager::class);
         $this->system_event_manager = \Mockery::spy(\Git_SystemEventManager::class);
-        $this->logger               = \Mockery::spy(\BackendLogger::class);
+        $this->logger               = \Mockery::spy(\Psr\Log\LoggerInterface::class);
 
         $this->user_manager->shouldReceive('getUserById')->with(105)->andReturns($this->user);
     }
@@ -111,7 +110,7 @@ class SystemEvent_GIT_EDIT_SSH_KEYSTest extends \PHPUnit\Framework\TestCase
             'wxyz',
         );
 
-        $event = new SystemEvent_GIT_EDIT_SSH_KEYS('', '', '', '105::'.'abcdefg'.PFUser::SSH_KEY_SEPARATOR.'wxyz', '', '', '', '', '', '');
+        $event = new SystemEvent_GIT_EDIT_SSH_KEYS('', '', '', '105::' . 'abcdefg' . PFUser::SSH_KEY_SEPARATOR . 'wxyz', '', '', '', '', '', '');
         $event->injectDependencies(
             $this->user_manager,
             $this->sshkey_dumper,

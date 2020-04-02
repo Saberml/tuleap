@@ -83,9 +83,6 @@ class AgileDashboard_BacklogItem_SubBacklogItemProvider
     /**
      * Return all indexed ids of artifacts linked on milestone that belong to backlog tracker
      *
-     * @param Planning_Milestone $milestone
-     * @param Tracker $backlog_tracker
-     * @param PFUser $user
      * @return array
      */
     public function getMatchingIds(Planning_Milestone $milestone, Tracker $backlog_tracker, PFUser $user)
@@ -110,7 +107,7 @@ class AgileDashboard_BacklogItem_SubBacklogItemProvider
 
     private function getMatchingIdsForTopBacklog(Planning_VirtualTopMilestone $milestone, Tracker $backlog_tracker, PFUser $user)
     {
-        $project_id = (int)$milestone->getProject()->getID();
+        $project_id = (int) $milestone->getProject()->getID();
         if ($this->explicit_backlog_dao->isProjectUsingExplicitBacklog($project_id)) {
             foreach ($this->artifacts_in_explicit_backlog_dao->getAllTopBacklogItemsForProjectSortedByRank($project_id) as $row) {
                 $this->backlog_ids[$row['artifact_id']] = true;

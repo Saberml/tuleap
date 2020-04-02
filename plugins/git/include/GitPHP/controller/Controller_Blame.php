@@ -139,14 +139,14 @@ class Controller_Blame extends ControllerBase // @codingStandardsIgnoreLine
             $pathtree[] = $pathtreepiece;
 
             $path = dirname($path);
-        };
+        }
         $this->tpl->assign('pathtree', array_reverse($pathtree));
         $this->tpl->assign('tree', $commit->GetTree());
 
         $detector = new LanguageDetectorForPrismJS();
         $this->tpl->assign('language', $detector->getLanguage($blob->GetName()));
         $this->tpl->assign('bloblines', $blob->GetData(true));
-        $include_assets = new IncludeAssets(__DIR__ . '/../../../www/assets', GIT_BASE_URL . '/assets');
+        $include_assets = new IncludeAssets(__DIR__ . '/../../../../../src/www/assets/git', '/assets/git');
         $GLOBALS['Response']->includeFooterJavascriptFile(
             $include_assets->getFileURL('repository-blob.js')
         );

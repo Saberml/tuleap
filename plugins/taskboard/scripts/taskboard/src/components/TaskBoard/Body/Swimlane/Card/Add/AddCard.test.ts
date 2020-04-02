@@ -34,15 +34,15 @@ function getWrapper(swimlane_state: SwimlaneState = {} as SwimlaneState): Wrappe
     return shallowMount(AddCard, {
         propsData: {
             column: { id: 42 } as ColumnDefinition,
-            swimlane: { card: { id: 69 } } as Swimlane
+            swimlane: { card: { id: 69 } } as Swimlane,
         },
         mocks: {
             $store: createStoreMock({
                 state: {
-                    swimlane: swimlane_state
-                } as RootState
-            })
-        }
+                    swimlane: swimlane_state,
+                } as RootState,
+            }),
+        },
     });
 }
 
@@ -54,22 +54,25 @@ describe("AddCard", () => {
         expect(wrapper.contains(AddButton)).toBe(true);
     });
 
-    it("Given the button is clicked, Then it hides the button and show the editor", () => {
+    it("Given the button is clicked, Then it hides the button and show the editor", async () => {
         const wrapper = getWrapper();
 
-        wrapper.find(AddButton).vm.$emit("click");
+        wrapper.get(AddButton).vm.$emit("click");
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.contains(LabelEditor)).toBe(true);
-        expect(wrapper.find(LabelEditor).props("readonly")).toBe(false);
+        expect(wrapper.get(LabelEditor).props("readonly")).toBe(false);
         expect(wrapper.contains(AddButton)).toBe(false);
         expect(wrapper.vm.$store.commit).toHaveBeenCalledWith("setIsACellAddingInPlace");
     });
 
-    it("Given the cancel button is pressed, Then it displays back the button and hide the editor", () => {
+    it("Given the cancel button is pressed, Then it displays back the button and hide the editor", async () => {
         const wrapper = getWrapper();
 
-        wrapper.find(AddButton).vm.$emit("click");
-        wrapper.find(CancelSaveButtons).vm.$emit("cancel");
+        wrapper.get(AddButton).vm.$emit("click");
+        await wrapper.vm.$nextTick();
+        wrapper.get(CancelSaveButtons).vm.$emit("cancel");
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.contains(LabelEditor)).toBe(false);
         expect(wrapper.contains(AddButton)).toBe(true);
@@ -79,19 +82,20 @@ describe("AddCard", () => {
     it(`Given the editor is displayed,
         And the user hits enter,
         Then the card is saved
-        And the editor is cleared to enter a new card`, () => {
+        And the editor is cleared to enter a new card`, async () => {
         const wrapper = getWrapper();
 
-        wrapper.find(AddButton).vm.$emit("click");
+        wrapper.get(AddButton).vm.$emit("click");
         wrapper.setData({ label: "Lorem ipsum" });
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.vm.$data.label).toBe("Lorem ipsum");
-        wrapper.find(LabelEditor).vm.$emit("save");
+        wrapper.get(LabelEditor).vm.$emit("save");
 
         expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith("swimlane/addCard", {
             swimlane: wrapper.vm.$props.swimlane,
             column: wrapper.vm.$props.column,
-            label: "Lorem ipsum"
+            label: "Lorem ipsum",
         } as NewCardPayload);
 
         jest.spyOn(window, "scrollTo").mockImplementation();
@@ -106,19 +110,20 @@ describe("AddCard", () => {
     it(`Given the editor is displayed,
         And the user clicks on the save button,
         Then the card is saved
-        And the editor is cleared to enter a new card`, () => {
+        And the editor is cleared to enter a new card`, async () => {
         const wrapper = getWrapper();
 
-        wrapper.find(AddButton).vm.$emit("click");
+        wrapper.get(AddButton).vm.$emit("click");
         wrapper.setData({ label: "Lorem ipsum" });
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.vm.$data.label).toBe("Lorem ipsum");
-        wrapper.find(CancelSaveButtons).vm.$emit("save");
+        wrapper.get(CancelSaveButtons).vm.$emit("save");
 
         expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith("swimlane/addCard", {
             swimlane: wrapper.vm.$props.swimlane,
             column: wrapper.vm.$props.column,
-            label: "Lorem ipsum"
+            label: "Lorem ipsum",
         } as NewCardPayload);
 
         jest.spyOn(window, "scrollTo").mockImplementation();
@@ -130,12 +135,13 @@ describe("AddCard", () => {
         expect(wrapper.contains(AddButton)).toBe(false);
     });
 
-    it("Blocks the creation of a new card if one is ongoing", () => {
+    it("Blocks the creation of a new card if one is ongoing", async () => {
         const wrapper = getWrapper({
-            is_card_creation_blocked_due_to_ongoing_creation: true
+            is_card_creation_blocked_due_to_ongoing_creation: true,
         } as SwimlaneState);
-        wrapper.find(AddButton).vm.$emit("click");
+        wrapper.get(AddButton).vm.$emit("click");
+        await wrapper.vm.$nextTick();
 
-        expect(wrapper.find(LabelEditor).props("readonly")).toBe(true);
+        expect(wrapper.get(LabelEditor).props("readonly")).toBe(true);
     });
 });

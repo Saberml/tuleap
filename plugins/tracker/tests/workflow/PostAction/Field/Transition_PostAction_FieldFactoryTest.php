@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-require_once __DIR__.'/../../../bootstrap.php';
+require_once __DIR__ . '/../../../bootstrap.php';
 
 class Transition_PostAction_FieldFactory_BaseTest extends TuleapTestCase
 {
@@ -29,7 +29,12 @@ class Transition_PostAction_FieldFactory_BaseTest extends TuleapTestCase
         parent::setUp();
 
         $this->transition_id = 123;
-        $this->transition    = aTransition()->withId($this->transition_id)->build();
+        $this->transition    = new Transition(
+            $this->transition_id,
+            0,
+            null,
+            null
+        );
 
         $this->date_dao  = mock('Transition_PostAction_Field_DateDao');
         $this->int_dao   = mock('Transition_PostAction_Field_IntDao');
@@ -161,9 +166,9 @@ class Transition_PostActionFieldFactory_DuplicateTest extends Transition_PostAct
 
     public function itDelegatesDuplicationToTheCorrespondingDao()
     {
-        $field_mapping = array(1 => array('from'=>2066, 'to'=>3066),
-                               2 => array('from'=>2067, 'to'=>3067),
-                               3 => array('from'=>2065, 'to'=>3065),);
+        $field_mapping = array(1 => array('from' => 2066, 'to' => 3066),
+                               2 => array('from' => 2067, 'to' => 3067),
+                               3 => array('from' => 2065, 'to' => 3065),);
 
         expect($this->float_dao)->duplicate(123, 124, 2065, 3065)->once();
         expect($this->int_dao)->duplicate()->count(2);
@@ -242,30 +247,39 @@ class Transition_PostActionFieldFactory_SaveObjectTest extends Transition_PostAc
 
     public function itSavesDateFieldPostActions()
     {
-        $post_action = aDateFieldPostAction()->withTransitionId(123)
-                                             ->withFieldId(456)
-                                             ->withValueType(1)
-                                             ->build();
+        $post_action = new Transition_PostAction_Field_Date(
+            Mockery::mock(Transition::class)->shouldReceive('getId')->andReturn(123)->getMock(),
+            0,
+            Mockery::mock(Tracker_FormElement_Field_Date::class)->shouldReceive('getId')->andReturn(456)->getMock(),
+            1
+        );
+
         $this->date_dao->expectOnce('save', array(123, 456, 1));
         $this->factory->saveObject($post_action);
     }
 
     public function itSavesIntFieldPostActions()
     {
-        $post_action = anIntFieldPostAction()->withTransitionId(123)
-                                             ->withFieldId(456)
-                                             ->withValue(0)
-                                             ->build();
+        $post_action = new Transition_PostAction_Field_Int(
+            Mockery::mock(Transition::class)->shouldReceive('getId')->andReturn(123)->getMock(),
+            0,
+            Mockery::mock(Tracker_FormElement_Field_Integer::class)->shouldReceive('getId')->andReturn(456)->getMock(),
+            0
+        );
+
         $this->int_dao->expectOnce('save', array(123, 456, 0));
         $this->factory->saveObject($post_action);
     }
 
     public function itSavesFloatFieldPostActions()
     {
-        $post_action = aFloatFieldPostAction()->withTransitionId(123)
-                                               ->withFieldId(456)
-                                               ->withValue(0)
-                                               ->build();
+        $post_action = new Transition_PostAction_Field_Float(
+            Mockery::mock(Transition::class)->shouldReceive('getId')->andReturn(123)->getMock(),
+            0,
+            Mockery::mock(Tracker_FormElement_Field_Float::class)->shouldReceive('getId')->andReturn(456)->getMock(),
+            0
+        );
+
         $this->float_dao->expectOnce('save', array(123, 456, 0));
         $this->factory->saveObject($post_action);
     }

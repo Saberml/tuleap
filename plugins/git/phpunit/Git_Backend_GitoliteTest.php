@@ -39,7 +39,7 @@ class Git_Backend_GitoliteTest extends TestCase
         parent::setUp();
         $this->fixtureRenamePath = $this->getTmpDir() . '/rename';
 
-        mkdir($this->fixtureRenamePath .'/legacy', 0770, true);
+        mkdir($this->fixtureRenamePath . '/legacy', 0770, true);
 
         $this->forkPermissions = array();
     }
@@ -61,15 +61,15 @@ class Git_Backend_GitoliteTest extends TestCase
         $bck->shouldReceive('log')->never();
         $backend->shouldReceive('getBackend')->andReturns($bck);
 
-        $this->assertTrue(is_dir($this->fixtureRenamePath .'/legacy'));
-        $this->assertFalse(is_dir($this->fixtureRenamePath .'/newone'));
+        $this->assertTrue(is_dir($this->fixtureRenamePath . '/legacy'));
+        $this->assertFalse(is_dir($this->fixtureRenamePath . '/newone'));
 
         $backend->shouldReceive('glRenameProject')->with('legacy', 'newone')->once();
         $this->assertTrue($backend->renameProject($project, 'newone'));
 
-        clearstatcache(true, $this->fixtureRenamePath .'/legacy');
-        $this->assertFalse(is_dir($this->fixtureRenamePath .'/legacy'));
-        $this->assertTrue(is_dir($this->fixtureRenamePath .'/newone'));
+        clearstatcache(true, $this->fixtureRenamePath . '/legacy');
+        $this->assertFalse(is_dir($this->fixtureRenamePath . '/legacy'));
+        $this->assertTrue(is_dir($this->fixtureRenamePath . '/newone'));
     }
 
     public function testItSavesForkInfoIntoDB(): void
@@ -121,13 +121,13 @@ class Git_Backend_GitoliteTest extends TestCase
             [
                 $driver,
                 \Mockery::spy(GitoliteAccessURLGenerator::class),
-                \Mockery::spy(\Logger::class)
+                \Mockery::spy(\Psr\Log\LoggerInterface::class)
             ]
         )
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
 
-        $driver->shouldReceive('fork')->with($name, 'gpig/'. $old_namespace, 'gpig/'. $new_namespace)->once()->andReturns(true);
+        $driver->shouldReceive('fork')->with($name, 'gpig/' . $old_namespace, 'gpig/' . $new_namespace)->once()->andReturns(true);
         $driver->shouldReceive('dumpProjectRepoConf')->with($project)->once();
         $driver->shouldReceive('push')->never();
 
@@ -161,13 +161,13 @@ class Git_Backend_GitoliteTest extends TestCase
             [
                 $driver,
                 \Mockery::spy(GitoliteAccessURLGenerator::class),
-                \Mockery::spy(\Logger::class)
+                \Mockery::spy(\Psr\Log\LoggerInterface::class)
             ]
         )
             ->makePartial()
             ->shouldAllowMockingProtectedMethods();
 
-        $driver->shouldReceive('fork')->with($repo_name, $old_project_name.'/'. $namespace, $new_project_name.'/'. $namespace)->once()->andReturns(true);
+        $driver->shouldReceive('fork')->with($repo_name, $old_project_name . '/' . $namespace, $new_project_name . '/' . $namespace)->once()->andReturns(true);
         $driver->shouldReceive('dumpProjectRepoConf')->with($new_project)->once();
         $driver->shouldReceive('push')->never();
 
@@ -195,7 +195,7 @@ class Git_Backend_GitoliteTest extends TestCase
             [
                 $driver,
                 \Mockery::spy(GitoliteAccessURLGenerator::class),
-                \Mockery::spy(\Logger::class)
+                \Mockery::spy(\Psr\Log\LoggerInterface::class)
             ]
         )
             ->makePartial()
@@ -284,7 +284,7 @@ class Git_Backend_GitoliteTest extends TestCase
         $dao                = \Mockery::spy(GitDao::class);
         $permissionsManager = \Mockery::spy(\PermissionsManager::class);
         $gitPlugin          = \Mockery::mock(GitPlugin::class);
-        $backend = new Git_Backend_Gitolite($driver, \Mockery::spy(GitoliteAccessURLGenerator::class), \Mockery::spy(\Logger::class));
+        $backend = new Git_Backend_Gitolite($driver, \Mockery::spy(GitoliteAccessURLGenerator::class), \Mockery::spy(\Psr\Log\LoggerInterface::class));
         $backend->setDao($dao);
         $backend->setPermissionsManager($permissionsManager);
         $backend->setGitPlugin($gitPlugin);

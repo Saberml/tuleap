@@ -25,17 +25,11 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use SimpleXMLElement;
 use Tracker_FormElement_Field_ArtifactId;
-use Tracker_Report;
 use Tracker_Report_Renderer_Table;
 
 class TrackerReportRendererTableTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
-
-    /**
-     * @var Mockery\MockInterface|Tracker_Report
-     */
-    private $tracker_report;
 
     /**
      * @var Mockery\MockInterface|Tracker_Report_Renderer_Table
@@ -67,15 +61,10 @@ class TrackerReportRendererTableTest extends TestCase
      * @var SimpleXMLElement
      */
     private $xml;
-    /**
-     * @var Mockery\Mock|Tracker_Report_Renderer_Table
-     */
-    private $report;
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->tracker_report = Mockery::mock(Tracker_Report::class);
         $this->tracker_report_renderer_table  = \Mockery::mock(Tracker_Report_Renderer_Table::class)->makePartial();
         $GLOBALS['sys_server_join'] = 20;
 
@@ -174,7 +163,7 @@ class TrackerReportRendererTableTest extends TestCase
         $this->tracker_report_renderer_table->shouldReceive('getSort');
         $this->tracker_report_renderer_table->exportToXml($this->xml, $field_info, $mapping['xml']);
 
-        $this->assertEquals('_is_child', (string)$this->xml->columns->field['artlink-nature']);
+        $this->assertEquals('_is_child', (string) $this->xml->columns->field['artlink-nature']);
     }
 
     public function testItAddOnlyFormatInReportXmlExport()
@@ -190,7 +179,7 @@ class TrackerReportRendererTableTest extends TestCase
         $this->tracker_report_renderer_table->shouldReceive('getSort');
         $this->tracker_report_renderer_table->exportToXml($this->xml, $field_info, $mapping['xml']);
 
-        $this->assertEquals('#%id', (string)$this->xml->columns->field['artlink-nature-format']);
+        $this->assertEquals('#%id', (string) $this->xml->columns->field['artlink-nature-format']);
     }
 
     public function testItAddBothNatureAndFormatInTrackerReports()
@@ -207,8 +196,8 @@ class TrackerReportRendererTableTest extends TestCase
         $this->tracker_report_renderer_table->shouldReceive('getSort');
         $this->tracker_report_renderer_table->exportToXml($this->xml, $field_info, $mapping['xml']);
 
-        $this->assertEquals('_is_child', (string)$this->xml->columns->field['artlink-nature']);
-        $this->assertEquals('#%id', (string)$this->xml->columns->field['artlink-nature-format']);
+        $this->assertEquals('_is_child', (string) $this->xml->columns->field['artlink-nature']);
+        $this->assertEquals('#%id', (string) $this->xml->columns->field['artlink-nature-format']);
     }
 
     public function testItNeverAddNatureInTrackerReportsWithoutNature()
@@ -223,7 +212,7 @@ class TrackerReportRendererTableTest extends TestCase
         $this->tracker_report_renderer_table->shouldReceive('getSort');
         $this->tracker_report_renderer_table->exportToXml($this->xml, $field_info, $mapping['xml']);
 
-        $this->assertEquals(null, (string)$this->xml->columns);
+        $this->assertEquals(null, (string) $this->xml->columns);
     }
 
     private function mapFieldWithNature($id, $nature, $format)
@@ -232,7 +221,7 @@ class TrackerReportRendererTableTest extends TestCase
                          ->makePartial()
                          ->shouldAllowMockingProtectedMethods();
         $field->shouldReceive('getId')->andReturn($id);
-        $xml_mapping['F'. $field->getId()] = $field->getId();
+        $xml_mapping['F' . $field->getId()] = $field->getId();
 
         $field_mapping = [
             'field'                 => $field,

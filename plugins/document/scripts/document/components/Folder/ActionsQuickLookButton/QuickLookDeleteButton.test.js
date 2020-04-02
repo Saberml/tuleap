@@ -29,11 +29,11 @@ describe("QuickLookDeleteButton", () => {
     let delete_button_factory, store;
     beforeEach(() => {
         const state = {
-            project_id: 101
+            project_id: 101,
         };
 
         const store_options = {
-            state
+            state,
         };
 
         store = createStoreMock(store_options);
@@ -45,10 +45,10 @@ describe("QuickLookDeleteButton", () => {
                     item: {
                         id: 1,
                         user_can_write: user_can_write,
-                        type: item_type
-                    }
+                        type: item_type,
+                    },
                 },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -73,7 +73,7 @@ describe("QuickLookDeleteButton", () => {
         store.state.is_deletion_allowed = true;
         const event_bus_emit = jest.spyOn(EventBus, "$emit");
         const wrapper = delete_button_factory(true, TYPE_FILE);
-        wrapper.find("[data-test=document-quick-look-delete-button]").trigger("click");
+        wrapper.get("[data-test=document-quick-look-delete-button]").trigger("click");
 
         expect(event_bus_emit).toHaveBeenCalledWith(
             "show-confirm-item-deletion-modal",

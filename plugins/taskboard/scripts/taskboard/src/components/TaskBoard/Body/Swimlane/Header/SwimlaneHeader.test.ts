@@ -27,8 +27,8 @@ import { SwimlaneState } from "../../../../../store/swimlane/type";
 
 const swimlane: Swimlane = {
     card: {
-        color: "fiesta-red"
-    }
+        color: "fiesta-red",
+    },
 } as Swimlane;
 
 async function createWrapper(is_fullscreen: boolean): Promise<Wrapper<SwimlaneHeader>> {
@@ -38,18 +38,18 @@ async function createWrapper(is_fullscreen: boolean): Promise<Wrapper<SwimlaneHe
             $store: createStoreMock({
                 state: {
                     swimlane: {} as SwimlaneState,
-                    fullscreen: {} as FullscreenState
+                    fullscreen: {} as FullscreenState,
                 },
                 getters: {
                     "swimlane/taskboard_cell_swimlane_header_classes": is_fullscreen
                         ? ["taskboard-fullscreen"]
-                        : [""]
-                }
-            })
+                        : [""],
+                },
+            }),
         },
         propsData: {
-            swimlane
-        }
+            swimlane,
+        },
     });
 }
 
@@ -73,7 +73,7 @@ describe("SwimlaneHeader", () => {
     it("collapse the swimlane when user click on the toggle icon", async () => {
         const wrapper = await createWrapper(false);
 
-        wrapper.find(".taskboard-swimlane-toggle").trigger("click");
+        wrapper.get(".taskboard-swimlane-toggle").trigger("click");
         expect(wrapper.vm.$store.dispatch).toHaveBeenCalledWith(
             "swimlane/collapseSwimlane",
             swimlane

@@ -46,7 +46,7 @@ final class VersionUploadFinisher implements TusFinisherDataStore
      */
     private $items_event_adder;
     /**
-     * @var \Logger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
     /**
@@ -103,7 +103,7 @@ final class VersionUploadFinisher implements TusFinisherDataStore
     private $approval_table_action_checker;
 
     public function __construct(
-        \Logger $logger,
+        \Psr\Log\LoggerInterface $logger,
         UploadPathAllocator $document_upload_path_allocator,
         \Docman_ItemFactory $docman_item_factory,
         \Docman_VersionFactory $version_factory,
@@ -143,7 +143,7 @@ final class VersionUploadFinisher implements TusFinisherDataStore
         $upload_id = $file_information->getID();
 
         $uploaded_document_path   = $this->document_upload_path_allocator->getPathForItemBeingUploaded($file_information);
-        $current_value_user_abort = (bool)ignore_user_abort(true);
+        $current_value_user_abort = (bool) ignore_user_abort(true);
         try {
             $this->createVersion($uploaded_document_path, $upload_id);
         } finally {
@@ -163,17 +163,15 @@ final class VersionUploadFinisher implements TusFinisherDataStore
                     return;
                 }
 
-                /**
-                 * @var Docman_File|null $item
-                 */
                 $item = $this->docman_item_factory->getItemFromDb($upload_row['item_id']);
+                \assert($item instanceof Docman_File || $item === null);
                 if ($item === null) {
                     $this->logger->info('Item #' . $upload_row['item_id'] . ' could not found in the DB to add a new version');
                     return;
                 }
 
                 $next_version_id = (int) $this->version_factory->getNextVersionNumber($item);
-                $item_id         = (int)$item->getId();
+                $item_id         = (int) $item->getId();
 
                 /*
                  * Some tables of the docman plugin relies on the MyISAM engine so the DB transaction
@@ -213,7 +211,7 @@ final class VersionUploadFinisher implements TusFinisherDataStore
                     throw new \RuntimeException('Can not find user ID #' . $upload_row['user_id']);
                 }
 
-                if ((bool)$upload_row['is_file_locked']) {
+                if ((bool) $upload_row['is_file_locked']) {
                     $this->lock_factory->lock($item, $current_user);
                 } else {
                     $this->lock_factory->unlock($item, $current_user);

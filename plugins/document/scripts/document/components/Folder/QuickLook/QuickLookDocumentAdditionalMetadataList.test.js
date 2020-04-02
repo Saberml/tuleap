@@ -38,7 +38,7 @@ describe("QuickLookDocumentAdditionalMetadataList", () => {
             return shallowMount(QuickLookDocumentPreview, {
                 localVue,
                 propsData: { metadata: props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -52,13 +52,13 @@ describe("QuickLookDocumentAdditionalMetadataList", () => {
                 type: "date",
                 list_value: null,
                 value: "2019-08-02",
-                post_processed_value: "2019-08-02"
+                post_processed_value: "2019-08-02",
             };
             store.state.date_time_format = "d/m/Y H:i";
 
             const wrapper = metadata_factory(metadata_date);
 
-            const label_element = wrapper.find("[data-test=metadata-list-label]");
+            const label_element = wrapper.get("[data-test=metadata-list-label]");
             expect(label_element).toBeTruthy();
             expect(label_element.text()).toBe("Validity");
         });
@@ -74,10 +74,10 @@ describe("QuickLookDocumentAdditionalMetadataList", () => {
                 list_value: [
                     { id: 1, name: "value 1" },
                     { id: 2, name: "fail" },
-                    { id: 3, name: "Tea" }
+                    { id: 3, name: "Tea" },
                 ],
                 value: null,
-                post_processed_value: null
+                post_processed_value: null,
             };
             const wrapper = metadata_factory(metadata_list);
 
@@ -96,12 +96,12 @@ describe("QuickLookDocumentAdditionalMetadataList", () => {
                 type: "list",
                 list_value: [{ id: 1, name: "value 1" }],
                 value: null,
-                post_processed_value: null
+                post_processed_value: null,
             };
             const wrapper = metadata_factory(metadata_list);
 
             expect(wrapper.contains("ul")).toBeFalsy();
-            expect(wrapper.find("p").text()).toBe("value 1");
+            expect(wrapper.get("p").text()).toBe("value 1");
         });
     });
 
@@ -116,12 +116,12 @@ describe("QuickLookDocumentAdditionalMetadataList", () => {
                 list_value: null,
                 value: "The mer-custo wants ref #1 that ... mmmmmh, mmmmh ...",
                 post_processed_value:
-                    'The mer-custo wants <a href="https://example.com/goto">ref #1</a> that ... mmmmmh, mmmmh ...'
+                    'The mer-custo wants <a href="https://example.com/goto">ref #1</a> that ... mmmmmh, mmmmh ...',
             };
 
             const wrapper = metadata_factory(metadata_string);
 
-            const displayed_metadata = wrapper.find("[id=document-bad-lyrics]");
+            const displayed_metadata = wrapper.get("[id=document-bad-lyrics]");
 
             expect(wrapper.contains("ul")).toBeFalsy();
             expect(wrapper.contains("[data-test=metadata-list-date]")).toBeFalsy();
@@ -139,12 +139,12 @@ describe("QuickLookDocumentAdditionalMetadataList", () => {
             type: "text",
             list_value: null,
             value: "",
-            post_processed_value: ""
+            post_processed_value: "",
         };
 
         const wrapper = metadata_factory(metadata_empty);
 
-        const displayed_metadata = wrapper.find("[id=document-silence]");
+        const displayed_metadata = wrapper.get("[id=document-silence]");
 
         expect(wrapper.contains("ul")).toBeFalsy();
         expect(wrapper.contains("[data-test=metadata-list-date]")).toBeFalsy();

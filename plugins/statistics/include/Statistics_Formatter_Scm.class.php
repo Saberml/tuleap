@@ -37,7 +37,7 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return void
      */
-    function __construct($scm, $startDate, $endDate, $groupId = null)
+    public function __construct($scm, $startDate, $endDate, $groupId = null)
     {
         $this->scm = $scm;
         parent::__construct($startDate, $endDate, get_csv_separator(), $groupId);
@@ -48,16 +48,25 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return Array
      */
-    function calculateReadStats()
+    public function calculateReadStats()
     {
+        $read_user_label    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_svn_read_user');
+        $total_read_label   = $GLOBALS['Language']->getText('plugin_statistics', 'scm_svn_total_read');
+        $read_project_label = $GLOBALS['Language']->getText('plugin_statistics', 'scm_svn_read_project');
+        if ($this->scm === 'cvs') {
+            $read_user_label    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_cvs_read_user');
+            $total_read_label   = $GLOBALS['Language']->getText('plugin_statistics', 'scm_cvs_total_read');
+            $read_project_label = $GLOBALS['Language']->getText('plugin_statistics', 'scm_cvs_read_project');
+        }
+
         $readIndex[]          = $GLOBALS['Language']->getText('plugin_statistics', 'scm_month');
-        $totalRead[]          = $GLOBALS['Language']->getText('plugin_statistics', 'scm_'.$this->scm.'_total_read');
-        $readProjectsNumber[] = $GLOBALS['Language']->getText('plugin_statistics', 'scm_'.$this->scm.'_read_project');
-        $readUsersNumber[]    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_'.$this->scm.'_read_user');
+        $totalRead[]          = $total_read_label;
+        $readProjectsNumber[] = $read_project_label;
+        $readUsersNumber[]    = $read_user_label;
         $readDar              = $this->dao->totalRead($this->startDate, $this->endDate);
         if ($readDar && !$readDar->isError()) {
             foreach ($readDar as $row) {
-                $readIndex[]          = $row['month']." ".$row['year'];
+                $readIndex[]          = $row['month'] . " " . $row['year'];
                 $readProjectsNumber[] = $row['projects'];
                 $readUsersNumber[]    = $row['users'];
                 $totalRead[]          = intval($row['count']);
@@ -75,16 +84,25 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return Array
      */
-    function calculateCommitsStats()
+    public function calculateCommitsStats()
     {
+        $commit_user_label    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_svn_commit_user');
+        $total_commit_label   = $GLOBALS['Language']->getText('plugin_statistics', 'scm_svn_total_commit');
+        $commit_project_label = $GLOBALS['Language']->getText('plugin_statistics', 'scm_svn_commit_project');
+        if ($this->scm === 'cvs') {
+            $commit_user_label    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_cvs_commit_user');
+            $total_commit_label   = $GLOBALS['Language']->getText('plugin_statistics', 'scm_cvs_total_commit');
+            $commit_project_label = $GLOBALS['Language']->getText('plugin_statistics', 'scm_cvs_commit_project');
+        }
+
         $commitsIndex[]         = $GLOBALS['Language']->getText('plugin_statistics', 'scm_month');
-        $totalCommits[]         = $GLOBALS['Language']->getText('plugin_statistics', 'scm_'.$this->scm.'_total_commit');
-        $commitProjectsNumber[] = $GLOBALS['Language']->getText('plugin_statistics', 'scm_'.$this->scm.'_commit_project');
-        $commitUsersNumber[]    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_'.$this->scm.'_commit_user');
-        $commitsDar = $this->dao->totalCommits($this->startDate, $this->endDate);
+        $totalCommits[]         = $total_commit_label;
+        $commitProjectsNumber[] = $commit_project_label;
+        $commitUsersNumber[]    = $commit_user_label;
+        $commitsDar             = $this->dao->totalCommits($this->startDate, $this->endDate);
         if ($commitsDar && !$commitsDar->isError()) {
             foreach ($commitsDar as $row) {
-                $commitsIndex[]         = $row['month']." ".$row['year'];
+                $commitsIndex[]         = $row['month'] . " " . $row['year'];
                 $commitProjectsNumber[] = $row['projects'];
                 $commitUsersNumber[]    = $row['users'];
                 $totalCommits[]         = intval($row['count']);
@@ -102,7 +120,7 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return Array
      */
-    function topCommitByProject()
+    public function topCommitByProject()
     {
         $result['project'][] = $GLOBALS['Language']->getText('plugin_statistics', 'scm_top_commit_project');
         $result['commits'][] = $GLOBALS['Language']->getText('plugin_statistics', 'scm_top_commit_project_commits');
@@ -123,7 +141,7 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return Array
      */
-    function topCommitByUser()
+    public function topCommitByUser()
     {
         $result['user'][]    = $GLOBALS['Language']->getText('plugin_statistics', 'scm_top_commit_user');
         $result['commits'][] = $GLOBALS['Language']->getText('plugin_statistics', 'scm_top_commit_user_commits');
@@ -144,12 +162,12 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return Array
      */
-    function repositoriesWithCommit()
+    public function repositoriesWithCommit()
     {
         $repositories[] = $GLOBALS['Language']->getText('plugin_statistics', 'scm_repo_total');
         $count = 0;
         $dar = $this->dao->repositoriesWithCommit($this->startDate, $this->endDate);
-        if ($dar && !$dar->isError() && $dar->rowCount()> 0) {
+        if ($dar && !$dar->isError() && $dar->rowCount() > 0) {
             $row = $dar->getRow();
             if ($row) {
                 $count = $row['count'];
@@ -164,7 +182,7 @@ class Statistics_Formatter_Scm extends Statistics_Formatter
      *
      * @return String
      */
-    function getStats()
+    public function getStats()
     {
         $readStats = $this->calculateReadStats();
         $this->addLine($readStats['read_index']);

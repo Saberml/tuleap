@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2015-2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2015-2020. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -20,13 +20,11 @@
 
 namespace Tuleap\SVN;
 
-use Service;
 use HTTPRequest;
+use PermissionsManager;
+use Service;
 use SvnPlugin;
 use TemplateRendererFactory;
-use User_ForgeUserGroupFactory;
-use UserGroupDao;
-use PermissionsManager;
 
 class ServiceSvn extends Service
 {
@@ -49,7 +47,6 @@ class ServiceSvn extends Service
     {
         if (empty($this->permissions_manager)) {
             $this->permissions_manager = new SvnPermissionManager(
-                new User_ForgeUserGroupFactory(new UserGroupDao()),
                 PermissionsManager::instance()
             );
         }
@@ -72,10 +69,10 @@ class ServiceSvn extends Service
 
     private function getRenderer()
     {
-        return TemplateRendererFactory::build()->getRenderer(dirname(SVN_BASE_DIR).'/templates');
+        return TemplateRendererFactory::build()->getRenderer(dirname(SVN_BASE_DIR) . '/templates');
     }
 
-    private function displaySVNHeader(HTTPRequest $request, $title, $body_class)
+    private function displaySVNHeader(HTTPRequest $request, $title, $body_class): void
     {
         $params = array(
             'body_class' => array($body_class)
@@ -85,12 +82,14 @@ class ServiceSvn extends Service
         );
         $toolbar = array();
         if ($this->getPermissionsManager()->isAdmin($request->getProject(), $request->getCurrentUser())) {
-            $toolbar[] = array(
-                'title' => "Administration",
-                'url'   => SVN_BASE_URL . "/?group_id=" . $request->getProject()->getId() .
-                           "&action=admin-groups");
+            $toolbar[] = [
+                'title'     => "Administration",
+                'url'       => SVN_BASE_URL . "/?group_id=" . urlencode((string) $request->getProject()->getId()) .
+                    "&action=admin-groups",
+                'data-test' => 'svn-admin-groups'
+            ];
         }
-        $title       = $title.' - '.dgettext('tuleap-svn', 'SVN');
+        $title       = $title . ' - ' . dgettext('tuleap-svn', 'SVN');
         $breadcrumbs = array(
             array(
                 'title' => "Repository List",

@@ -20,7 +20,7 @@
 
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__ .'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace,Squiz.Classes.ValidClassName.NotCamelCaps,PSR1.Classes.ClassDeclaration.MultipleClasses
 class SystemEvent_GIT_GERRIT_MIGRATION_BackendTest extends TestCase
@@ -69,10 +69,10 @@ class SystemEvent_GIT_GERRIT_MIGRATION_BackendTest extends TestCase
         $factory = \Mockery::spy(\GitRepositoryFactory::class);
         $factory->shouldReceive('getRepositoryById')->with($this->repository_id)->andReturns($this->repository);
 
-        $id= $type= $parameters= $priority= $status= $create_date= $process_date= $end_date= $log = 0;
+        $id = $type = $parameters = $priority = $status = $create_date = $process_date = $end_date = $log = 0;
         $this->event = \Mockery::mock(\SystemEvent_GIT_GERRIT_MIGRATION::class)->makePartial()->shouldAllowMockingProtectedMethods();
         $this->event->setParameters("$this->repository_id::$this->remote_server_id::true");
-        $this->logger = \Mockery::spy(\Logger::class);
+        $this->logger = \Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->event->injectDependencies($this->dao, $factory, $this->server_factory, $this->logger, $this->project_creator, \Mockery::spy(\Git_GitRepositoryUrlManager::class), $this->user_manager, \Mockery::spy(\MailBuilder::class));
     }
 
@@ -110,33 +110,48 @@ class SystemEvent_GIT_GERRIT_MIGRATION_BackendTest extends TestCase
 
     public function testItInformsAboutAnyGenericFailure() : void
     {
-        $this->user_manager->shouldReceive('getUserById')->andReturns((new \UserTestBuilder())->withId(0)->build());
+        $this->user_manager->shouldReceive('getUserById')->andReturns(
+            new PFUser([
+                'language_id' => 'en',
+                'user_id' => 0
+            ])
+        );
         $this->server_factory->shouldReceive('getServer')->with($this->repository)->andReturns($this->gerrit_server);
         $e = new Exception("failure detail");
         $this->project_creator->shouldReceive('createGerritProject')->andThrows($e);
         $this->event->shouldReceive('error')->with("failure detail")->once();
-        $this->logger->shouldReceive('error')->with("An error occured while processing event: ".$this->event->verbalizeParameters(null), $e)->once();
+        $this->logger->shouldReceive('error')->with("An error occured while processing event: " . $this->event->verbalizeParameters(null), ['exception' => $e])->once();
         $this->event->process();
     }
 
     public function testItInformsAboutAnyGerritRelatedFailureByAddingAPrefix() : void
     {
-        $this->user_manager->shouldReceive('getUserById')->andReturns((new \UserTestBuilder())->withId(0)->build());
+        $this->user_manager->shouldReceive('getUserById')->andReturns(
+            new PFUser([
+                'language_id' => 'en',
+                'user_id' => 0
+            ])
+        );
         $this->server_factory->shouldReceive('getServer')->with($this->repository)->andReturns($this->gerrit_server);
         $e = new Git_Driver_Gerrit_Exception("failure detail");
         $this->project_creator->shouldReceive('createGerritProject')->andThrows($e);
         $this->event->shouldReceive('error')->with("gerrit: failure detail")->once();
-        $this->logger->shouldReceive('error')->with("Gerrit failure: ".$this->event->verbalizeParameters(null), $e)->once();
+        $this->logger->shouldReceive('error')->with("Gerrit failure: " . $this->event->verbalizeParameters(null), ['exception' => $e])->once();
         $this->event->process();
     }
 
     public function testItInformsAboutAnyServerFactoryFailure() : void
     {
-        $this->user_manager->shouldReceive('getUserById')->andReturns((new \UserTestBuilder())->withId(0)->build());
+        $this->user_manager->shouldReceive('getUserById')->andReturns(
+            new PFUser([
+                'language_id' => 'en',
+                'user_id' => 0
+            ])
+        );
         $e = new Exception("failure detail");
         $this->server_factory->shouldReceive('getServer')->andThrows($e);
         $this->event->shouldReceive('error')->with("failure detail")->once();
-        $this->logger->shouldReceive('error')->with("An error occured while processing event: ".$this->event->verbalizeParameters(null), $e)->once();
+        $this->logger->shouldReceive('error')->with("An error occured while processing event: " . $this->event->verbalizeParameters(null), ['exception' => $e])->once();
         $this->event->process();
     }
 

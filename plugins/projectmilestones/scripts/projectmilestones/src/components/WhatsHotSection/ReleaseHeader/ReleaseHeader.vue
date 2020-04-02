@@ -34,9 +34,12 @@
             class="tlp-skeleton-text release-remaining-disabled"
             data-test="display-skeleton"
         ></div>
-        <div v-else class="release-remaining-effort-badges">
+        <div v-else-if="!isPastRelease" class="release-remaining-effort-badges">
             <release-header-remaining-days v-bind:release_data="release_data" />
             <release-header-remaining-points v-bind:release_data="release_data" />
+        </div>
+        <div v-else>
+            <past-release-header-initial-points v-bind:release_data="release_data" />
         </div>
     </div>
 </template>
@@ -48,15 +51,22 @@ import ReleaseHeaderRemainingPoints from "./ReleaseHeaderRemainingPoints.vue";
 import Vue from "vue";
 import { MilestoneData } from "../../../type";
 import { Component, Prop } from "vue-property-decorator";
+import PastReleaseHeaderInitialPoints from "./PastReleaseHeaderInitialPoints.vue";
 
 @Component({
-    components: { ReleaseHeaderRemainingPoints, ReleaseHeaderRemainingDays }
+    components: {
+        PastReleaseHeaderInitialPoints,
+        ReleaseHeaderRemainingPoints,
+        ReleaseHeaderRemainingDays,
+    },
 })
 export default class ReleaseHeader extends Vue {
     @Prop()
     readonly release_data!: MilestoneData;
     @Prop()
     readonly isLoading!: boolean;
+    @Prop()
+    readonly isPastRelease!: boolean;
 
     formatDate = (date: string): string => formatDateYearMonthDay(date);
 

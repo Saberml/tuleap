@@ -68,7 +68,6 @@ use Tuleap\SVN\Repository\RepositoryManager;
 use Tuleap\SVN\Repository\RepositoryRegexpBuilder;
 use Tuleap\SVN\Repository\Settings;
 use Tuleap\SVN\SvnAdmin;
-use Tuleap\SVN\SvnLogger;
 use Tuleap\SVN\SvnPermissionManager;
 use UGroupManager;
 
@@ -146,12 +145,10 @@ class RepositoryResource extends AuthenticatedResource
     public function __construct()
     {
         $dao                        = new Dao();
-        $logger                     = new SvnLogger();
+        $logger                     = \SvnPlugin::getLogger();
         $system_command             = new \System_Command();
-        /**
-         * @var \BackendSVN $backend_svn
-         */
         $backend_svn                = \Backend::instance(\Backend::SVN);
+        \assert($backend_svn instanceof \BackendSVN);
         $project_history_dao        = new ProjectHistoryDao();
         $this->system_event_manager = \SystemEventManager::instance();
         $this->project_manager      = \ProjectManager::instance();
@@ -170,7 +167,6 @@ class RepositoryResource extends AuthenticatedResource
 
         $this->user_manager       = \UserManager::instance();
         $this->permission_manager = new SvnPermissionManager(
-            new \User_ForgeUserGroupFactory(new \UserGroupDao()),
             \PermissionsManager::instance()
         );
 
@@ -235,7 +231,6 @@ class RepositoryResource extends AuthenticatedResource
             $access_file_history_factory,
             $mail_notification_manager,
             new NotificationsBuilder(
-                $this->emails_builder,
                 $user_to_notify_dao,
                 $this->user_manager,
                 $ugroup_to_notify_dao,
@@ -261,11 +256,7 @@ class RepositoryResource extends AuthenticatedResource
             new NotificationUpdateChecker(
                 $mail_notification_manager,
                 new EmailsToBeNotifiedRetriever(
-                    $mail_notification_manager,
-                    $user_to_notify_dao,
-                    $ugroup_to_notify_dao,
-                    $this->ugroup_manager,
-                    $this->user_manager
+                    $mail_notification_manager
                 )
             )
         );
@@ -547,14 +538,12 @@ class RepositoryResource extends AuthenticatedResource
     private function isDeletionAlreadyQueued(Repository $repository)
     {
         return SystemEventManager::instance()->areThereMultipleEventsQueuedMatchingFirstParameter(
-            'Tuleap\\SVN\\Events\\'.SystemEvent_SVN_DELETE_REPOSITORY::NAME,
+            'Tuleap\\SVN\\Events\\' . SystemEvent_SVN_DELETE_REPOSITORY::NAME,
             $repository->getProject()->getID() . SystemEvent::PARAMETER_SEPARATOR . $repository->getId()
         );
     }
 
     /**
-     * @param Repository $repository
-     * @param \PFUser    $user
      *
      * @return \Tuleap\SVN\REST\v1\RepositoryRepresentation
      */
@@ -609,7 +598,7 @@ class RepositoryResource extends AuthenticatedResource
      *   &nbsp;&nbsp;&nbsp;&nbsp;"email_notifications": [<br>
      *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br>
      *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"path": "/trunk",<br>
-     *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp"emails": [<br>
+     *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"emails": [<br>
      *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"foo@example.com",<br>
      *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bar@example.com"<br>
      *   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;],<br>

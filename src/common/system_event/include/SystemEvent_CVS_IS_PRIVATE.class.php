@@ -41,14 +41,14 @@ class SystemEvent_CVS_IS_PRIVATE extends SystemEvent
     {
         $txt = '';
         list($group_id, $cvs_is_private) = $this->getParametersAsArray();
-        $txt .= 'project: '. $this->verbalizeProjectId($group_id, $with_link) .', cvs is private: '. ($cvs_is_private ? 'true' : 'false');
+        $txt .= 'project: ' . $this->verbalizeProjectId($group_id, $with_link) . ', cvs is private: ' . ($cvs_is_private ? 'true' : 'false');
         return $txt;
     }
 
     /**
      * Process stored event
      */
-    function process()
+    public function process()
     {
         list($group_id, $cvs_is_private) = $this->getParametersAsArray();
 

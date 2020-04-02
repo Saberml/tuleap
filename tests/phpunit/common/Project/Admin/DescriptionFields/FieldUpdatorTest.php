@@ -26,6 +26,7 @@ namespace Tuleap\common\Project\Admin\DescriptionFields;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use ProjectCreationData;
+use Psr\Log\LoggerInterface;
 use Tuleap\Project\Admin\DescriptionFields\FieldDoesNotExistException;
 use Tuleap\Project\Admin\DescriptionFields\FieldUpdator;
 use Tuleap\Project\Admin\DescriptionFields\MissingMandatoryFieldException;
@@ -38,7 +39,7 @@ final class FieldUpdatorTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
     /**
-     * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|\ProjectXMLImporterLogger
+     * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|LoggerInterface
      */
     private $logger;
     /**
@@ -64,7 +65,7 @@ final class FieldUpdatorTest extends TestCase
         $this->default_project_visibility_retriever = new DefaultProjectVisibilityRetriever();
         $this->field_factory                        = \Mockery::mock(DescriptionFieldsFactory::class);
         $this->dao                                  = \Mockery::mock(ProjectDetailsDAO::class);
-        $this->logger                               = \Mockery::mock(\ProjectXMLImporterLogger::class);
+        $this->logger                               = \Mockery::mock(LoggerInterface::class);
         $this->updater                              = new FieldUpdator($this->field_factory, $this->dao, $this->logger);
     }
 
@@ -90,8 +91,8 @@ final class FieldUpdatorTest extends TestCase
             ]
         );
 
-        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1,'My field 1 content'])->once()->andReturn(100);
-        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 2,'Other content for field 2'])->once()->andReturn(101);
+        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1, 'My field 1 content'])->once()->andReturn(100);
+        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 2, 'Other content for field 2'])->once()->andReturn(101);
 
         $this->logger->shouldReceive('debug')->never();
 
@@ -119,7 +120,7 @@ final class FieldUpdatorTest extends TestCase
             ]
         );
 
-        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1,'My field 1 content'])->once()->andReturn(false);
+        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1, 'My field 1 content'])->once()->andReturn(false);
 
         $this->logger->shouldReceive('debug')->once();
 
@@ -144,8 +145,8 @@ final class FieldUpdatorTest extends TestCase
             ]
         );
 
-        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1,'My field 1 content'])->once()->andReturn(100);
-        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 2,'Other content for field 2'])->once()->andReturn(101);
+        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1, 'My field 1 content'])->once()->andReturn(100);
+        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 2, 'Other content for field 2'])->once()->andReturn(101);
 
         $this->logger->shouldReceive('debug')->never();
 
@@ -167,7 +168,7 @@ final class FieldUpdatorTest extends TestCase
             ]
         );
 
-        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1,'My field 1 content'])->once()->andReturn(false);
+        $this->dao->shouldReceive('createGroupDescription')->withArgs([$group_id, 1, 'My field 1 content'])->once()->andReturn(false);
 
         $this->logger->shouldReceive('debug')->once();
 

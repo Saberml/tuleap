@@ -28,17 +28,16 @@ class Docman_View_ItemDetailsSectionActions extends Docman_View_ItemDetailsSecti
     public $is_moveable;
     public $is_deleteable;
     public $_controller;
-    function __construct($item, $url, $is_moveable, $is_deleteable, $controller)
+    public function __construct($item, $url, $is_moveable, $is_deleteable, $controller)
     {
         $this->is_moveable   = $is_moveable;
         $this->is_deleteable = $is_deleteable;
         $this->_controller   = $controller;
-        parent::__construct($item, $url, 'actions', $GLOBALS['Language']->getText('plugin_docman', 'details_actions'));
+        parent::__construct($item, $url, 'actions', dgettext('tuleap-docman', 'Actions'));
     }
-    function getContent($params = [])
+    public function getContent($params = [])
     {
-        $folder_or_document = is_a($this->item, 'Docman_Folder') ? 'folder' : 'document';
-        $user               = $this->_controller->getUser();
+        $user = $this->_controller->getUser();
 
         $content = '';
         $content .= '<dl>';
@@ -48,64 +47,82 @@ class Docman_View_ItemDetailsSectionActions extends Docman_View_ItemDetailsSecti
         //}}}
 
         //{{{ Move
-        $content .= '<dt>'. $GLOBALS['Language']->getText('plugin_docman', 'details_actions_move') .'</dt><dd>';
+        $content .= '<dt>' . dgettext('tuleap-docman', 'Move') . '</dt><dd>';
         if (!$this->is_moveable || !($this->_controller->userCanWrite($this->item->getId()) && $this->_controller->userCanWrite($this->item->getParentId()))) {
-            $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_move_cannotmove_'.$folder_or_document);
+            if (is_a($this->item, 'Docman_Folder')) {
+                $content .= dgettext('tuleap-docman', 'You cannot move this folder.');
+            } else {
+                $content .= dgettext('tuleap-docman', 'You cannot move this document.');
+            }
         } else {
-            $content .= $GLOBALS['Language']->getText(
-                'plugin_docman',
-                'details_actions_move_canmove_'.$folder_or_document,
-                DocmanViewURLBuilder::buildActionUrl(
-                    $this->item,
-                    ['default_url' => $this->url],
-                    ['action' => 'move', 'id' => $this->item->getId()]
-                )
+            $move_url = DocmanViewURLBuilder::buildActionUrl(
+                $this->item,
+                ['default_url' => $this->url],
+                ['action' => 'move', 'id' => $this->item->getId()]
             );
+            if (is_a($this->item, 'Docman_Folder')) {
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">move this folder</a> to another folder or inside the current folder.'), $move_url);
+            } else {
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">move this document</a> to another folder or inside the current folder.'), $move_url);
+            }
         }
         $content .= '</dd>';
         //}}}
 
         //{{{ Cut
-        $content .= '<dt>'.$GLOBALS['Language']->getText('plugin_docman', 'details_actions_cut').'</dt><dd>';
+        $content .= '<dt>' . dgettext('tuleap-docman', 'Cut') . '</dt><dd>';
         $itemFactory = Docman_ItemFactory::instance($this->item->getGroupId());
         if ($itemFactory->isRoot($this->item)) {
-            $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_cut_cannotcut_'.$folder_or_document);
+            $content .= dgettext('tuleap-docman', 'You cannot cut this folder.');
         } else {
             $cuturl = DocmanViewURLBuilder::buildActionUrl(
                 $this->item,
                 ['default_url' => $this->url],
                 ['action' => 'action_cut', 'id' => $this->item->getId(), 'orig_action' => 'details', 'orig_id' => $this->item->getId()]
             );
-            $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_cut_cancut_'.$folder_or_document, $cuturl);
+            if (is_a($this->item, 'Docman_Folder')) {
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">cut this folder</a>.'), $cuturl);
+            } else {
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">cut this document</a>.'), $cuturl);
+            }
         }
         $content .= '</dd>';
         //}}}
 
         //{{{ Copy
-        $content .= '<dt>'.$GLOBALS['Language']->getText('plugin_docman', 'details_actions_copy').'</dt><dd>';
+        $content .= '<dt>' . dgettext('tuleap-docman', 'Copy') . '</dt><dd>';
         $copyurl  = DocmanViewURLBuilder::buildActionUrl(
             $this->item,
             ['default_url' => $this->url],
             ['action' => 'action_copy', 'id' => $this->item->getId(), 'orig_action' => 'details', 'orig_id' => $this->item->getId()]
         );
-        $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_copy_cancopy_'.$folder_or_document, $copyurl);
+        if (is_a($this->item, 'Docman_Folder')) {
+            $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">copy this folder</a>.'), $copyurl);
+        } else {
+            $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">copy this document</a>.'), $copyurl);
+        }
         $content .= '</dd>';
         //}}}
 
         //{{{ Delete
-        $content .= '<dt>'. $GLOBALS['Language']->getText('plugin_docman', 'details_actions_delete') .'</dt><dd>';
+        $content .= '<dt>' . dgettext('tuleap-docman', 'Delete') . '</dt><dd>';
         if (! $this->is_deleteable || $this->_controller->userCannotDelete($user, $this->item)) {
-            $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_delete_cannotdelete_'.$folder_or_document);
+            if (is_a($this->item, 'Docman_Folder')) {
+                $content .= dgettext('tuleap-docman', 'You cannot delete this folder.');
+            } else {
+                $content .= dgettext('tuleap-docman', 'You cannot delete this document.');
+            }
         } else {
-            $content .= $GLOBALS['Language']->getText(
-                'plugin_docman',
-                'details_actions_delete_candelete_'.$folder_or_document,
-                DocmanViewURLBuilder::buildActionUrl(
-                    $this->item,
-                    ['default_url' => $this->url],
-                    ['action' => 'confirmDelete', 'id' => $this->item->getId()]
-                )
+            $delete_url = DocmanViewURLBuilder::buildActionUrl(
+                $this->item,
+                ['default_url' => $this->url],
+                ['action' => 'confirmDelete', 'id' => $this->item->getId()]
             );
+            if (is_a($this->item, 'Docman_Folder')) {
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">delete this folder</a>.'), $delete_url);
+            } else {
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">delete this document</a>.'), $delete_url);
+            }
         }
         $content .= '</dd>';
         //}}}
@@ -114,23 +131,15 @@ class Docman_View_ItemDetailsSectionActions extends Docman_View_ItemDetailsSecti
         return $content;
     }
 
-    function visitFolder($item, $params = array())
+    public function visitFolder($item, $params = array())
     {
         $content = '';
         if ($this->_controller->userCanWrite($this->item->getid())) {
-            $content .= '<dt>'. $GLOBALS['Language']->getText('plugin_docman', 'details_actions_newdocument') .'</dt><dd>';
-            $content .= $GLOBALS['Language']->getText(
-                'plugin_docman',
-                'details_actions_newdocument_cancreate',
-                DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'newDocument', 'id' => $item->getId()])
-            );
+            $content .= '<dt>' . dgettext('tuleap-docman', 'New document') . '</dt><dd>';
+            $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">create a new document</a> in this folder.'), DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'newDocument', 'id' => $item->getId()]));
             $content .= '</dd>';
-            $content .= '<dt>'. $GLOBALS['Language']->getText('plugin_docman', 'details_actions_newfolder') .'</dt><dd>';
-            $content .= $GLOBALS['Language']->getText(
-                'plugin_docman',
-                'details_actions_newfolder_cancreate',
-                DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'newFolder', 'id' => $item->getId()])
-            );
+            $content .= '<dt>' . dgettext('tuleap-docman', 'New folder') . '</dt><dd>';
+            $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">create a new folder</a> in this folder.'), DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'newFolder', 'id' => $item->getId()]));
             //{{{ Paste
             $itemFactory  = Docman_ItemFactory::instance($item->getGroupId());
             $copiedItemId = $itemFactory->getCopyPreference($this->_controller->getUser());
@@ -143,64 +152,56 @@ class Docman_View_ItemDetailsSectionActions extends Docman_View_ItemDetailsSecti
             }
             if ($srcItem && !$itemFactory->isInSubTree($this->item->getId(), $srcItem->getId())) {
                 $content .= '</dd>';
-                $content .= '<dt>'.$GLOBALS['Language']->getText('plugin_docman', 'details_actions_paste').'</dt><dd>';
+                $content .= '<dt>' . dgettext('tuleap-docman', 'Paste') . '</dt><dd>';
                 $copyurl = DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'action_paste', 'id' => $this->item->getId()]);
-                $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_paste_canpaste', array($copyurl,  $this->hp->purify($srcItem->getTitle(), CODEX_PURIFIER_CONVERT_HTML) ));
+                $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">paste \'%2$s\' into this folder</a>.'), $copyurl, $this->hp->purify($srcItem->getTitle(), CODENDI_PURIFIER_CONVERT_HTML));
             }
             //}}}
         }
         $content .= '</dd>';
         return $content;
     }
-    function visitDocument($item, $params = array())
+    public function visitDocument($item, $params = array())
     {
         $content = '';
-        $content .= '<dt>'. $GLOBALS['Language']->getText('plugin_docman', 'details_actions_update') .'</dt><dd>';
+        $content .= '<dt>' . dgettext('tuleap-docman', 'Update') . '</dt><dd>';
 
         if (!$this->_controller->userCanWrite($this->item->getid())) {
-            $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_update_cannot');
+            $content .= dgettext('tuleap-docman', 'You cannot update this document.');
         } else {
-            $content .= $GLOBALS['Language']->getText(
-                'plugin_docman',
-                'details_actions_update_can',
-                DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'action_update', 'id' => $this->item->getId()])
-            );
+            $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">update</a> this document.'), DocmanViewURLBuilder::buildActionUrl($item, ['default_url' => $this->url], ['action' => 'action_update', 'id' => $this->item->getId()]));
         }
 
         $content .= '</dd>';
         return $content;
     }
-    function visitWiki($item, $params = array())
+    public function visitWiki($item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }
-    function visitLink($item, $params = array())
+    public function visitLink($item, $params = array())
     {
         return $this->getSectionForNewVersion();
     }
-    function visitFile($item, $params = array())
+    public function visitFile($item, $params = array())
     {
         return $this->getSectionForNewVersion();
     }
 
     private function getSectionForNewVersion()
     {
-        $content = '<dt>'. $GLOBALS['Language']->getText('plugin_docman', 'details_actions_newversion') .'</dt><dd>';
+        $content = '<dt>' . dgettext('tuleap-docman', 'New Version') . '</dt><dd>';
         if (!$this->_controller->userCanWrite($this->item->getid())) {
-            $content .= $GLOBALS['Language']->getText('plugin_docman', 'details_actions_newversion_cannotcreate');
+            $content .= dgettext('tuleap-docman', 'You cannot create a new version.');
         } else {
-            $content .= $GLOBALS['Language']->getText(
-                'plugin_docman',
-                'details_actions_newversion_cancreate',
-                DocmanViewURLBuilder::buildActionUrl($this->item, ['default_url' => $this->url], ['action' => 'action_new_version', 'id' => $this->item->getId()])
-            );
+            $content .= sprintf(dgettext('tuleap-docman', 'You can <a href="%1$s">create a new version</a>.'), DocmanViewURLBuilder::buildActionUrl($this->item, ['default_url' => $this->url], ['action' => 'action_new_version', 'id' => $this->item->getId()]));
         }
         $content .= '</dd>';
 
         return $content;
     }
 
-    function visitEmbeddedFile($item, $params = array())
+    public function visitEmbeddedFile($item, $params = array())
     {
         $content = '<textarea name="content" rows="15" cols="50">';
         $version = $item->getCurrentVersion();
@@ -211,7 +212,7 @@ class Docman_View_ItemDetailsSectionActions extends Docman_View_ItemDetailsSecti
         return $this->visitFile($item, array_merge($params, array('input_content' => $content)));
     }
 
-    function visitEmpty($item, $params = array())
+    public function visitEmpty($item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }

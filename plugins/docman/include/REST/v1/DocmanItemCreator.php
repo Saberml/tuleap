@@ -165,7 +165,6 @@ class DocmanItemCreator
         $link_url,
         $content
     ) {
-
         $status_id = $this->status_mapper->getItemStatusWithParentInheritance($parent_item, $status);
 
         if ($item_type_id !== PLUGIN_DOCMAN_ITEM_TYPE_FOLDER) {
@@ -174,8 +173,10 @@ class DocmanItemCreator
                 $current_time
             );
         } else {
-            $obsolescence_date_time_stamp = (int)ItemRepresentation::OBSOLESCENCE_DATE_NONE;
+            $obsolescence_date_time_stamp = (int) ItemRepresentation::OBSOLESCENCE_DATE_NONE;
         }
+
+        $current_date = new \DateTimeImmutable();
         $item = $this->item_factory->createWithoutOrdering(
             $title,
             $description,
@@ -184,6 +185,8 @@ class DocmanItemCreator
             $obsolescence_date_time_stamp,
             $user->getId(),
             $item_type_id,
+            $current_date,
+            $current_date,
             $wiki_page,
             $link_url
         );
@@ -199,7 +202,7 @@ class DocmanItemCreator
         ];
 
         if ($metadata_to_create->isInheritedFromParent()) {
-            $this->metadata_value_dao->inheritMetadataFromParent((int)$item->getId(), (int) $parent_item->getId());
+            $this->metadata_value_dao->inheritMetadataFromParent((int) $item->getId(), (int) $parent_item->getId());
         }
 
         if ($item_type_id === PLUGIN_DOCMAN_ITEM_TYPE_EMBEDDEDFILE) {
@@ -256,7 +259,7 @@ class DocmanItemCreator
             );
 
             if ($metadata_to_create->isInheritedFromParent()) {
-                $this->metadata_value_dao->inheritMetadataFromParent((int)$document_to_upload->getItemId(), (int) $parent_item->getId());
+                $this->metadata_value_dao->inheritMetadataFromParent((int) $document_to_upload->getItemId(), (int) $parent_item->getId());
             }
 
             if ($file_properties->file_size === 0) {
@@ -296,7 +299,6 @@ class DocmanItemCreator
         \DateTimeImmutable $current_time,
         Project $project
     ): CreatedItemRepresentation {
-
         if ($this->item_factory->doesTitleCorrespondToExistingFolder($representation->title, $parent_item->getId())) {
             throw new RestException(400, "A folder with same title already exists in the given folder.");
         }
@@ -426,7 +428,6 @@ class DocmanItemCreator
     }
 
     /**
-     * @return CreatedItemRepresentation
      * @throws Metadata\HardCodedMetadataException
      * @throws RestException
      * @throws \Tuleap\Docman\CannotInstantiateItemWeHaveJustCreatedInDBException
@@ -474,7 +475,6 @@ class DocmanItemCreator
     }
 
     /**
-     * @return CreatedItemRepresentation
      * @throws Metadata\HardCodedMetadataException
      * @throws RestException
      * @throws \Tuleap\Docman\CannotInstantiateItemWeHaveJustCreatedInDBException

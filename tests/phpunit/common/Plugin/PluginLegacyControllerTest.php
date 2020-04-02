@@ -24,7 +24,6 @@ namespace Tuleap\Plugin;
 
 use Mockery;
 use PHPUnit\Framework\TestCase;
-use Tuleap\Instrument\Prometheus\Prometheus;
 use Tuleap\Layout\BaseLayout;
 
 final class PluginLegacyControllerTest extends TestCase
@@ -40,9 +39,5 @@ final class PluginLegacyControllerTest extends TestCase
         $plugin->shouldReceive('process')->once();
 
         $controller->process(Mockery::mock(\HTTPRequest::class), Mockery::mock(BaseLayout::class), []);
-        $this->assertStringContainsString(
-            'tuleap_project_service_access_total{service="test"} 1',
-            Prometheus::instance()->renderText()
-        );
     }
 }

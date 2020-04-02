@@ -21,6 +21,7 @@
 use Tuleap\Tracker\Workflow\WorkflowBackendLogger;
 use Tuleap\Tracker\Workflow\WorkflowRulesManagerLoopSafeGuard;
 
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace,Squiz.Classes.ValidClassName.NotCamelCaps
 class Tracker_Workflow_Trigger_RulesManager
 {
     /** @var Tracker_Workflow_Trigger_RulesDao */
@@ -73,7 +74,7 @@ class Tracker_Workflow_Trigger_RulesManager
         $trigger_rule_collection = $this->getForTargetTracker($tracker);
 
         foreach ($trigger_rule_collection as $trigger_rule) {
-            /** @var Tracker_Workflow_Trigger_TriggerRule $trigger_rule */
+            \assert($trigger_rule instanceof Tracker_Workflow_Trigger_TriggerRule);
 
             $trigger_rule_xml = $root->addChild('trigger_rule');
 
@@ -86,7 +87,8 @@ class Tracker_Workflow_Trigger_RulesManager
                 $trigger_xml->addChild('field_value_id')->addAttribute('REF', $trigger->getValue()->getXMLId());
             }
 
-            $trigger_rule_xml->addChild('condition', $trigger_rule->getCondition());
+            $cdata = new \XML_SimpleXMLCDATAFactory();
+            $cdata->insert($trigger_rule_xml, 'condition', $trigger_rule->getCondition());
 
             $target = $trigger_rule->getTarget();
             $target_xml = $trigger_rule_xml->addChild('target');
@@ -123,7 +125,6 @@ class Tracker_Workflow_Trigger_RulesManager
     /**
      * Add a new rule in the DB
      *
-     * @param Tracker_Workflow_Trigger_TriggerRule $rule
      */
     public function add(Tracker_Workflow_Trigger_TriggerRule $rule)
     {
@@ -147,8 +148,6 @@ class Tracker_Workflow_Trigger_RulesManager
     /**
      * Delete a rule in target tracker
      *
-     * @param Tracker $tracker
-     * @param Tracker_Workflow_Trigger_TriggerRule $rule
      * @throws Tracker_Workflow_Trigger_Exception_RuleException
      */
     public function delete(Tracker $tracker, Tracker_Workflow_Trigger_TriggerRule $rule)
@@ -184,7 +183,6 @@ class Tracker_Workflow_Trigger_RulesManager
     /**
      * Get all rules that applies on a given tracker
      *
-     * @param Tracker $tracker
      *
      * @return Tracker_Workflow_Trigger_TriggerRuleCollection
      */
@@ -262,7 +260,7 @@ class Tracker_Workflow_Trigger_RulesManager
         foreach ($dar_rules as $row) {
             $artifact = Tracker_ArtifactFactory::instance()->getInstanceFromRow($row);
             $rule     = $this->getRuleById($row['rule_id']);
-            $this->logger->debug("Found matching rule ". json_encode($rule->fetchFormattedForJson()));
+            $this->logger->debug("Found matching rule " . json_encode($rule->fetchFormattedForJson()));
             $this->rules_processor->process($artifact, $rule);
         }
 
@@ -276,7 +274,7 @@ class Tracker_Workflow_Trigger_RulesManager
         $dar_rules = $this->dao->searchForInvolvedRulesIdsByChangesetId($changeset->getId());
         foreach ($dar_rules as $row) {
             $rule = $this->getRuleById($row['rule_id']);
-            $this->logger->debug("Found matching rule ". json_encode($rule->fetchFormattedForJson()));
+            $this->logger->debug("Found matching rule " . json_encode($rule->fetchFormattedForJson()));
             $this->rules_processor->process($changeset->getArtifact(), $rule);
         }
 

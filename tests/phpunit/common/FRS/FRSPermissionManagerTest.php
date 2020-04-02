@@ -59,9 +59,9 @@ class FRSPermissionManagerTest extends TestCase
     {
         $this->permission_dao     = \Mockery::mock(\Tuleap\FRS\FRSPermissionDao::class);
         $this->permission_factory = \Mockery::mock(\Tuleap\FRS\FRSPermissionFactory::class);
-        $this->project            = \Mockery::mock(\Project::class, [ 'getID' => 101 ]);
-        $this->user               = \Mockery::mock(\PFUser::class, [ 'isSuperUser' => false, 'isAdmin' => false ]);
-        $this->access_checker     = \Mockery::mock(ProjectAccessChecker::class, [ 'checkUserCanAccessProject' => null ]);
+        $this->project            = \Mockery::mock(\Project::class, ['getID' => 101]);
+        $this->user               = \Mockery::mock(\PFUser::class, ['isSuperUser' => false, 'isAdmin' => false]);
+        $this->access_checker     = \Mockery::mock(ProjectAccessChecker::class, ['checkUserCanAccessProject' => null]);
 
         $this->permission_manager = new FRSPermissionManager(
             $this->permission_dao,
@@ -80,8 +80,8 @@ class FRSPermissionManagerTest extends TestCase
     public function testItRetrunsTrueIfUserIsInFrsGroupAdmin()
     {
         $permissions = array(
-            '5' => new FRSPermission('101', FRSPermission::FRS_ADMIN, '5'),
-            '4' => new FRSPermission('101', FRSPermission::FRS_ADMIN, '4')
+            '5' => new FRSPermission('5'),
+            '4' => new FRSPermission('4')
         );
 
         $this->permission_factory->shouldReceive('getFrsUgroupsByPermission')->with($this->project, FRSPermission::FRS_ADMIN)->andReturns($permissions);
@@ -94,8 +94,8 @@ class FRSPermissionManagerTest extends TestCase
     public function testItReturnsFalseIfUserIsNotProjectAdminAndUserIsNotInFrsGroupAdmin()
     {
         $permissions = array(
-            '5' => new FRSPermission('101', FRSPermission::FRS_ADMIN, '5'),
-            '4' => new FRSPermission('101', FRSPermission::FRS_ADMIN, '4')
+            '5' => new FRSPermission('5'),
+            '4' => new FRSPermission('4')
         );
 
         $this->permission_factory->shouldReceive('getFrsUgroupsByPermission')->with($this->project, FRSPermission::FRS_ADMIN)->andReturns($permissions);
@@ -109,7 +109,7 @@ class FRSPermissionManagerTest extends TestCase
         $this->user->shouldReceive('isSuperUser')->andReturns(true);
 
         $permissions = array(
-            '4' => new FRSPermission('101', FRSPermission::FRS_ADMIN, '4')
+            '4' => new FRSPermission('4')
         );
 
         $this->permission_factory->shouldReceive('getFrsUgroupsByPermission')->with($this->project, FRSPermission::FRS_ADMIN)->andReturns($permissions);
@@ -135,7 +135,7 @@ class FRSPermissionManagerTest extends TestCase
     public function testUserHasReadAccessIfTheyAreAdmin()
     {
         $permissions = array(
-            '4' => new FRSPermission('101', FRSPermission::FRS_ADMIN, '4')
+            '4' => new FRSPermission('4')
         );
 
         $this->permission_factory->shouldReceive('getFrsUgroupsByPermission')->with($this->project, FRSPermission::FRS_ADMIN)->andReturns($permissions);

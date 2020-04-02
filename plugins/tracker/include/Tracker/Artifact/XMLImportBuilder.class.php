@@ -21,6 +21,7 @@
 use Tracker\Artifact\XMLArtifactSourcePlatformExtractor;
 use Tuleap\DB\DBFactory;
 use Tuleap\DB\DBTransactionExecutorWithConnection;
+use Tuleap\Project\XML\Import\ExternalFieldsExtractor;
 use Tuleap\Tracker\Artifact\Changeset\FieldsToBeSavedInSpecificOrderRetriever;
 use Tuleap\Tracker\Artifact\ExistingArtifactSourceIdFromTrackerExtractor;
 use Tuleap\Tracker\DAO\TrackerArtifactSourceIdDao;
@@ -39,7 +40,7 @@ class Tracker_Artifact_XMLImportBuilder
      */
     public function build(
         User\XML\Import\IFindUserFromXMLReference $user_finder,
-        Logger $logger
+        \Psr\Log\LoggerInterface $logger
     ) {
         $artifact_factory      = Tracker_ArtifactFactory::instance();
         $formelement_factory   = Tracker_FormElementFactory::instance();
@@ -102,7 +103,8 @@ class Tracker_Artifact_XMLImportBuilder
             new NatureDao(),
             new XMLArtifactSourcePlatformExtractor(new Valid_HTTPURI(), $logger),
             new ExistingArtifactSourceIdFromTrackerExtractor($artifact_source_id_dao),
-            $artifact_source_id_dao
+            $artifact_source_id_dao,
+            new ExternalFieldsExtractor(EventManager::instance())
         );
     }
 }

@@ -27,7 +27,7 @@ describe("CustomMetadataString", () => {
         factory = (props = {}) => {
             return shallowMount(CustomMetadataString, {
                 localVue,
-                propsData: { ...props }
+                propsData: { ...props },
             });
         };
     });
@@ -37,10 +37,10 @@ describe("CustomMetadataString", () => {
             value: "string value",
             is_required: true,
             name: "field",
-            type: "string"
+            type: "string",
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
-        const date_input = wrapper.find("[data-test=document-string-input]");
+        const date_input = wrapper.get("[data-test=document-string-input]");
 
         expect(date_input.element.value).toEqual("string value");
         expect(date_input.element.required).toBe(true);
@@ -52,10 +52,10 @@ describe("CustomMetadataString", () => {
             value: "",
             is_required: false,
             name: "field",
-            type: "string"
+            type: "string",
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
-        const date_input = wrapper.find("[data-test=document-string-input]");
+        const date_input = wrapper.get("[data-test=document-string-input]");
 
         expect(date_input.element.value).toEqual("");
         expect(date_input.element.required).toBe(false);
@@ -67,7 +67,7 @@ describe("CustomMetadataString", () => {
             value: "",
             is_required: false,
             name: "field",
-            type: "text"
+            type: "text",
         };
 
         const wrapper = factory({ currentlyUpdatedItemMetadata });

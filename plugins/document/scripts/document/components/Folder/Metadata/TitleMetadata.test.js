@@ -39,25 +39,25 @@ describe("TitleMetadata", () => {
                     id: 2,
                     title: existing_folder_name,
                     type: TYPE_FOLDER,
-                    parent_id: 3
+                    parent_id: 3,
                 },
                 {
                     id: 20,
                     title: existing_document_name,
                     type: TYPE_FILE,
-                    parent_id: 3
+                    parent_id: 3,
                 },
                 {
                     id: 10,
                     title: updated_document_name,
                     type: TYPE_FILE,
-                    parent_id: 3
-                }
-            ]
+                    parent_id: 3,
+                },
+            ],
         };
 
         const store_options = {
-            state
+            state,
         };
 
         store = createStoreMock(store_options);
@@ -66,7 +66,7 @@ describe("TitleMetadata", () => {
             return shallowMount(TitleMetadata, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -77,24 +77,24 @@ describe("TitleMetadata", () => {
         const parent = {};
         const currentlyUpdatedItem = {
             type: TYPE_FOLDER,
-            parent_id: 0
+            parent_id: 0,
         };
 
         const wrapper = title_metadata_factory({
             value,
             isInUpdateContext,
             parent,
-            currentlyUpdatedItem
+            currentlyUpdatedItem,
         });
         wrapper.setProps({ value: value });
 
         await wrapper.vm.$nextTick().then(() => {});
-        const input = wrapper.find("[data-test=document-new-item-title]");
+        const input = wrapper.get("[data-test=document-new-item-title]");
 
         expect(input.element.disabled).toBe(true);
-        expect(
-            wrapper.find("[data-test=document-new-item-title-form-element]").classes()
-        ).toContain("tlp-form-element-disabled");
+        expect(wrapper.get("[data-test=document-new-item-title-form-element]").classes()).toContain(
+            "tlp-form-element-disabled"
+        );
     });
 
     it(`Title can be updated for other items`, async () => {
@@ -103,19 +103,19 @@ describe("TitleMetadata", () => {
         const parent = {};
         const currentlyUpdatedItem = {
             type: TYPE_FOLDER,
-            parent_id: 3
+            parent_id: 3,
         };
 
         const wrapper = title_metadata_factory({
             value,
             isInUpdateContext,
             parent,
-            currentlyUpdatedItem
+            currentlyUpdatedItem,
         });
         wrapper.setProps({ value: value });
 
         await wrapper.vm.$nextTick().then(() => {});
-        const input = wrapper.find("[data-test=document-new-item-title]");
+        const input = wrapper.get("[data-test=document-new-item-title]");
 
         expect(input.element.disabled).toBe(false);
     });
@@ -125,17 +125,17 @@ describe("TitleMetadata", () => {
             const value = "A new folder title";
             const isInUpdateContext = false;
             const parent = {
-                id: 3
+                id: 3,
             };
             const currentlyUpdatedItem = {
-                type: TYPE_FOLDER
+                type: TYPE_FOLDER,
             };
 
             const wrapper = title_metadata_factory({
                 value,
                 isInUpdateContext,
                 parent,
-                currentlyUpdatedItem
+                currentlyUpdatedItem,
             });
             wrapper.setProps({ value: value });
 
@@ -147,17 +147,17 @@ describe("TitleMetadata", () => {
             const value = "";
             const isInUpdateContext = false;
             const parent = {
-                id: 3
+                id: 3,
             };
             const currentlyUpdatedItem = {
-                type: TYPE_FOLDER
+                type: TYPE_FOLDER,
             };
 
             const wrapper = title_metadata_factory({
                 value,
                 isInUpdateContext,
                 parent,
-                currentlyUpdatedItem
+                currentlyUpdatedItem,
             });
             wrapper.setProps({ value: existing_folder_name });
 
@@ -172,17 +172,17 @@ describe("TitleMetadata", () => {
             const value = "A new document title";
             const isInUpdateContext = false;
             const parent = {
-                id: 3
+                id: 3,
             };
             const currentlyUpdatedItem = {
-                type: TYPE_FILE
+                type: TYPE_FILE,
             };
 
             const wrapper = title_metadata_factory({
                 value,
                 isInUpdateContext,
                 parent,
-                currentlyUpdatedItem
+                currentlyUpdatedItem,
             });
             wrapper.setProps({ value: value });
 
@@ -194,17 +194,17 @@ describe("TitleMetadata", () => {
             const value = "";
             const isInUpdateContext = false;
             const parent = {
-                id: 3
+                id: 3,
             };
             const currentlyUpdatedItem = {
-                type: TYPE_FILE
+                type: TYPE_FILE,
             };
 
             const wrapper = title_metadata_factory({
                 value,
                 isInUpdateContext,
                 parent,
-                currentlyUpdatedItem
+                currentlyUpdatedItem,
             });
             wrapper.setProps({ value: existing_document_name });
 
@@ -218,17 +218,17 @@ describe("TitleMetadata", () => {
             const value = "old title";
             const isInUpdateContext = true;
             const parent = {
-                id: 3
+                id: 3,
             };
             const currentlyUpdatedItem = {
-                type: TYPE_FILE
+                type: TYPE_FILE,
             };
 
             const wrapper = title_metadata_factory({
                 value,
                 isInUpdateContext,
                 parent,
-                currentlyUpdatedItem
+                currentlyUpdatedItem,
             });
             wrapper.setProps({ value: "updated title" });
 
@@ -240,17 +240,17 @@ describe("TitleMetadata", () => {
             const value = updated_document_name;
             const isInUpdateContext = true;
             const parent = {
-                id: 3
+                id: 3,
             };
             const currentlyUpdatedItem = {
-                type: TYPE_FILE
+                type: TYPE_FILE,
             };
 
             const wrapper = title_metadata_factory({
                 value,
                 isInUpdateContext,
                 parent,
-                currentlyUpdatedItem
+                currentlyUpdatedItem,
             });
             wrapper.setProps({ value: existing_document_name });
 

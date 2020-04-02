@@ -206,10 +206,10 @@ function WikiURL($pagename, $args = '', $get_abs_url = false)
         }
     }
     global $group_id;
-    $url .= '&group_id='.$group_id;
+    $url .= '&group_id=' . $group_id;
     global $pv;
     if ($pv) {
-        $url .= '&pv='.$pv;
+        $url .= '&pv=' . $pv;
     }
     if ($anchor) {
         $url .= "#" . MangleXmlIdentifier($anchor);
@@ -429,7 +429,7 @@ function LinkImage($url, $alt = false)
         ));
     } else {
         // support new syntax: [image.jpg size=50% border=n]
-        if (!preg_match("/\.(".$force_img.")/i", $url)) {
+        if (!preg_match("/\.(" . $force_img . ")/i", $url)) {
             $ori_url = $url;
         }
         $arr = preg_split('/ /D', $url);
@@ -494,7 +494,7 @@ function LinkImage($url, $alt = false)
      * png|jpg|gif|jpeg|bmp|pl|cgi
      * Note: Allow cgi's (pl,cgi) returning images.
      */
-    if (!preg_match("/\.(".$force_img.")/i", $url)) {
+    if (!preg_match("/\.(" . $force_img . ")/i", $url)) {
         //HTML::img(array('src' => $url, 'alt' => $alt, 'title' => $alt));
         // => HTML::object(array('src' => $url)) ...;
         return ImgObject($link, $ori_url);
@@ -548,19 +548,19 @@ class Stack
 {
 
     // var in php5 deprecated
-    function __construct()
+    public function __construct()
     {
         $this->items = array();
         $this->size = 0;
     }
-    function push($item)
+    public function push($item)
     {
         $this->items[$this->size] = $item;
         $this->size++;
         return true;
     }
 
-    function pop()
+    public function pop()
     {
         if ($this->size == 0) {
             return false; // stack is empty
@@ -569,12 +569,12 @@ class Stack
         return $this->items[$this->size];
     }
 
-    function cnt()
+    public function cnt()
     {
         return $this->size;
     }
 
-    function top()
+    public function top()
     {
         if ($this->size) {
             return $this->items[$this->size - 1];
@@ -712,7 +712,7 @@ class WikiPageName
      * @param mixed $basename Page name from which to interpret
      * relative or other non-fully-specified page names.
      */
-    function __construct($name, $basename = false, $anchor = false)
+    public function __construct($name, $basename = false, $anchor = false)
     {
         if (is_string($name)) {
             $this->shortName = $name;
@@ -756,15 +756,15 @@ class WikiPageName
         }
 
         $this->name = $this->_check($name);
-        $this->anchor = (string)$anchor;
+        $this->anchor = (string) $anchor;
     }
 
-    function getName()
+    public function getName()
     {
         return $this->name;
     }
 
-    function getParent()
+    public function getParent()
     {
         $name = $this->name;
         if (!($tail = strrchr($name, SUBPAGE_SEPARATOR))) {
@@ -773,7 +773,7 @@ class WikiPageName
         return substr($name, 0, -strlen($tail));
     }
 
-    function isValid($strict = false)
+    public function isValid($strict = false)
     {
         if ($strict) {
             return !isset($this->_errors);
@@ -781,7 +781,7 @@ class WikiPageName
         return (is_string($this->name) and $this->name != '');
     }
 
-    function getWarnings()
+    public function getWarnings()
     {
         $warnings = array();
         if (isset($this->_warnings)) {
@@ -801,7 +801,7 @@ class WikiPageName
         );
     }
 
-    function _pagename($page)
+    public function _pagename($page)
     {
         if (isa($page, 'WikiDB_Page')) {
             return $page->getName();
@@ -826,7 +826,7 @@ class WikiPageName
         return $page;
     }
 
-    function _normalize_bad_pagename($name)
+    public function _normalize_bad_pagename($name)
     {
         trigger_error("Bad pagename: " . $name, E_USER_WARNING);
 
@@ -841,7 +841,7 @@ class WikiPageName
     }
 
 
-    function _check($pagename)
+    public function _check($pagename)
     {
         // Compress internal white-space to single space character.
          //WARNING : MODIFICATIONS FOR CODENDI
@@ -920,7 +920,6 @@ class WikiPageName
  */
 function ConvertOldMarkup($text, $markup_type = "block")
 {
-
     static $subs;
     static $block_re;
 
@@ -934,8 +933,8 @@ function ConvertOldMarkup($text, $markup_type = "block")
     if (in_array(php_sapi_name(), array('apache2handler','apache2filter','isapi'))
         and preg_match("/plugin CreateToc/", $text)) {
         trigger_error(_("The CreateTocPlugin is not yet old markup compatible! ")
-                     ._("Please remove the CreateToc line to be able to reformat this page to old markup. ")
-                     ._("Skipped."), E_USER_WARNING);
+                     . _("Please remove the CreateToc line to be able to reformat this page to old markup. ")
+                     . _("Skipped."), E_USER_WARNING);
         $debug_skip = true;
         //if (!DEBUG) return $text;
         return $text;
@@ -1142,7 +1141,6 @@ function expand_tabs($str, $tab_width = 8)
  */
 function SplitPagename($page)
 {
-
     if (preg_match("/\s/", $page)) {
         return $page;           // Already split --- don't split any more.
     }
@@ -1302,14 +1300,14 @@ function ParseRfc1123DateTime($timestr)
     $timestr = trim($timestr);
     if (preg_match(
         '/^ \w{3},\s* (\d{1,2}) \s* (\w{3}) \s* (\d{4}) \s*'
-                   .'(\d\d):(\d\d):(\d\d) \s* GMT $/ix',
+                   . '(\d\d):(\d\d):(\d\d) \s* GMT $/ix',
         $timestr,
         $m
     )) {
         list(, $mday, $mon, $year, $hh, $mm, $ss) = $m;
     } elseif (preg_match(
         '/^ \w+,\s* (\d{1,2})-(\w{3})-(\d{2}|\d{4}) \s*'
-                       .'(\d\d):(\d\d):(\d\d) \s* GMT $/ix',
+                       . '(\d\d):(\d\d):(\d\d) \s* GMT $/ix',
         $timestr,
         $m
     )) {
@@ -1321,7 +1319,7 @@ function ParseRfc1123DateTime($timestr)
         }
     } elseif (preg_match(
         '/^\w+\s* (\w{3}) \s* (\d{1,2}) \s*'
-                       .'(\d\d):(\d\d):(\d\d) \s* (\d{4})$/ix',
+                       . '(\d\d):(\d\d):(\d\d) \s* (\d{4})$/ix',
         $timestr,
         $m
     )) {
@@ -1525,7 +1523,7 @@ class fileSet
      * (This was a function LoadDir in lib/loadsave.php)
      * See also http://www.php.net/manual/en/function.readdir.php
      */
-    function getFiles($exclude = false, $sortby = false, $limit = false)
+    public function getFiles($exclude = false, $sortby = false, $limit = false)
     {
         $list = $this->_fileList;
 
@@ -1552,7 +1550,7 @@ class fileSet
         return $list;
     }
 
-    function _filenameSelector($filename)
+    public function _filenameSelector($filename)
     {
         if (! $this->_pattern) {
             return true;
@@ -1567,7 +1565,7 @@ class fileSet
         }
     }
 
-    function __construct($directory, $filepattern = false)
+    public function __construct($directory, $filepattern = false)
     {
         $this->_fileList = array();
         $this->_pattern = $filepattern;
@@ -1606,7 +1604,7 @@ class fileSet
         }
         closedir($dir_handle);
     }
-};
+}
 
 // File globbing
 
@@ -1614,14 +1612,14 @@ class fileSet
 class ListRegexExpand
 {
     //var $match, $list, $index, $case_sensitive;
-    function __construct(&$list, $match, $case_sensitive = true)
+    public function __construct(&$list, $match, $case_sensitive = true)
     {
         $this->match = $match;
         $this->list = &$list;
         $this->case_sensitive = $case_sensitive;
         //$this->index = false;
     }
-    function listMatchCallback($item, $key)
+    public function listMatchCallback($item, $key)
     {
         $quoted = str_replace('/', '\/', $item);
         if (preg_match(
@@ -1632,7 +1630,7 @@ class ListRegexExpand
             $this->list[] = $item;
         }
     }
-    function expandRegex($index, &$pages)
+    public function expandRegex($index, &$pages)
     {
         $this->index = $index;
         array_walk($pages, array($this, 'listMatchCallback'));
@@ -1657,7 +1655,7 @@ function glob_to_pcre($glob)
     // first convert some unescaped expressions to pcre style: . => \.
     $special = ".^$";
     $re = preg_replace(
-        '/([^\xff])?(['.preg_quote($special, '/').'])/',
+        '/([^\xff])?([' . preg_quote($special, '/') . '])/',
         "\\1\xff\\2",
         $glob
     );
@@ -1675,7 +1673,7 @@ function glob_to_pcre($glob)
     // .*? handled above, now escape the rest
     //while (strcspn($re, $escape) != strlen($re)) // loop strangely needed
     $re = preg_replace(
-        '/([^\xff])(['.preg_quote($escape, "/").'])/',
+        '/([^\xff])([' . preg_quote($escape, "/") . '])/',
         "\\1\xff\\2",
         $re
     );
@@ -1893,7 +1891,7 @@ class Alert
      * @param hash $buttons  An array mapping button labels to URLs.
      *    The default is a single "Okay" button pointing to $request->getURLtoSelf().
      */
-    function __construct($head, $body, $buttons = false)
+    public function __construct($head, $body, $buttons = false)
     {
         if ($buttons === false) {
             $buttons = array();
@@ -1906,7 +1904,7 @@ class Alert
     /**
      * Show the alert box.
      */
-    function show()
+    public function show()
     {
         global $request;
 
@@ -1920,7 +1918,7 @@ class Alert
     }
 
 
-    function _getButtons()
+    public function _getButtons()
     {
         global $request;
 
@@ -1949,7 +1947,7 @@ function phpwiki_version()
     if (!isset($PHPWIKI_VERSION)) {
         $arr = explode('.', preg_replace('/\D+$/', '', PHPWIKI_VERSION)); // remove the pre
         $arr[2] = preg_replace('/\.+/', '.', preg_replace('/\D/', '.', $arr[2]));
-        $PHPWIKI_VERSION = $arr[0]*1000 + $arr[1]*10 + 0.01*$arr[2];
+        $PHPWIKI_VERSION = $arr[0] * 1000 + $arr[1] * 10 + 0.01 * $arr[2];
         if (strstr(PHPWIKI_VERSION, 'pre') or strstr(PHPWIKI_VERSION, 'rc')) {
             $PHPWIKI_VERSION -= 0.01;
         }
@@ -2167,12 +2165,12 @@ function extractSection($section, $content, $page, $quiet = false, $sectionhead 
         // Strip trailing blanks lines and ---- <hr>s
         $text = preg_replace("/\\s*^-{4,}\\s*$/m", "", $match[2]);
         if ($sectionhead) {
-            $text = $match[1] . $section ."\n". $text;
+            $text = $match[1] . $section . "\n" . $text;
         }
         return explode("\n", $text);
     }
     if ($quiet) {
-        $mesg = $page ." ". $section;
+        $mesg = $page . " " . $section;
     } else {
         $mesg = $section;
     }
@@ -2222,7 +2220,7 @@ function longer_timeout($secs = 30)
     $timeout = @ini_get("max_execution_time") ? ini_get("max_execution_time") : 30;
     $timeleft = $timeout - $GLOBALS['RUNTIMER']->getTime();
     if ($timeleft < $secs) {
-        @set_time_limit(max($timeout, (integer)($secs + $timeleft)));
+        @set_time_limit(max($timeout, (integer) ($secs + $timeleft)));
     }
 }
 

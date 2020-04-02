@@ -213,7 +213,6 @@ class Planning_Controller extends BaseController //phpcs:ignore PSR1.Classes.Cla
             $this->request->get('period'),
             $this->getProjectFromRequest()->getPublicName(),
             $kanban_is_activated,
-            $user,
             $this->kanban_manager->getTrackersWithKanbanUsage($this->group_id, $user),
             $this->getKanbanSummaryPresenters(),
             $this->config_manager->scrumIsActivatedForProject($this->group_id),
@@ -306,7 +305,6 @@ class Planning_Controller extends BaseController //phpcs:ignore PSR1.Classes.Cla
 
     /**
      * @param Planning[] $last_plannings
-     * @param PFUser $user
      * @return Planning_Presenter_LastLevelMilestone[]
      */
     private function getLastLevelMilestonesPresenters($last_plannings, PFUser $user)
@@ -447,7 +445,7 @@ class Planning_Controller extends BaseController //phpcs:ignore PSR1.Classes.Cla
     private function redirectNonAdmin()
     {
         if (! $this->isUserAdmin()) {
-            $this->redirect(array('group_id'=>$this->group_id));
+            $this->redirect(array('group_id' => $this->group_id));
         }
     }
 
@@ -508,7 +506,7 @@ class Planning_Controller extends BaseController //phpcs:ignore PSR1.Classes.Cla
             $xml = $this->getFullConfigurationAsXML($project);
         } catch (Exception $e) {
             $GLOBALS['Response']->addFeedback(Feedback::ERROR, $GLOBALS['Language']->getText('plugin_agiledashboard', 'export_failed'));
-            $this->redirect(array('group_id'=>$this->group_id, 'action'=>'admin'));
+            $this->redirect(array('group_id' => $this->group_id, 'action' => 'admin'));
         }
 
         $GLOBALS['Response']->sendXMLAttachementFile($xml, self::AGILE_DASHBOARD_TEMPLATE_NAME);
@@ -590,19 +588,10 @@ class Planning_Controller extends BaseController //phpcs:ignore PSR1.Classes.Cla
         );
 
         $include_assets = new IncludeAssets(
-            __DIR__ . '/../../www/assets',
-            AGILEDASHBOARD_BASE_URL . '/assets'
+            __DIR__ . '/../../../../src/www/assets/agiledashboard',
+            '/assets/agiledashboard'
         );
-
-        $include_assets_css = new IncludeAssets(
-            __DIR__ . '/../../../../src/www/assets/agiledashboard/themes',
-            '/assets/agiledashboard/themes'
-        );
-
-        $GLOBALS['HTML']->addStylesheet(
-            $include_assets_css->getFileURL('planning-admin-colorpicker.css')
-        );
-
+        $GLOBALS['HTML']->addStylesheet($include_assets->getFileURL('planning-admin-colorpicker.css'));
         $GLOBALS['HTML']->includeFooterJavascriptFile($include_assets->getFileURL('planning-admin.js'));
 
         return new Planning_FormPresenter(
@@ -790,7 +779,6 @@ class Planning_Controller extends BaseController //phpcs:ignore PSR1.Classes.Cla
     }
 
     /**
-     * @param Planning $planning
      *
      * @return array
      */

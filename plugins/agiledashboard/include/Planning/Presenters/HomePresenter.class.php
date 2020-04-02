@@ -44,9 +44,6 @@ class Planning_Presenter_HomePresenter extends Planning_Presenter_BaseHomePresen
     /** @var bool */
     private $kanban_activated;
 
-    /** @var PFUser */
-    private $user;
-
     /** @var bool */
     public $scrum_activated;
 
@@ -66,7 +63,6 @@ class Planning_Presenter_HomePresenter extends Planning_Presenter_BaseHomePresen
         $period,
         $project_name,
         $kanban_activated,
-        PFUser $user,
         $trackers,
         array $kanban_summary_presenters,
         $scrum_activated,
@@ -82,7 +78,6 @@ class Planning_Presenter_HomePresenter extends Planning_Presenter_BaseHomePresen
         $this->period                          = $period;
         $this->project_name                    = $project_name;
         $this->kanban_activated                = $kanban_activated;
-        $this->user                            = $user;
         $this->trackers                        = $trackers;
         $this->kanban_summary_presenters       = $kanban_summary_presenters;
         $this->scrum_activated                 = $scrum_activated;
@@ -93,17 +88,16 @@ class Planning_Presenter_HomePresenter extends Planning_Presenter_BaseHomePresen
 
     public function kanban_empty_message_must_be_displayed()
     {
-        return count($this->kanban_summary_presenters) === 0 && ! $this->is_user_admin ;
+        return count($this->kanban_summary_presenters) === 0 && ! $this->is_user_admin;
     }
 
     public function scrum_nothing_set_up()
     {
-
         if ($this->is_user_admin) {
             return $GLOBALS['Language']->getText(
                 'plugin_agiledashboard',
                 'nothing_set_up_scrum_admin',
-                array('/plugins/agiledashboard/?group_id='.$this->group_id.'&action=admin')
+                array('/plugins/agiledashboard/?group_id=' . $this->group_id . '&action=admin')
             );
         }
 
@@ -167,7 +161,7 @@ class Planning_Presenter_HomePresenter extends Planning_Presenter_BaseHomePresen
         return $GLOBALS['Language']->getText(
             'plugin_agiledashboard',
             'project_backlog',
-            util_unconvert_htmlspecialchars($this->project_name)
+            $this->project_name
         );
     }
 

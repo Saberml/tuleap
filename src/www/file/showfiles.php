@@ -25,6 +25,7 @@ require_once __DIR__ . '/file_utils.php';
 define("FRS_EXPANDED_ICON", util_get_image_theme("ic/toggle_minus.png"));
 define("FRS_COLLAPSED_ICON", util_get_image_theme("ic/toggle_plus.png"));
 
+use Tuleap\FRS\Events\GetReleaseNotesLink;
 use Tuleap\FRS\FRSPermissionManager;
 use Tuleap\FRS\LicenseAgreement\LicenseAgreementDao;
 use Tuleap\FRS\LicenseAgreement\LicenseAgreementDisplay;
@@ -45,6 +46,7 @@ if ($request->valid($vGroupId)) {
     $group_id = $request->get('group_id');
 } else {
     exit_no_group();
+    exit();
 }
 
 $permission_manager = FRSPermissionManager::build();
@@ -77,18 +79,29 @@ if ($request->valid(new Valid_Pv())) {
     $pv = $request->get('pv');
 }
 
+function buildReleaseNotesLink(FRSRelease $release): string
+{
+    $event = new GetReleaseNotesLink($release);
+    EventManager::instance()->dispatch($event);
+    $link_url   = $event->getUrl();
+    $img_src    = util_get_image_theme("ic/text.png");
+    $alt_text   = $GLOBALS['Language']->getText('file_showfiles', 'read_notes');
+    $title_text = $GLOBALS['Language']->getText('file_showfiles', 'read_notes');
+    return '<a href="' . $link_url . '"><img src="' . $img_src . '" alt="' . $alt_text . '" title="' . $title_text . '" ></a>';
+}
+
 // Retain only packages the user is authorized to access, or packages containing releases the user is authorized to access...
 $res = $frspf->getFRSPackagesFromDb($group_id);
 foreach ($res as $package) {
     if ($frspf->userCanRead($group_id, $package->getPackageID(), $user->getId())
-         && $permission_manager->userCanRead($project, $user)) {
+        && $permission_manager->userCanRead($project, $user)) {
         if ($request->existAndNonEmpty('release_id')) {
             if ($request->valid(new Valid_UInt('release_id'))) {
                 $release_id = $request->get('release_id');
-                $row3 = $frsrf->getFRSReleaseFromDb($release_id);
+                $row3       = $frsrf->getFRSReleaseFromDb($release_id);
             }
         }
-        if (!$request->existAndNonEmpty('release_id') || $row3->getPackageID() == $package->getPackageID()) {
+        if (! $request->existAndNonEmpty('release_id') || $row3->getPackageID() == $package->getPackageID()) {
             $is_collapsed = ! $pv;
 
             if ($show_release_id !== false && $is_collapsed) {
@@ -120,7 +133,7 @@ $project->getService(Service::FILE)->displayFRSHeader($project, $params['title']
 if ($num_packages < 1) {
     echo '<h3>' . $Language->getText('file_showfiles', 'no_file_p') . '</h3><p>' . $Language->getText('file_showfiles', 'no_p_available');
     if ($permission_manager->isAdmin($project, $user)) {
-        echo '<p><a href="admin/package.php?func=add&amp;group_id='. $group_id .'" data-test="create-new-package">['. $GLOBALS['Language']->getText('file_admin_editpackages', 'create_new_p') .']</a></p>';
+        echo '<p><a href="admin/package.php?func=add&amp;group_id=' . $group_id . '" data-test="create-new-package">[' . $GLOBALS['Language']->getText('file_admin_editpackages', 'create_new_p') . ']</a></p>';
     }
     file_utils_footer($params);
     exit;
@@ -149,7 +162,7 @@ $fmmf = new FileModuleMonitorFactory();
 $javascript_packages_array = array();
 
 if (!$pv && $permission_manager->isAdmin($project, $user)) {
-    $html .= '<p><a href="admin/package.php?func=add&amp;group_id='. $group_id .'" data-test="create-new-package">['. $GLOBALS['Language']->getText('file_admin_editpackages', 'create_new_p') .']</a></p>';
+    $html .= '<p><a href="admin/package.php?func=add&amp;group_id=' . $group_id . '" data-test="create-new-package">[' . $GLOBALS['Language']->getText('file_admin_editpackages', 'create_new_p') . ']</a></p>';
 }
 
 $package_permission_manager = new PackagePermissionManager($permission_manager, $frspf);
@@ -184,36 +197,36 @@ foreach ($packages as $package_id => $package_for_display) {
         $html .= '<legend>';
         if (!$pv) {
             $frs_icon = $package_for_display['is_collapsed'] ? FRS_COLLAPSED_ICON : FRS_EXPANDED_ICON;
-            $html    .= '<a href="#" onclick="javascript:toggle_package(\'p_'.$package_id.'\'); return false;" /><img src="'. $frs_icon .'" id="img_p_'.$package_id.'" /></a>&nbsp;';
+            $html    .= '<a href="#" onclick="javascript:toggle_package(\'p_' . $package_id . '\'); return false;" /><img src="' . $frs_icon . '" id="img_p_' . $package_id . '" /></a>&nbsp;';
         }
         $html             .= " <$emphasis data-test='package-name'>" . $hp->purify(util_unconvert_htmlspecialchars($package->getName()))
             . "</$emphasis>";
         if (!$pv) {
             if ($permission_manager->isAdmin($project, $user)) {
-                $html .= '     <a href="admin/package.php?func=edit&amp;group_id='. $group_id .'&amp;id=' .
-                    $package_id . '" data-test="update-package" title="'.
-                    $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML)  .'">';
-                $html .= '       '. $GLOBALS['HTML']->getImage('ic/edit.png', array('alt'=> $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) , 'title'=> $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) ));
+                $html .= '     <a href="admin/package.php?func=edit&amp;group_id=' . $group_id . '&amp;id=' .
+                    $package_id . '" data-test="update-package" title="' .
+                    $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML)  . '">';
+                $html .= '       ' . $GLOBALS['HTML']->getImage('ic/edit.png', array('alt' => $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) , 'title' => $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) ));
                 $html .= '</a>';
             }
             $html .= ' &nbsp; ';
-            $html .= '  <a href="filemodule_monitor.php?filemodule_id=' . $package_id . '&group_id='.$group_id.'">';
+            $html .= '  <a href="filemodule_monitor.php?filemodule_id=' . $package_id . '&group_id=' . $group_id . '">';
             if ($fmmf->isMonitoring($package_id, $user, false)) {
-                $html .= '<img src="'.util_get_image_theme("ic/notification_stop.png").'" alt="'.$Language->getText('file_showfiles', 'stop_monitoring').'" title="'.$Language->getText('file_showfiles', 'stop_monitoring').'" />';
+                $html .= '<img src="' . util_get_image_theme("ic/notification_stop.png") . '" alt="' . $Language->getText('file_showfiles', 'stop_monitoring') . '" title="' . $Language->getText('file_showfiles', 'stop_monitoring') . '" />';
             } else {
-                $html .= '<img src="'.util_get_image_theme("ic/notification_start.png").'" alt="'.$Language->getText('file_showfiles', 'start_monitoring').'" title="'.$Language->getText('file_showfiles', 'start_monitoring').'" />';
+                $html .= '<img src="' . util_get_image_theme("ic/notification_start.png") . '" alt="' . $Language->getText('file_showfiles', 'start_monitoring') . '" title="' . $Language->getText('file_showfiles', 'start_monitoring') . '" />';
             }
             $html .= '</a>';
             if ($permission_manager->isAdmin($project, $user)) {
-                $html .= '     &nbsp;&nbsp;<a href="admin/package.php?func=delete&amp;group_id='. $group_id .'&amp;id=' . $package_id .'" title="'.  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML)  .'" onclick="return confirm(\''.  $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'warn'), CODENDI_PURIFIER_CONVERT_HTML)  .'\');" data-test="remove-package">'
-                            . $GLOBALS['HTML']->getImage('ic/trash.png', array('alt'=> $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) , 'title'=>  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) )) .'</a>';
+                $html .= '     &nbsp;&nbsp;<a href="admin/package.php?func=delete&amp;group_id=' . $group_id . '&amp;id=' . $package_id . '" title="' .  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML)  . '" onclick="return confirm(\'' .  $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'warn'), CODENDI_PURIFIER_CONVERT_HTML)  . '\');" data-test="remove-package">'
+                            . $GLOBALS['HTML']->getImage('ic/trash.png', array('alt' => $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) , 'title' =>  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) )) . '</a>';
             }
         }
         $html .= '</legend>';
 
         if ($package->isHidden()) {
             //TODO i18n
-            $html .= '<div style="text-align:center"><em>'.$Language->getText('file_showfiles', 'hidden_package').'</em></div>';
+            $html .= '<div style="text-align:center"><em>' . $Language->getText('file_showfiles', 'hidden_package') . '</em></div>';
         }
         // get the releases of the package
         // Order by release_date and release_id in case two releases
@@ -228,12 +241,12 @@ foreach ($packages as $package_id => $package_for_display) {
 
         $javascript_releases_array = array();
         $package_class_collapsed   = $package_for_display['is_collapsed'] ? 'frs_collapsed' : '';
-        $html .= '<div class="' . $package_class_collapsed . '" id="p_'.$package_id.'">';
+        $html .= '<div class="' . $package_class_collapsed . '" id="p_' . $package_id . '">';
         if (!$pv && $permission_manager->isAdmin($project, $user)) {
             $html .= '<p><a
-                         href="admin/release.php?func=add&amp;group_id='. $group_id .'&amp;package_id='. $package_id .'"
+                         href="admin/release.php?func=add&amp;group_id=' . $group_id . '&amp;package_id=' . $package_id . '"
                          data-test="create-release">
-                         ['. $GLOBALS['Language']->getText('file_admin_editpackages', 'add_releases') .']
+                         [' . $GLOBALS['Language']->getText('file_admin_editpackages', 'add_releases') . ']
                          </a></p>';
         }
         if (!$res_release || $num_releases < 1) {
@@ -270,41 +283,41 @@ foreach ($packages as $package_id => $package_for_display) {
                     $is_release_collapsed = $package_release->getReleaseID() != $show_release_id;
 
                     $html .= '<table width="100%" class="release">';
-                    $html .= ' <TR id="p_'.$package_id.'r_'.$package_release->getReleaseID().'">';
+                    $html .= ' <TR id="p_' . $package_id . 'r_' . $package_release->getReleaseID() . '">';
                     $html .= '  <TD>';
                     if (!$pv) {
                         $frs_icon = $is_release_collapsed ? FRS_COLLAPSED_ICON : FRS_EXPANDED_ICON;
-                        $html .= '<a href="#" onclick="javascript:toggle_release(\'p_'.$package_id.'\', \'r_'.$package_release->getReleaseID().'\'); return false;" /><img src="'. $frs_icon .'" id="img_p_'.$package_id.'r_'.$package_release->getReleaseID().'" /></a>';
+                        $html .= '<a href="#" onclick="javascript:toggle_release(\'p_' . $package_id . '\', \'r_' . $package_release->getReleaseID() . '\'); return false;" /><img src="' . $frs_icon . '" id="img_p_' . $package_id . 'r_' . $package_release->getReleaseID() . '" /></a>';
                     }
                     $html .= "     <$emphasis data-test='release-name'>" .
                         $hp->purify($package_release->getName()) . "</$emphasis>";
                     if (!$pv) {
                         if ($permission_manager->isAdmin($project, $user)) {
                             $html .= '     <a
-                            href="admin/release.php?func=edit&amp;group_id='. $group_id .'&amp;package_id='. $package_id .'&amp;id=' . $package_release->getReleaseID() . '"
-                            title="'.  $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML)  .'"
+                            href="admin/release.php?func=edit&amp;group_id=' . $group_id . '&amp;package_id=' . $package_id . '&amp;id=' . $package_release->getReleaseID() . '"
+                            title="' .  $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML)  . '"
                             data-test="edit-release"
                             >'
-                            . $GLOBALS['HTML']->getImage('ic/edit.png', array('alt'=> $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) , 'title'=> $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) )) .'</a>';
+                            . $GLOBALS['HTML']->getImage('ic/edit.png', array('alt' => $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) , 'title' => $hp->purify($GLOBALS['Language']->getText('file_admin_editpackages', 'edit'), CODENDI_PURIFIER_CONVERT_HTML) )) . '</a>';
                         }
                         $html .= '&nbsp;';
-                        $html .= '     <a href="shownotes.php?release_id=' . $package_release->getReleaseID() . '"><img src="'.util_get_image_theme("ic/text.png").'" alt="'.$Language->getText('file_showfiles', 'read_notes').'" title="'.$Language->getText('file_showfiles', 'read_notes').'" /></a>';
+                        $html .= buildReleaseNotesLink($package_release);
                     }
                     $html .= '  </td>';
                     $html .= ' <td style="text-align:center">';
                     if ($package_release->isHidden()) {
-                        $html .= '<em>'.$Language->getText('file_showfiles', 'hidden_release').'</em>';
+                        $html .= '<em>' . $Language->getText('file_showfiles', 'hidden_release') . '</em>';
                     }
                     $html .= '</td> ';
                     $html .= '  <TD class="release_date">' . format_date("Y-m-d", $package_release->getReleaseDate()) . '';
                     if (!$pv && $permission_manager->isAdmin($project, $user)) {
                         $html .= ' <a
-                        href="admin/release.php?func=delete&amp;group_id='. $group_id .'&amp;package_id='. $package_id .'&amp;id=' . $package_release->getReleaseID() . '"
-                        title="'.  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML)  .'"
+                        href="admin/release.php?func=delete&amp;group_id=' . $group_id . '&amp;package_id=' . $package_id . '&amp;id=' . $package_release->getReleaseID() . '"
+                        title="' .  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML)  . '"
                         data-test="release-delete-button"
-                        onclick="return confirm(\''.  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'warn'), CODENDI_PURIFIER_JS_QUOTE) .'\');"
+                        onclick="return confirm(\'' .  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'warn'), CODENDI_PURIFIER_JS_QUOTE) . '\');"
                         >'
-                        . $GLOBALS['HTML']->getImage('ic/trash.png', array('alt'=> $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) , 'title'=>  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) )) .'</a>';
+                        . $GLOBALS['HTML']->getImage('ic/trash.png', array('alt' => $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) , 'title' =>  $hp->purify($GLOBALS['Language']->getText('file_admin_editreleases', 'delete'), CODENDI_PURIFIER_CONVERT_HTML) )) . '</a>';
                     }
                     $html .= '</TD></TR>' . "\n";
                     $html .= '</table>';
@@ -324,8 +337,8 @@ foreach ($packages as $package_id => $package_for_display) {
 
                     $javascript_files_array  = array();
                     $release_class_collapsed = $is_release_collapsed && ! $pv ? 'frs_collapsed' : '';
-                    if ((!$res_file && !$uploaded_links)|| ($num_files < 1 && count($uploaded_links) < 1)) {
-                        $html .= '<span class="' . $release_class_collapsed . '" id="p_'.$package_id.'r_'.$package_release->getReleaseID().'f_0"><B>' . $Language->getText('file_showfiles', 'no_files') . '</B></span>' . "\n";
+                    if ((!$res_file && !$uploaded_links) || ($num_files < 1 && count($uploaded_links) < 1)) {
+                        $html .= '<span class="' . $release_class_collapsed . '" id="p_' . $package_id . 'r_' . $package_release->getReleaseID() . 'f_0"><B>' . $Language->getText('file_showfiles', 'no_files') . '</B></span>' . "\n";
                         $javascript_files_array[] = "'f_0'";
                     } else {
                         $javascript_files_array[] = "'f_0'";
@@ -342,7 +355,7 @@ foreach ($packages as $package_id => $package_for_display) {
                             $processor[$resrow['processor_id']] = $resrow['name'];
                         }
 
-                        $html .= '<span class="' . $release_class_collapsed . '" id="p_'.$package_id.'r_'.$package_release->getReleaseID().'f_0">';
+                        $html .= '<span class="' . $release_class_collapsed . '" id="p_' . $package_id . 'r_' . $package_release->getReleaseID() . 'f_0">';
 
                         if ($res_file) {
                             $title_arr = array();
@@ -442,7 +455,7 @@ foreach ($packages as $package_id => $package_for_display) {
                         $html .= '</table>';
                         $html .= '</span>';
                     }
-                    $javascript_releases_array[] = "'r_".$package_release->getReleaseID()."': [" . implode(",", $javascript_files_array) . "]";
+                    $javascript_releases_array[] = "'r_" . $package_release->getReleaseID() . "': [" . implode(",", $javascript_files_array) . "]";
                     $cpt_release = $cpt_release + 1;
                 }
             }
@@ -452,7 +465,7 @@ foreach ($packages as $package_id => $package_for_display) {
         }
         $html .= '</div>';
         $html .= '</fieldset>';
-        $javascript_packages_array[] = "'p_".$package_id."': {" . implode(",", $javascript_releases_array) . "}";
+        $javascript_packages_array[] = "'p_" . $package_id . "': {" . implode(",", $javascript_releases_array) . "}";
     }
 }
 
@@ -462,7 +475,7 @@ if (!$pv) {
     $javascript_array = 'var packages = {';
     $javascript_array .= implode(",", $javascript_packages_array);
     $javascript_array .= '}';
-    print '<script language="javascript">'.$javascript_array.'</script>';
+    print '<script language="javascript">' . $javascript_array . '</script>';
 }
 // project totals (statistics)
 if (isset($proj_stats['size'])) {
@@ -470,10 +483,10 @@ if (isset($proj_stats['size'])) {
 
     print '<p>';
     print '<b>' . $Language->getText('file_showfiles', 'proj_total') . ': </b>';
-    print $proj_stats['releases'].' '.$Language->getText('file_showfiles', 'stat_total_nb_releases').', ';
-    print $proj_stats['files'].' '.$Language->getText('file_showfiles', 'stat_total_nb_files').', ';
-    print $total_size.' '.$Language->getText('file_showfiles', 'stat_total_size').', ';
-    print $proj_stats['downloads'].' '.$Language->getText('file_showfiles', 'stat_total_nb_downloads').'.';
+    print $proj_stats['releases'] . ' ' . $Language->getText('file_showfiles', 'stat_total_nb_releases') . ', ';
+    print $proj_stats['files'] . ' ' . $Language->getText('file_showfiles', 'stat_total_nb_files') . ', ';
+    print $total_size . ' ' . $Language->getText('file_showfiles', 'stat_total_size') . ', ';
+    print $proj_stats['downloads'] . ' ' . $Language->getText('file_showfiles', 'stat_total_nb_downloads') . '.';
     print '</p>';
 }
 

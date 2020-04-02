@@ -31,6 +31,7 @@ use Tracker_CannedResponseManager;
 use Tracker_Hierarchy;
 use Tracker_HierarchyFactory;
 use Tracker_RulesManager;
+use Tuleap\Project\UGroupRetrieverWithLegacy;
 use Tuleap\Tracker\TrackerColor;
 use Tuleap\Tracker\Webhook\WebhookXMLExporter;
 use UserManager;
@@ -56,6 +57,11 @@ class TrackerExportToXmlTest extends TestCase
      */
     private $hierarchy;
 
+    /**
+     * @var Mockery\MockInterface|UGroupRetrieverWithLegacy
+     */
+    private $ugroup_retriever;
+
     protected function setUp(): void
     {
         $this->tracker = Mockery::mock(Tracker::class)->makePartial()->shouldAllowMockingProtectedMethods();
@@ -63,6 +69,9 @@ class TrackerExportToXmlTest extends TestCase
         $this->tracker->shouldReceive('getColor')->andReturn(TrackerColor::default());
         $this->tracker->shouldReceive('getUserManager')->andReturn(Mockery::mock(UserManager::class));
         $this->tracker->shouldReceive('getProject')->andReturn(Mockery::mock(Project::class));
+
+        $this->ugroup_retriever = Mockery::mock(UGroupRetrieverWithLegacy::class);
+        $this->tracker->shouldReceive('getUGroupRetrieverWithLegacy')->andReturn($this->ugroup_retriever);
 
         $this->formelement_factory = Mockery::mock(\Tracker_FormElementFactory::class);
 
@@ -123,7 +132,8 @@ class TrackerExportToXmlTest extends TestCase
             'UGROUP_4' => 4,
             'UGROUP_5' => 5,
         ];
-        $this->tracker->shouldReceive('getProjectUgroups')->andReturn($ugroups);
+
+        $this->ugroup_retriever->shouldReceive('getProjectUgroupIds')->andReturn($ugroups);
 
         $this->formelement_factory->shouldReceive('getUsedFormElementForTracker')->andReturn([]);
 
@@ -131,51 +141,51 @@ class TrackerExportToXmlTest extends TestCase
         $xml = $this->tracker->exportToXML($xml);
 
         $this->assertTrue(isset($xml->permissions));
-        $this->assertEquals('tracker', (string)$xml->permissions->permission[0]['scope']);
-        $this->assertEquals('UGROUP_1', (string)$xml->permissions->permission[0]['ugroup']);
-        $this->assertEquals('PERM_1', (string)$xml->permissions->permission[0]['type']);
+        $this->assertEquals('tracker', (string) $xml->permissions->permission[0]['scope']);
+        $this->assertEquals('UGROUP_1', (string) $xml->permissions->permission[0]['ugroup']);
+        $this->assertEquals('PERM_1', (string) $xml->permissions->permission[0]['type']);
 
-        $this->assertEquals('tracker', (string)$xml->permissions->permission[1]['scope']);
-        $this->assertEquals('UGROUP_3', (string)$xml->permissions->permission[1]['ugroup']);
-        $this->assertEquals('PERM_2', (string)$xml->permissions->permission[1]['type']);
+        $this->assertEquals('tracker', (string) $xml->permissions->permission[1]['scope']);
+        $this->assertEquals('UGROUP_3', (string) $xml->permissions->permission[1]['ugroup']);
+        $this->assertEquals('PERM_2', (string) $xml->permissions->permission[1]['type']);
 
-        $this->assertEquals('tracker', (string)$xml->permissions->permission[2]['scope']);
-        $this->assertEquals('UGROUP_5', (string)$xml->permissions->permission[2]['ugroup']);
-        $this->assertEquals('PERM_3', (string)$xml->permissions->permission[2]['type']);
+        $this->assertEquals('tracker', (string) $xml->permissions->permission[2]['scope']);
+        $this->assertEquals('UGROUP_5', (string) $xml->permissions->permission[2]['ugroup']);
+        $this->assertEquals('PERM_3', (string) $xml->permissions->permission[2]['type']);
     }
 
     public function testItExportsTheTrackerID()
     {
         $this->formelement_factory->shouldReceive('getUsedFormElementForTracker')->andReturn([]);
 
-        $this->tracker->shouldReceive('getProjectUgroups')->andReturn([]);
+        $this->ugroup_retriever->shouldReceive('getProjectUgroupIds')->andReturn([]);
         $this->tracker->shouldReceive('getPermissionsByUgroupId')->andReturn([]);
 
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><tracker />');
         $xml = $this->tracker->exportToXML($xml);
 
         $attributes = $xml->attributes();
-        $this->assertEquals('T110', (string)$attributes['id']);
+        $this->assertEquals('T110', (string) $attributes['id']);
     }
 
     public function testItExportsNoParentIfNotInAHierarchy()
     {
         $this->formelement_factory->shouldReceive('getUsedFormElementForTracker')->andReturn([]);
 
-        $this->tracker->shouldReceive('getProjectUgroups')->andReturn([]);
+        $this->ugroup_retriever->shouldReceive('getProjectUgroupIds')->andReturn([]);
         $this->tracker->shouldReceive('getPermissionsByUgroupId')->andReturn([]);
 
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><tracker />');
         $xml = $this->tracker->exportToXML($xml);
 
         $attributes = $xml->attributes();
-        $this->assertEquals("0", (string)$attributes['parent_id']);
+        $this->assertEquals("0", (string) $attributes['parent_id']);
     }
 
     public function testItExportsTheParentId()
     {
         $this->formelement_factory->shouldReceive('getUsedFormElementForTracker')->andReturn(array());
-        $this->tracker->shouldReceive('getProjectUgroups')->andReturn([]);
+        $this->ugroup_retriever->shouldReceive('getProjectUgroupIds')->andReturn([]);
         $this->tracker->shouldReceive('getPermissionsByUgroupId')->andReturn([]);
 
         $this->hierarchy->addRelationship(9001, 110);
@@ -184,20 +194,20 @@ class TrackerExportToXmlTest extends TestCase
         $xml = $this->tracker->exportToXML($xml);
 
         $attributes = $xml->attributes();
-        $this->assertEquals("T9001", (string)$attributes['parent_id']);
+        $this->assertEquals("T9001", (string) $attributes['parent_id']);
     }
 
     public function testItExportsTheTrackerColor()
     {
         $this->formelement_factory->shouldReceive('getUsedFormElementForTracker')->andReturn(array());
 
-        $this->tracker->shouldReceive('getProjectUgroups')->andReturn([]);
+        $this->ugroup_retriever->shouldReceive('getProjectUgroupIds')->andReturn([]);
         $this->tracker->shouldReceive('getPermissionsByUgroupId')->andReturn([]);
 
         $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><tracker />');
         $xml = $this->tracker->exportToXML($xml);
 
         $color = $xml->color;
-        $this->assertEquals(TrackerColor::default()->getName(), (string)$color);
+        $this->assertEquals(TrackerColor::default()->getName(), (string) $color);
     }
 }

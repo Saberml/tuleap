@@ -11,6 +11,7 @@
   */
 
 // Printer version ?
+$ro = false;
 if (!$request->exist('pv')) {
     $pv = false;
     $ro = false;
@@ -27,11 +28,10 @@ if ($request->exist('advsrch')) {
     $advsrch = 0;
 }
 
-$params=array('title'=>$group->getPublicName().' '.$ath->getName().' '.$Language->getText('tracker_index', 'mass_change'),
-              'pagename'=>'tracker',
-              'atid'=>$ath->getID(),
-              'sectionvals'=>array($group->getPublicName()),
-              'pv'=>$pv,
+$params = array('title' => $group->getPublicName() . ' ' . $ath->getName() . ' ' . $Language->getText('tracker_index', 'mass_change'),
+              'pagename' => 'tracker',
+              'atid' => $ath->getID(),
+              'pv' => $pv,
               'help' => 'tracker-v3.html#artifact-mass-change');
 
 $ath->header($params);
@@ -49,7 +49,7 @@ if (strstr($submit, $Language->getText('tracker_masschange_detail', 'selected_it
   // If still not defined then force it to system 'Default' report
     $report_id = $request->get('report_id');
     if (!$report_id) {
-        $report_id=100;
+        $report_id = 100;
     }
   // Create factories
     $report_fact = new ArtifactReportFactory();
@@ -61,12 +61,12 @@ if (strstr($submit, $Language->getText('tracker_masschange_detail', 'selected_it
 
 $GLOBALS['Response']->includeFooterJavascriptFile('/scripts/trackerv3_artifact.js');
 
-echo '<script type="text/javascript">'. "\n";
+echo '<script type="text/javascript">' . "\n";
 $armh = new ArtifactRulesManagerHtml($ath);
 $armh->displayRulesAsJavascript();
 
 echo "new UserAutoCompleter('tracker_cc',
-                          '".util_get_dir_image_theme()."',
+                          '" . util_get_dir_image_theme() . "',
                           true);\n";
 echo "</script>\n";
 

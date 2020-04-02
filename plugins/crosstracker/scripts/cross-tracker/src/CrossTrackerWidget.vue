@@ -21,7 +21,11 @@
     <div>
         <error-message />
         <error-inactive-project-message />
-        <div class="tlp-alert-info cross-tracker-report-success" v-if="has_success_message">
+        <div
+            class="tlp-alert-info cross-tracker-report-success"
+            v-if="has_success_message"
+            data-test="cross-tracker-report-success"
+        >
             {{ success_message }}
         </div>
         <div class="cross-tracker-loader" v-if="is_loading"></div>
@@ -59,16 +63,16 @@ export default {
         ArtifactTable,
         ReadingMode,
         WritingMode,
-        ErrorInactiveProjectMessage
+        ErrorInactiveProjectMessage,
     },
     props: {
         backendCrossTrackerReport: Object,
         readingCrossTrackerReport: Object,
-        writingCrossTrackerReport: Object
+        writingCrossTrackerReport: Object,
     },
     data() {
         return {
-            is_loading: true
+            is_loading: true,
         };
     },
     computed: {
@@ -77,12 +81,12 @@ export default {
             "is_report_saved",
             "report_id",
             "success_message",
-            "is_user_admin"
+            "is_user_admin",
         ]),
         ...mapGetters(["has_success_message"]),
         is_reading_mode_shown() {
             return this.reading_mode === true && !this.is_loading;
-        }
+        },
     },
     mounted() {
         this.loadBackendReport();
@@ -140,7 +144,7 @@ export default {
                 "switchReportToSaved",
                 this.$gettext("Report has been successfully saved")
             );
-        }
-    }
+        },
+    },
 };
 </script>

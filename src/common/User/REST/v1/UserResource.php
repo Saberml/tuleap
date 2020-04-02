@@ -19,27 +19,26 @@
 
 namespace Tuleap\User\REST\v1;
 
-use EventManager;
 use Luracast\Restler\RestException;
 use PaginatedUserCollection;
 use PFUser;
+use Tuleap\Authentication\Scope\AggregateAuthenticationScopeBuilder;
 use Tuleap\REST\AuthenticatedResource;
 use Tuleap\REST\Header;
 use Tuleap\REST\JsonDecoder;
-use Tuleap\REST\v1\TimetrackingRepresentationBase;
 use Tuleap\User\AccessKey\AccessKeyDAO;
 use Tuleap\User\AccessKey\AccessKeyMetadataRetriever;
 use Tuleap\User\AccessKey\REST\UserAccessKeyRepresentation;
+use Tuleap\User\AccessKey\Scope\AccessKeyScopeBuilderCollector;
 use Tuleap\User\AccessKey\Scope\AccessKeyScopeDAO;
 use Tuleap\User\AccessKey\Scope\AccessKeyScopeRetriever;
-use Tuleap\User\AccessKey\Scope\AggregateAccessKeyScopeBuilder;
 use Tuleap\User\AccessKey\Scope\CoreAccessKeyScopeBuilderFactory;
+use Tuleap\User\Admin\UserStatusChecker;
 use Tuleap\User\History\HistoryCleaner;
 use Tuleap\User\History\HistoryEntry;
 use Tuleap\User\History\HistoryRetriever;
 use Tuleap\User\REST\MinimalUserRepresentation;
 use Tuleap\User\REST\UserRepresentation;
-use Tuleap\Widget\Event\UserTimeRetriever;
 use UGroupLiteralizer;
 use User_ForgeUserGroupPermission_RetrieveUserMembershipInformation;
 use User_ForgeUserGroupPermission_UserManagement;
@@ -73,9 +72,6 @@ class UserResource extends AuthenticatedResource
      */
     private $history_retriever;
 
-    /** @var EventManager */
-    private $event_manager;
-
     /** @var User_ForgeUserGroupPermissionsManager */
     private $forge_ugroup_permissions_manager;
 
@@ -85,7 +81,6 @@ class UserResource extends AuthenticatedResource
         $this->json_decoder       = new JsonDecoder();
         $this->ugroup_literalizer = new UGroupLiteralizer();
         $this->history_retriever  = new HistoryRetriever(\EventManager::instance());
-        $this->event_manager      = EventManager::instance();
 
         $this->forge_ugroup_permissions_manager = new User_ForgeUserGroupPermissionsManager(
             new User_ForgeUserGroupPermissionsDao()
@@ -99,11 +94,17 @@ class UserResource extends AuthenticatedResource
      * <pre> Note that when accessing this route without authentication certain properties<br>
      * will not be returned in the response.
      * </pre>
+     * <br>
+     * The user ID can be either:
+     * <ul>
+     *   <li>an integer value to get this specific user information</li>
+     *   <li>the "self" value to get our own user information</li>
+     * </ul>
      *
      * @url GET {id}
      * @access hybrid
      *
-     * @param int $id Id of the desired user
+     * @param string $id Id of the desired user
      *
      * @throws RestException 400
      * @throws RestException 403
@@ -111,11 +112,22 @@ class UserResource extends AuthenticatedResource
      *
      * @return UserRepresentation {@type UserRepresentation}
      */
-    public function getId($id)
+    public function getId(string $id)
     {
         $this->checkAccess();
 
-        $user                = $this->getUserById($id);
+        $user_id = null;
+        if ($id === self::SELF_ID) {
+            $user_id = (int) $this->user_manager->getCurrentUser()->getId();
+        } elseif (ctype_digit($id)) {
+            $user_id = (int) $id;
+        }
+
+        if ($user_id === null) {
+            throw new RestException(400, 'Provided User Id is not well formed.');
+        }
+
+        $user                = $this->getUserById($user_id);
         $user_representation = ($this->is_authenticated) ? new UserRepresentation() : new MinimalUserRepresentation();
         return $user_representation->build($user);
     }
@@ -313,58 +325,6 @@ class UserResource extends AuthenticatedResource
     }
 
     /**
-     * Get Timetracking times
-     *
-     * Get the times in all projects for the current user and a given time period
-     *
-     * <br><br>
-     * Notes on the query parameter
-     * <ol>
-     *  <li>You have to specify a start_date and an end_date</li>
-     *  <li>One day minimum between the two dates</li>
-     *  <li>end_date must be greater than start_date</li>
-     *  <li>Dates must be in ISO date format</li>
-     * </ol>
-     *
-     * Example of query:
-     * <br><br>
-     * {
-     *   "start_date": "2018-03-01T00:00:00+01",
-     *   "end_date"  : "2018-03-31T00:00:00+01"
-     * }
-     * @url GET/{id}/timetracking
-     * @access protected
-     *
-     * @param int $id user's id
-     * @param string $query JSON object of search criteria properties {@from query}
-     * @param int $limit Number of elements displayed per page {@from path}{@min 1}{@max 100}
-     * @param int $offset Position of the first element to display {@from path}{@min 0}
-     *
-     * @return TimetrackingRepresentationBase[] {@type TimetrackingRepresentationBase}
-     * @throws RestException
-     */
-    protected function getUserTimes($id, $query, $limit = self::MAX_TIMES_BATCH, $offset = self::DEFAULT_OFFSET)
-    {
-        $this->checkAccess();
-
-        $this->sendAllowHeaders();
-        $user_time_retriever = new UserTimeRetriever(
-            $id,
-            $query,
-            $limit,
-            $offset
-        );
-
-        $this->event_manager->processEvent($user_time_retriever);
-
-        if ($user_time_retriever->getTimes() !== null) {
-            return $user_time_retriever->getTimes();
-        } else {
-            throw new RestException(404, 'Timetracking plugin not activated');
-        }
-    }
-
-    /**
      * Delete a user preference
      *
      * @url DELETE {id}/preferences
@@ -484,53 +444,70 @@ class UserResource extends AuthenticatedResource
      * @param string  $id        Id of the user
      * @param Array   $values    User fields values
      *
+     * @throws RestException
      */
     protected function patchUserDetails($id, array $values)
     {
-        $watchee = $this->getUserById($id);
-        $watcher = $this->user_manager->getCurrentUser();
-        if ($this->checkUserCanUpdateOtherUser($watcher, $watchee)) {
+        $user_to_update = $this->getUserById($id);
+        $current_user = $this->user_manager->getCurrentUser();
+        if ($this->checkUserCanUpdate($current_user)) {
             foreach ($values as $key => $value) {
                 switch ($key) {
                     case "status":
-                        $watchee->setStatus($value);
+                        $this->updateUserStatus($user_to_update, $value);
                         break;
                     case "email":
-                        $watchee->setEmail($value);
+                        $user_to_update->setEmail($value);
                         break;
                     case "real_name":
-                        $watchee->setRealName($value);
+                        $user_to_update->setRealName($value);
                         break;
                     case "username":
-                        $watchee->setUserName($value);
+                        $user_to_update->setUserName($value);
                         break;
                     default:
                         break;
                 }
             }
-            return $this->user_manager->updateDb($watchee);
+            return $this->user_manager->updateDb($user_to_update);
         }
         throw new RestException(403, "Cannot update other's details");
     }
 
     /**
      * Check if user has permission to update user details
-     * @param PFUser $watcher
-     * @param PFUser $watchee
      *
      * @return bool
      *
      */
-    private function checkUserCanUpdateOtherUser(PFUser $watcher, PFUser $watchee)
+    private function checkUserCanUpdate(PFUser $current_user)
     {
-        if ($watcher->isSuperUser()) {
+        if ($current_user->isSuperUser()) {
             return true;
         }
 
         return $this->forge_ugroup_permissions_manager->doesUserHavePermission(
-            $watcher,
+            $current_user,
             new User_ForgeUserGroupPermission_UserManagement()
         );
+    }
+
+    /**
+     * @throws RestException
+     */
+    private function updateUserStatus(PFUser $user_to_update, string $value): void
+    {
+        if ($value === PFUser::STATUS_RESTRICTED) {
+            $user_status_checker = new UserStatusChecker();
+            if (! $user_status_checker->doesPlatformAllowRestricted()) {
+                throw new RestException(400, "Restricted users are not authorized.");
+            }
+            if (! $user_status_checker->isRestrictedStatusAllowedForUser($user_to_update)) {
+                throw new RestException(400, "This user can't be restricted.");
+            }
+        }
+
+        $user_to_update->setStatus($value);
     }
 
     private function getUserById($id)
@@ -684,9 +661,9 @@ class UserResource extends AuthenticatedResource
             new AccessKeyDAO(),
             new AccessKeyScopeRetriever(
                 new AccessKeyScopeDAO(),
-                AggregateAccessKeyScopeBuilder::fromBuildersList(
+                AggregateAuthenticationScopeBuilder::fromBuildersList(
                     CoreAccessKeyScopeBuilderFactory::buildCoreAccessKeyScopeBuilder(),
-                    AggregateAccessKeyScopeBuilder::fromEventDispatcher(\EventManager::instance())
+                    AggregateAuthenticationScopeBuilder::fromEventDispatcher(\EventManager::instance(), new AccessKeyScopeBuilderCollector())
                 )
             )
         );

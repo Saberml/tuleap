@@ -143,7 +143,6 @@ class Tracker_FormElementFactory
     /**
      * Allows to inject a fake factory for test. DO NOT USE IT IN PRODUCTION!
      *
-     * @param Tracker_FormElementFactory $factory
      */
     public static function setInstance(Tracker_FormElementFactory $factory)
     {
@@ -210,7 +209,7 @@ class Tracker_FormElementFactory
      * @param int $form_element_id the id of the formElement to retrieve
      * @return Tracker_FormElement_Field
      */
-    function getFormElementById($form_element_id)
+    public function getFormElementById($form_element_id)
     {
         if (!array_key_exists($form_element_id, $this->formElements)) {
             if ($form_element_id && ($row = $this->getDao()->searchById($form_element_id)->getRow())) {
@@ -263,7 +262,7 @@ class Tracker_FormElementFactory
      *
      * @return Tracker_FormElement_Field
      */
-    function getFormElementByName($tracker_id, $name)
+    public function getFormElementByName($tracker_id, $name)
     {
         if (!isset($this->formElements_by_name[$tracker_id][$name])) {
             if ($row = $this->getDao()->searchByTrackerIdAndName($tracker_id, $name)->getRow()) {
@@ -280,7 +279,7 @@ class Tracker_FormElementFactory
      * @param int $id the id of the formElement to retrieve
      * @return Tracker_FormElement_Field
      */
-    function getUsedFormElementById($id)
+    public function getUsedFormElementById($id)
     {
         if (!isset($this->used_formElements[$id])) {
             $this->used_formElements[$id] = null;
@@ -300,7 +299,7 @@ class Tracker_FormElementFactory
      *
      * @return null|Tracker_FormElement_Field or null if not found
      */
-    function getUsedFieldByName($tracker_id, $name)
+    public function getUsedFieldByName($tracker_id, $name)
     {
         if (!isset($this->used_formElements_by_name[$tracker_id]) || !array_key_exists($name, $this->used_formElements_by_name[$tracker_id])) {
             if ($tracker_id && $name && ($row = $this->getDao()->searchUsedByTrackerIdAndName($tracker_id, $name)->getRow())) {
@@ -317,7 +316,6 @@ class Tracker_FormElementFactory
      *
      * @param int    $tracker_id
      * @param string $field_name
-     * @param PFUser   $user
      *
      * @return Tracker_FormElement_Field
      */
@@ -395,7 +393,6 @@ class Tracker_FormElementFactory
      *
      * @param int    $tracker_id
      * @param string $field_name
-     * @param PFUser   $user
      *
      * @return Tracker_FormElement_Field_Selectbox | null
      */
@@ -413,7 +410,6 @@ class Tracker_FormElementFactory
      *
      * @param int    $tracker_id
      * @param string $field_name
-     * @param PFUser   $user
      *
      * @return Tracker_FormElement_IComputeValues
      */
@@ -531,7 +527,6 @@ class Tracker_FormElementFactory
     /**
      * Returns FormElements used by a tracker, except those already in REST Basic Info
      *
-     * @param Tracker $tracker
      *
      * @return Tracker_FormElement_Field[]
      */
@@ -543,8 +538,6 @@ class Tracker_FormElementFactory
     /**
      * Augment fields_data with fields which have a default value defined
      *
-     * @param Tracker $tracker
-     * @param Array $fields_data
      *
      * @return Array $fields_data
      */
@@ -632,7 +625,6 @@ class Tracker_FormElementFactory
     }
 
     /**
-     * @param Tracker $tracker
      * @return Tracker_FormElement_Field[] All custom date formElements used by the tracker
      */
     public function getUsedCustomDateFields(Tracker $tracker)
@@ -641,7 +633,6 @@ class Tracker_FormElementFactory
     }
 
     /**
-     * @param Tracker $tracker
      * @return Tracker_FormElement_Field[] All core date formElements of the tracker
      */
     public function getCoreDateFields(Tracker $tracker)
@@ -650,7 +641,6 @@ class Tracker_FormElementFactory
     }
 
     /**
-     * @param Tracker $tracker
      * @param int     $field_id
      *
      * @return Tracker_FormElement_Field_Date|null
@@ -684,7 +674,6 @@ class Tracker_FormElementFactory
 
     /**
      * It retrieves simple value fields that can potentially contain numeric values
-     * @param Tracker $tracker
      * @return Tracker_FormElement_Field[] All numeric or computed formElements used by the tracker
      */
     public function getUsedPotentiallyContainingNumericValueFields(Tracker $tracker)
@@ -811,7 +800,6 @@ class Tracker_FormElementFactory
     }
 
     /**
-     * @param Tracker $tracker
      *
      * @return array<Tracker_FormElement_Field_Selectbox|Tracker_FormElement_Field_Checkbox|Tracker_FormElement_Field_MultiSelectbox|Tracker_FormElement_Field_Radiobutton>
      */
@@ -842,7 +830,6 @@ class Tracker_FormElementFactory
     /**
      * Return all selectbox and multiselectbox fields that bind to static values
      *
-     * @param Tracker $tracker
      *
      * @return DataAccessResult
      */
@@ -956,7 +943,7 @@ class Tracker_FormElementFactory
                         'from'    => $from_row['id'],
                         'to'      => $id,
                         'values'  => $created_values,
-                        'workflow'=> $has_workflow
+                        'workflow' => $has_workflow
                     );
                     $type = $this->getType($created_form_element);
                 }
@@ -1151,15 +1138,15 @@ class Tracker_FormElementFactory
             $curElem = $external_element_event->getFormElement();
         } else {
             $row = [
-                'formElement_type'  => (string)$att['type'],
-                'name'              => (string)$xml->name,
-                'label'             => (string)$xml->label,
-                'rank'              => (int)$att['rank'],
-                'use_it'            => isset($att['use_it']) ? (int)$att['use_it'] : 1,
-                'scope'             => isset($att['scope']) ? (string)$att['scope'] : 'P',
-                'required'          => isset($att['required']) ? (int)$att['required'] : 0,
-                'notifications'     => isset($att['notifications']) ? (int)$att['notifications'] : 0,
-                'description'       => (string)$xml->description,
+                'formElement_type'  => (string) $att['type'],
+                'name'              => (string) $xml->name,
+                'label'             => (string) $xml->label,
+                'rank'              => (int) $att['rank'],
+                'use_it'            => isset($att['use_it']) ? (int) $att['use_it'] : 1,
+                'scope'             => isset($att['scope']) ? (string) $att['scope'] : 'P',
+                'required'          => isset($att['required']) ? (int) $att['required'] : 0,
+                'notifications'     => isset($att['notifications']) ? (int) $att['notifications'] : 0,
+                'description'       => (string) $xml->description,
                 'id'                => 0,
                 'tracker_id'        => 0,
                 'parent_id'         => 0,
@@ -1169,7 +1156,7 @@ class Tracker_FormElementFactory
         }
         if ($curElem) {
             $curElem->setTracker($tracker);
-            $xmlMapping[(string)$xml['ID']] = $curElem;
+            $xmlMapping[(string) $xml['ID']] = $curElem;
             $curElem->continueGetInstanceFromXML($xml, $xmlMapping, $user_finder, $feedback_collector);
             return $curElem;
         }
@@ -1179,9 +1166,9 @@ class Tracker_FormElementFactory
                     'tuleap-tracker',
                     "Type '%s' does not exist. This field is ignored. (Name : '%s', ID: '%s')."
                 ),
-                (string)$att['type'],
-                (string)$xml->name,
-                (string)$att['ID']
+                (string) $att['type'],
+                (string) $xml->name,
+                (string) $att['ID']
             )
         );
 
@@ -1210,13 +1197,13 @@ class Tracker_FormElementFactory
     public function deductNameFromLabel($label)
     {
         $normalizeChars = array(
-            'Š'=>'S', 'š'=>'s', 'Ð'=>'Dj','Ž'=>'Z', 'ž'=>'z', 'À'=>'A', 'Á'=>'A', 'Â'=>'A', 'Ã'=>'A', 'Ä'=>'A',
-            'Å'=>'A', 'Æ'=>'A', 'Ç'=>'C', 'È'=>'E', 'É'=>'E', 'Ê'=>'E', 'Ë'=>'E', 'Ì'=>'I', 'Í'=>'I', 'Î'=>'I',
-            'Ï'=>'I', 'Ñ'=>'N', 'Ò'=>'O', 'Ó'=>'O', 'Ô'=>'O', 'Õ'=>'O', 'Ö'=>'O', 'Ø'=>'O', 'Ù'=>'U', 'Ú'=>'U',
-            'Û'=>'U', 'Ü'=>'U', 'Ý'=>'Y', 'Þ'=>'B', 'ß'=>'Ss','à'=>'a', 'á'=>'a', 'â'=>'a', 'ã'=>'a', 'ä'=>'a',
-            'å'=>'a', 'æ'=>'a', 'ç'=>'c', 'è'=>'e', 'é'=>'e', 'ê'=>'e', 'ë'=>'e', 'ì'=>'i', 'í'=>'i', 'î'=>'i',
-            'ï'=>'i', 'ð'=>'o', 'ñ'=>'n', 'ò'=>'o', 'ó'=>'o', 'ô'=>'o', 'õ'=>'o', 'ö'=>'o', 'ø'=>'o', 'ù'=>'u',
-            'ú'=>'u', 'û'=>'u', 'ý'=>'y', 'ý'=>'y', 'þ'=>'b', 'ÿ'=>'y', 'ƒ'=>'f'
+            'Š' => 'S', 'š' => 's', 'Ð' => 'Dj','Ž' => 'Z', 'ž' => 'z', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A',
+            'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E', 'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I',
+            'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U', 'Ú' => 'U',
+            'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss','à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a',
+            'å' => 'a', 'æ' => 'a', 'ç' => 'c', 'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i',
+            'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o', 'ö' => 'o', 'ø' => 'o', 'ù' => 'u',
+            'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y', 'ƒ' => 'f'
         );
         $label = strtolower(trim($label));
         $label = preg_replace('/[^\w\d_ -]/si', '', $label);
@@ -1229,7 +1216,6 @@ class Tracker_FormElementFactory
     /**
      * Returns the FormElements that are a copy of given element
      *
-     * @param Tracker_FormElement $element
      *
      * @return Array of Tracker_FormElement
      */
@@ -1506,7 +1492,7 @@ class Tracker_FormElementFactory
         $html = '';
         $html .= '<div class="tracker-admin-palette-content">';
         foreach ($event->getKlasses() as $type => $klass) {
-            $html .= $this->getFactoryButton($klass, 'create-formElement['.  urlencode($type) .']', $tracker);
+            $html .= $this->getFactoryButton($klass, 'create-formElement[' .  urlencode($type) . ']', $tracker);
         }
         $html .= '</div>';
 
@@ -1531,8 +1517,8 @@ class Tracker_FormElementFactory
             $button_class = 'button_disabled';
         }
 
-        $button .= '<a class="'.$button_class.'" name="'. $name .'" title="'. $hp->purify($description, CODENDI_PURIFIER_CONVERT_HTML) .'"><span>';
-        $button .= '<img width="16" height="16" alt="" src="'. $icon .'" />';
+        $button .= '<a class="' . $button_class . '" name="' . $name . '" title="' . $hp->purify($description, CODENDI_PURIFIER_CONVERT_HTML) . '"><span>';
+        $button .= '<img width="16" height="16" alt="" src="' . $icon . '" />';
         $button .=  $hp->purify($label, CODENDI_PURIFIER_CONVERT_HTML);
         $button .= '</span></a>';
 

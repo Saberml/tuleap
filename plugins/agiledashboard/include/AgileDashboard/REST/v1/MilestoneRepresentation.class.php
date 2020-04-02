@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2013 - 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2013-Present. All Rights Reserved.
  *
  * Tuleap is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,12 +23,10 @@ use AgileDashboard_MilestonesCardwallRepresentation;
 use EventManager;
 use Planning_Milestone;
 use PlanningFactory;
-use TrackerFactory;
 use Tuleap\AgileDashboard\MonoMilestone\ScrumForMonoMilestoneChecker;
 use Tuleap\AgileDashboard\MonoMilestone\ScrumForMonoMilestoneDao;
 use Tuleap\Project\REST\ProjectReference;
 use Tuleap\REST\JsonCast;
-use Tuleap\REST\v1\MilestoneRepresentationBase;
 use Tuleap\Tracker\REST\Artifact\ArtifactReference;
 use Tuleap\Tracker\REST\Artifact\BurndownRepresentation;
 use Tuleap\Tracker\REST\TrackerReference;
@@ -36,8 +34,159 @@ use Tuleap\Tracker\REST\TrackerReference;
 /**
  * Representation of a milestone
  */
-class MilestoneRepresentation extends MilestoneRepresentationBase
+class MilestoneRepresentation
 {
+    public const ROUTE      = 'milestones';
+    public const ALL_FIELDS = 'all';
+    public const SLIM       = 'slim';
+
+    /**
+     * @var int
+     */
+    public $id;
+
+    /**
+     * @var string
+     */
+    public $description;
+
+    /**
+     * @var String
+     */
+    public $uri;
+
+    /**
+     * @var String
+     */
+    public $label;
+
+    /**
+     * @var int
+     */
+    public $submitted_by;
+
+    /**
+     * @var String
+     */
+    public $submitted_on;
+
+    /**
+     * @var \Tuleap\REST\v1\PlanningReferenceBase
+     */
+    public $planning;
+
+    /**
+     * @var \Tuleap\REST\ResourceReference
+     */
+    public $project;
+
+    /**
+     * @var string | null
+     */
+    public $start_date;
+
+    /**
+     * @var string | null
+     */
+    public $end_date;
+
+    /**
+     * @var int
+     */
+    public $number_days_since_start;
+
+    /**
+     * @var int
+     */
+    public $number_days_until_end;
+
+    /**
+     * @var float
+     */
+    public $capacity;
+
+    /**
+     * @var float
+     */
+    public $remaining_effort;
+
+    /**
+     * @var string
+     */
+    public $status_value;
+
+    /**
+     * @var string
+     */
+    public $semantic_status;
+
+    /**
+     * @var MilestoneParentReference | null
+     */
+    public $parent;
+
+    /**
+     * @var \Tuleap\Tracker\REST\Artifact\ArtifactReference
+     */
+    public $artifact;
+
+    /**
+     * @var string
+     */
+    public $sub_milestones_uri;
+
+    /**
+     * @var \Tuleap\Tracker\REST\TrackerReference | null
+     */
+    public $sub_milestone_type;
+
+    /**
+     * @var string
+     */
+    public $backlog_uri;
+
+    /**
+     * @var string
+     */
+    public $content_uri;
+
+    /**
+     * @var string
+     */
+    public $cardwall_uri = null;
+
+    /**
+     * @var string
+     */
+    public $burndown_uri = null;
+
+    /**
+     * @var string Date, when the last modification occurs
+     */
+    public $last_modified_date;
+
+    /**
+     * @var array
+     */
+    public $status_count;
+
+    /**
+     * @var bool
+     */
+    public $has_user_priority_change_permission;
+
+    /**
+     * @var array
+     */
+    public $resources = array(
+        'milestones'       => null,
+        'backlog'          => null,
+        'content'          => null,
+        'cardwall'         => null,
+        'burndown'         => null,
+        'siblings'         => null,
+        'additional_panes' => [],
+    );
 
     public function build(
         Planning_Milestone $milestone,
@@ -97,9 +246,9 @@ class MilestoneRepresentation extends MilestoneRepresentationBase
 
         $this->has_user_priority_change_permission = $has_user_priority_change_permission;
 
-        $this->sub_milestones_uri = $this->uri . '/'. self::ROUTE;
-        $this->backlog_uri        = $this->uri . '/'. BacklogItemRepresentation::BACKLOG_ROUTE;
-        $this->content_uri        = $this->uri . '/'. BacklogItemRepresentation::CONTENT_ROUTE;
+        $this->sub_milestones_uri = $this->uri . '/' . self::ROUTE;
+        $this->backlog_uri        = $this->uri . '/' . BacklogItemRepresentation::BACKLOG_ROUTE;
+        $this->content_uri        = $this->uri . '/' . BacklogItemRepresentation::CONTENT_ROUTE;
         $this->last_modified_date = JsonCast::toDate($milestone->getLastModifiedDate());
         if ($representation_type === self::ALL_FIELDS && $status_count) {
             $this->status_count = $status_count;
@@ -108,8 +257,7 @@ class MilestoneRepresentation extends MilestoneRepresentationBase
         $finder = new \AgileDashboard_Milestone_Pane_Planning_SubmilestoneFinder(
             \Tracker_HierarchyFactory::instance(),
             PlanningFactory::build(),
-            new ScrumForMonoMilestoneChecker(new ScrumForMonoMilestoneDao(), PlanningFactory::build()),
-            TrackerFactory::instance()
+            new ScrumForMonoMilestoneChecker(new ScrumForMonoMilestoneDao(), PlanningFactory::build())
         );
         $submilestone_tracker = $finder->findFirstSubmilestoneTracker($milestone);
 
@@ -121,20 +269,20 @@ class MilestoneRepresentation extends MilestoneRepresentationBase
         }
 
         $this->resources['milestones'] = array(
-            'uri'    => $this->uri . '/'. self::ROUTE,
+            'uri'    => $this->uri . '/' . self::ROUTE,
             'accept' => array(
                 'trackers' => $submilestone_trackers
             )
         );
         $this->resources['backlog'] = array(
-            'uri'    => $this->uri . '/'. BacklogItemRepresentation::BACKLOG_ROUTE,
+            'uri'    => $this->uri . '/' . BacklogItemRepresentation::BACKLOG_ROUTE,
             'accept' => array(
                 'trackers'        => $this->getTrackersRepresentation($backlog_trackers),
                 'parent_trackers' => $this->getTrackersRepresentation($parent_trackers)
             )
         );
         $this->resources['content'] = array(
-            'uri'    => $this->uri . '/'. BacklogItemRepresentation::CONTENT_ROUTE,
+            'uri'    => $this->uri . '/' . BacklogItemRepresentation::CONTENT_ROUTE,
             'accept' => array(
                 'trackers' => $this->getContentTrackersRepresentation($milestone)
             )
@@ -169,7 +317,7 @@ class MilestoneRepresentation extends MilestoneRepresentationBase
 
     public function enableCardwall()
     {
-        $this->cardwall_uri = $this->uri . '/'. AgileDashboard_MilestonesCardwallRepresentation::ROUTE;
+        $this->cardwall_uri = $this->uri . '/' . AgileDashboard_MilestonesCardwallRepresentation::ROUTE;
         $this->resources['cardwall'] = array(
             'uri' => $this->cardwall_uri
         );
@@ -177,7 +325,7 @@ class MilestoneRepresentation extends MilestoneRepresentationBase
 
     public function enableBurndown()
     {
-        $this->burndown_uri = $this->uri . '/'. BurndownRepresentation::ROUTE;
+        $this->burndown_uri = $this->uri . '/' . BurndownRepresentation::ROUTE;
         $this->resources['burndown'] = array(
             'uri' => $this->burndown_uri
         );

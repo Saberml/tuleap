@@ -25,25 +25,25 @@ class Docman_MetadataHtmlWiki extends Docman_MetadataHtml
 {
     public $pagename;
 
-    function __construct($pagename)
+    public function __construct($pagename)
     {
         $this->pagename = $pagename;
     }
 
     public function getLabel($show_mandatory_information = true)
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'specificfield_pagename');
+        return dgettext('tuleap-docman', 'Page Name:');
     }
 
-    function getField()
+    public function getField()
     {
         $hp = Codendi_HTMLPurifier::instance();
-        return '<input type="text" class="docman_text_field" name="item[wiki_page]" value="'. $hp->purify($this->pagename) .'" /> ';
+        return '<input type="text" class="docman_text_field" name="item[wiki_page]" value="' . $hp->purify($this->pagename) . '" /> ';
     }
 
-    function &getValidator()
+    public function &getValidator()
     {
-        $msg = $GLOBALS['Language']->getText('plugin_docman', 'error_field_wiki_required');
+        $msg = dgettext('tuleap-docman', 'The page name is required.');
         $validator = new Docman_ValidateValueNotEmpty($this->pagename, $msg);
         return $validator;
     }
@@ -53,25 +53,25 @@ class Docman_MetadataHtmlLink extends Docman_MetadataHtml
 {
     public $link_url;
 
-    function __construct($link_url)
+    public function __construct($link_url)
     {
         $this->link_url = $link_url;
     }
 
     public function getLabel($show_mandatory_information = true)
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'specificfield_url');
+        return dgettext('tuleap-docman', 'Url:');
     }
 
-    function getField()
+    public function getField()
     {
         $hp = Codendi_HTMLPurifier::instance();
-        return '<input type="text" class="docman_text_field" name="item[link_url]" value="'. $hp->purify($this->link_url) .'" />';
+        return '<input type="text" class="docman_text_field" name="item[link_url]" value="' . $hp->purify($this->link_url) . '" />';
     }
 
-    function &getValidator()
+    public function &getValidator()
     {
-        $msg = $GLOBALS['Language']->getText('plugin_docman', 'error_field_link_required');
+        $msg = dgettext('tuleap-docman', 'The URL is required.');
         $validator = new Docman_ValidateValueNotEmpty($this->link_url, $msg);
         return $validator;
     }
@@ -80,23 +80,19 @@ class Docman_MetadataHtmlLink extends Docman_MetadataHtml
 class Docman_MetadataHtmlFile extends Docman_MetadataHtml
 {
 
-    function __construct()
+    public function __construct()
     {
     }
 
     public function getLabel($show_mandatory_information = true)
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'specificfield_embeddedcontent');
+        return dgettext('tuleap-docman', 'Content:');
     }
 
-    function getField()
+    public function getField()
     {
         $html = '<input type="file" name="file" />';
-        $html .= '<br /><em>'. $GLOBALS['Language']->getText(
-            'plugin_docman',
-            'max_size_msg',
-            [formatByteToMb((int) ForgeConfig::get(PLUGIN_DOCMAN_MAX_FILE_SIZE_SETTING))]
-        ) .'</em>';
+        $html .= '<br /><em>' . sprintf(dgettext('tuleap-docman', '(The maximum upload file size is %1$s MByte)'), formatByteToMb((int) ForgeConfig::get(PLUGIN_DOCMAN_MAX_FILE_SIZE_SETTING))) . '</em>';
 
         return $html;
     }
@@ -114,25 +110,25 @@ class Docman_MetadataHtmlFile extends Docman_MetadataHtml
 class Docman_MetadataHtmlEmbeddedFile extends Docman_MetadataHtml
 {
     public $content;
-    function __construct($content)
+    public function __construct($content)
     {
         $this->content = $content;
     }
 
     public function getLabel($show_mandatory_information = true)
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'specificfield_embeddedcontent');
+        return dgettext('tuleap-docman', 'Content:');
     }
 
-    function getField()
+    public function getField()
     {
         $hp = Codendi_HTMLPurifier::instance();
         $html  = '';
-        $html .= '<textarea id="embedded_content" name="content" cols="80" rows="20">'. $hp->purify($this->content) .'</textarea>';
+        $html .= '<textarea id="embedded_content" name="content" cols="80" rows="20">' . $hp->purify($this->content) . '</textarea>';
         return $html;
     }
 
-    function &getValidator()
+    public function &getValidator()
     {
         $validator = null;
         return $validator;
@@ -142,21 +138,21 @@ class Docman_MetadataHtmlEmbeddedFile extends Docman_MetadataHtml
 class Docman_MetadataHtmlEmpty extends Docman_MetadataHtml
 {
 
-    function __construct()
+    public function __construct()
     {
     }
 
     public function getLabel($show_mandatory_information = true)
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'specificfield_empty');
+        return dgettext('tuleap-docman', 'An empty document has no type. You will be able to choose document\'s type later. It\'s useful to create an entry in a hierarchy without the actual document.');
     }
 
-    function getField()
+    public function getField()
     {
         return '';
     }
 
-    function &getValidator()
+    public function &getValidator()
     {
         $validator = null;
         return $validator;
@@ -166,11 +162,11 @@ class Docman_MetadataHtmlEmpty extends Docman_MetadataHtml
 class Docman_View_GetSpecificFieldsVisitor implements ItemVisitor
 {
 
-    function visitFolder(Docman_Folder $item, $params = array())
+    public function visitFolder(Docman_Folder $item, $params = array())
     {
         return array();
     }
-    function visitWiki(Docman_Wiki $item, $params = array())
+    public function visitWiki(Docman_Wiki $item, $params = array())
     {
         $pagename = '';
         if (isset($params['force_item'])) {
@@ -183,7 +179,7 @@ class Docman_View_GetSpecificFieldsVisitor implements ItemVisitor
         return array(new Docman_MetadataHtmlWiki($pagename));
     }
 
-    function visitLink(Docman_Link $item, $params = array())
+    public function visitLink(Docman_Link $item, $params = array())
     {
         $link_url = '';
         if (isset($params['force_item'])) {
@@ -196,12 +192,12 @@ class Docman_View_GetSpecificFieldsVisitor implements ItemVisitor
         return array(new Docman_MetadataHtmlLink($link_url));
     }
 
-    function visitFile(Docman_File $item, $params = array())
+    public function visitFile(Docman_File $item, $params = array())
     {
         return array(new Docman_MetadataHtmlFile($params['request']));
     }
 
-    function visitEmbeddedFile(Docman_EmbeddedFile $item, $params = array())
+    public function visitEmbeddedFile(Docman_EmbeddedFile $item, $params = array())
     {
         $content = '';
         $version = $item->getCurrentVersion();
@@ -211,7 +207,7 @@ class Docman_View_GetSpecificFieldsVisitor implements ItemVisitor
         return array(new Docman_MetadataHtmlEmbeddedFile($content));
     }
 
-    function visitEmpty(Docman_Empty $item, $params = array())
+    public function visitEmpty(Docman_Empty $item, $params = array())
     {
         return array(new Docman_MetadataHtmlEmpty());
     }

@@ -58,7 +58,7 @@ class hudson_Widget_JobBuildHistory extends HudsonJobWidget
         $this->job_builder = $job_builder;
     }
 
-    function getTitle()
+    public function getTitle()
     {
         $title = '';
         if ($this->job) {
@@ -69,12 +69,12 @@ class hudson_Widget_JobBuildHistory extends HudsonJobWidget
         return $title;
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return $GLOBALS['Language']->getText('plugin_hudson', 'widget_description_buildshistory');
     }
 
-    function loadContent($id)
+    public function loadContent($id)
     {
         $this->content_id = $id;
     }
@@ -100,7 +100,7 @@ class hudson_Widget_JobBuildHistory extends HudsonJobWidget
         }
     }
 
-    function getContent()
+    public function getContent()
     {
         $this->initContent();
 
@@ -109,7 +109,7 @@ class hudson_Widget_JobBuildHistory extends HudsonJobWidget
             $job = $this->job;
 
             $buildHistoryRSSWidget = new Widget_ProjectRss();
-            $buildHistoryRSSWidget->rss_url = $job->getUrl().'/rssAll';
+            $buildHistoryRSSWidget->rss_url = $job->getUrl() . '/rssAll';
             $html .= $buildHistoryRSSWidget->getContent();
         } else {
             $html .= $GLOBALS['Language']->getText('plugin_hudson', 'widget_job_not_found');
@@ -117,7 +117,7 @@ class hudson_Widget_JobBuildHistory extends HudsonJobWidget
         return $html;
     }
 
-    function hasRss()
+    public function hasRss()
     {
         return true;
     }
@@ -125,7 +125,7 @@ class hudson_Widget_JobBuildHistory extends HudsonJobWidget
     public function getRssUrl($owner_id, $owner_type)
     {
         if ($this->job) {
-            return $this->job->getUrl().'/rssAll';
+            return $this->job->getUrl() . '/rssAll';
         } else {
             return '';
         }

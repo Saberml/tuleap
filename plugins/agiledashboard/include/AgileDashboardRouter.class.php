@@ -108,9 +108,6 @@ class AgileDashboardRouter
     /** @var PlanningPermissionsManager */
     private $planning_permissions_manager;
 
-    /** @var AgileDashboard_HierarchyChecker */
-    private $hierarchy_checker;
-
     /**
      * @var ScrumForMonoMilestoneChecker
      */
@@ -233,7 +230,6 @@ class AgileDashboardRouter
      *   - Use a 'resource' parameter to deduce the controller (e.g. someurl/?resource=planning&id=2 )
      *   - Pass $request to action methods
      *
-     * @param Codendi_Request $request
      */
     public function route(Codendi_Request $request)
     {
@@ -243,7 +239,6 @@ class AgileDashboardRouter
         $agile_dashboard_xml_controller = new AgileDashboard_XMLController(
             $request,
             $this->planning_factory,
-            $this->milestone_factory,
             $xml_rng_validator,
             $this->agile_dashboard_exporter,
             new AgileDashboard_XMLImporter(),
@@ -260,7 +255,6 @@ class AgileDashboardRouter
                     new PlannedArtifactDao()
                 )
             ),
-            $this->plugin->getThemePath(),
             $external_field_extractor
         );
 
@@ -303,7 +297,7 @@ class AgileDashboardRouter
                         $this->renderAction($this->buildController($request), 'adminScrum', $request);
                     }
                 } else {
-                    $GLOBALS['Response']->redirect(AGILEDASHBOARD_BASE_URL .'/?group_id='. urlencode($request->get('group_id')));
+                    $GLOBALS['Response']->redirect(AGILEDASHBOARD_BASE_URL . '/?group_id=' . urlencode($request->get('group_id')));
                 }
                 break;
             case 'export':
@@ -415,7 +409,6 @@ class AgileDashboardRouter
     /**
      * Retrieves the Agile Dashboard Service instance matching the request group id.
      *
-     * @param Codendi_Request $request
      *
      * @return Service
      */
@@ -465,7 +458,6 @@ class AgileDashboardRouter
     /**
      * Renders the bottom footer for all Agile Dashboard pages.
      *
-     * @param Codendi_Request $request
      */
     private function displayFooter(Codendi_Request $request)
     {
@@ -540,8 +532,8 @@ class AgileDashboardRouter
         MVC2_Controller $controller,
         $action_name,
         Codendi_Request $request,
-        array           $args = array(),
-        array           $header_options = array()
+        array $args = array(),
+        array $header_options = array()
     ) {
         $content = $this->executeAction($controller, $action_name, $args);
         $header_options = array_merge($header_options, $controller->getHeaderOptions());
@@ -562,9 +554,8 @@ class AgileDashboardRouter
     protected function executeAction(
         MVC2_Controller $controller,
         $action_name,
-        array           $args = array()
+        array $args = array()
     ) {
-
         return call_user_func_array(array($controller, $action_name), $args);
     }
 
@@ -574,7 +565,6 @@ class AgileDashboardRouter
      * TODO:
      *   - merge into AgileDashboardRouter::route()
      *
-     * @param Codendi_Request $request
      */
     public function routeShowPlanning(Codendi_Request $request)
     {
@@ -625,7 +615,7 @@ class AgileDashboardRouter
         $service->displayHeader(
             sprintf(
                 dgettext('tuleap-agiledashboard', '%s top backlog'),
-                $service->getProject()->getUnconvertedPublicName()
+                $service->getProject()->getPublicName()
             ),
             $breadcrumbs,
             [],

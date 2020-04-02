@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright (c) Enalean, 2012 - 2018. All Rights Reserved.
+ * Copyright (c) Enalean, 2012 - Present. All Rights Reserved.
  *
  * This file is a part of Tuleap.
  *
@@ -18,6 +18,7 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Tuleap\Chart\Chart;
 
 /**
  * I'm responsible of
@@ -31,7 +32,6 @@ class Tracker_Chart_Burndown
      */
     private $burndown_data;
 
-    private $start_date;
     private $duration = 10;
     protected $title = '';
     protected $description = '';
@@ -45,17 +45,6 @@ class Tracker_Chart_Burndown
     public function __construct(GraphOnTrackersV5_Burndown_Data $burndown_data)
     {
         $this->burndown_data = $burndown_data;
-        $this->start_date    = $burndown_data->getTimePeriod()->getStartDate();
-    }
-
-    public function setStartDate($start_date)
-    {
-        $this->start_date = round($start_date);
-    }
-
-    public function setStartDateInDays($start_date)
-    {
-        $this->start_date = $start_date;
     }
 
     public function setDuration($duration)

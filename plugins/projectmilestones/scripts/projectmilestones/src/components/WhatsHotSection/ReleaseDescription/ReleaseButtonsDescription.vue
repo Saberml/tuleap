@@ -19,46 +19,38 @@
 
 <template>
     <div class="release-description-link">
-        <a v-if="get_overview_link" v-bind:href="get_overview_link" data-test="overview-link">
-            <i class="release-description-link-icon fa fa-bar-chart" />
-            <translate>
-                Overview
-            </translate>
-        </a>
         <a
-            v-if="get_planning_link"
-            v-bind:href="get_planning_link"
-            data-test="planning-link"
-            class="release-planning-link"
+            v-if="get_overview_link"
+            v-bind:href="get_overview_link"
+            data-test="overview-link"
+            class="release-planning-link-item"
         >
-            <i class="release-description-link-icon fa fa-sign-in" />
-            <translate v-bind:translate-params="{ label_submilestone: tracker_submilestone_label }">
-                %{label_submilestone} Planning
-            </translate>
+            <i class="release-description-link-icon fa fa-bar-chart"></i>
+            <span class="release-planning-link-item-text"><translate>Overview</translate></span>
         </a>
+        <slot></slot>
         <a
             v-if="get_cardwall_link"
             v-bind:href="get_cardwall_link"
             data-test="cardwall-link"
-            class="release-planning-link"
+            class="release-planning-link release-planning-link-item"
         >
-            <i class="release-description-link-icon fa fa-table" />
-            <translate>
-                Cardwall
-            </translate>
+            <i class="release-description-link-icon fa fa-table"></i>
+            <span class="release-planning-link-item-text"><translate>Cardwall</translate></span>
         </a>
         <a
-            v-if="get_taskboard_pane"
-            v-bind:href="get_taskboard_pane.uri"
-            data-test="taskboard-link"
-            class="release-planning-link"
+            v-for="pane in get_additional_panes"
+            v-bind:key="pane.identifier"
+            v-bind:href="pane.uri"
+            v-bind:data-test="`pane-link-${pane.identifier}`"
+            class="release-planning-link release-planning-link-item"
         >
             <i
                 class="release-description-link-icon fa"
-                data-test="taskboard-icon"
-                v-bind:class="get_taskboard_pane.icon_name"
-            />
-            {{ get_taskboard_pane.title }}
+                v-bind:data-test="`pane-icon-${pane.identifier}`"
+                v-bind:class="pane.icon_name"
+            ></i>
+            <span class="release-planning-link-item-text">{{ pane.title }}</span>
         </a>
     </div>
 </template>
@@ -75,10 +67,6 @@ export default class ReleaseButtonsDescription extends Vue {
     readonly release_data!: MilestoneData;
     @State
     readonly project_id!: number;
-    @State
-    readonly label_tracker_planning!: string;
-    @State
-    readonly user_can_view_sub_milestones_planning!: boolean;
 
     get get_overview_link(): string | null {
         return (
@@ -89,25 +77,6 @@ export default class ReleaseButtonsDescription extends Vue {
             "&action=show&aid=" +
             encodeURIComponent(this.release_data.id) +
             "&pane=details"
-        );
-    }
-
-    get get_planning_link(): string | null {
-        if (
-            !this.user_can_view_sub_milestones_planning ||
-            this.release_data.resources.milestones.accept.trackers.length === 0
-        ) {
-            return null;
-        }
-
-        return (
-            "/plugins/agiledashboard/?group_id=" +
-            encodeURIComponent(this.project_id) +
-            "&planning_id=" +
-            encodeURIComponent(this.release_data.planning.id) +
-            "&action=show&aid=" +
-            encodeURIComponent(this.release_data.id) +
-            "&pane=planning-v2"
         );
     }
 
@@ -127,18 +96,9 @@ export default class ReleaseButtonsDescription extends Vue {
         );
     }
 
-    get tracker_submilestone_label(): string {
-        const submilestone_tracker = this.release_data.resources.milestones.accept.trackers[0];
-
-        if (!submilestone_tracker) {
-            return "";
-        }
-        return submilestone_tracker.label;
-    }
-
-    get get_taskboard_pane(): undefined | Pane {
-        return this.release_data.resources.additional_panes.find(
-            pane => pane.identifier === "taskboard"
+    get get_additional_panes(): undefined | Pane[] {
+        return this.release_data.resources.additional_panes.filter((pane) =>
+            ["taskboard", "testmgmt"].includes(pane.identifier)
         );
     }
 }

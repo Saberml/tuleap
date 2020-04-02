@@ -132,7 +132,6 @@ class ReleaseResource extends AuthenticatedResource
      */
     public function getFiles($id, $limit = self::DEFAULT_LIMIT, $offset = self::DEFAULT_OFFSET)
     {
-
         $release = $this->getRelease($id);
         $user    = $this->user_manager->getCurrentUser();
 
@@ -185,7 +184,6 @@ class ReleaseResource extends AuthenticatedResource
      *
      * @url POST
      *
-     * @param ReleasePOSTRepresentation $body
      *
      * @return \Tuleap\FRS\REST\v1\ReleaseRepresentation
      * @status 201
@@ -255,7 +253,6 @@ class ReleaseResource extends AuthenticatedResource
      * @url PATCH {id}
      *
      * @param int $id
-     * @param ReleasePATCHRepresentation $body
      *
      * @throws RestException 403
      */
@@ -352,7 +349,6 @@ class ReleaseResource extends AuthenticatedResource
 
     /**
      * @param $release
-     * @param ReleasePATCHRepresentation $body
      * @return array
      */
     private function getArrayForUpdateRelease($release, ReleasePATCHRepresentation $body)

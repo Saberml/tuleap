@@ -137,7 +137,6 @@ class Tracker_Artifact_Attachment_TemporaryFileManager
                 $name,
                 $tempname,
                 $description,
-                $timestamp,
                 0,
                 $user->getId(),
                 0,
@@ -151,7 +150,6 @@ class Tracker_Artifact_Attachment_TemporaryFileManager
     /**
      * Returns encoded content chunk of file
      *
-     * @param Tracker_Artifact_Attachment_TemporaryFile $file
      * @param int $offset Where to start reading
      * @param int $size   How much to read
      *
@@ -175,7 +173,6 @@ class Tracker_Artifact_Attachment_TemporaryFileManager
      * Append some content (base64 encoded) to the file
      *
      * @param String $content
-     * @param Tracker_Artifact_Attachment_TemporaryFile $file
      * @param int $offset
      *
      * @return bool
@@ -339,7 +336,6 @@ class Tracker_Artifact_Attachment_TemporaryFileManager
             $row['filename'],
             $row['tempname'],
             $row['description'],
-            $row['last_modified'],
             $row['offset'],
             $row['submitted_by'],
             $row['filesize'],

@@ -2,8 +2,8 @@ msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
 #, php-format
-msgid "A widget for %s monitoring."
-msgstr "Un widget pour le suivi de %s."
+msgid "%s Project Milestones"
+msgstr "Jalons du projet %s"
 
 msgid "A widget for milestones monitoring."
 msgstr "Un widget pour le suivi de jalons."
@@ -20,7 +20,24 @@ msgstr "Aucun planning racine n'est défini."
 msgid "Project Milestones"
 msgstr "Jalons de projet"
 
+msgid "Project does not exist."
+msgstr "Le project n'existe pas."
+
+msgid "Project name"
+msgstr "Nom du projet"
+
 msgid ""
 "The plugin is not supported under IE11. Please use a more recent browser."
 msgstr ""
-"Le plugin n'est pas supporté pour IE11. Merci d'utiliser un navigateur plus récent."
+"Le plugin n'est pas supporté pour IE11. Merci d'utiliser un navigateur plus "
+"récent."
+
+msgid ""
+"This is a private project. You may only have access to private projects you "
+"are member of."
+msgstr ""
+"Ce projet est privé. Vous pouvez seulement accéder aux projets privés dont "
+"vous êtes membre."
+
+msgid "You can not access to this project."
+msgstr "Vous ne pouvez pas accéder à ce projet."

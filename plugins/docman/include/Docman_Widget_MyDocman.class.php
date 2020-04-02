@@ -38,25 +38,25 @@ class Docman_Widget_MyDocman extends Widget
         $this->pluginPath = $pluginPath;
     }
 
-    function getTitle()
+    public function getTitle()
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'my_reviews');
+        return dgettext('tuleap-docman', 'Documents under review');
     }
 
-    function getContent()
+    public function getContent()
     {
         $html = '';
         $html .= '<script type="text/javascript">';
         $html .= "
         function plugin_docman_approval_toggle(what, save) {
             if ($(what).visible()) {
-                $(what+'_icon').src = '". util_get_dir_image_theme() ."pointer_right.png';
+                $(what+'_icon').src = '" . util_get_dir_image_theme() . "pointer_right.png';
                 $(what).hide();
                 if (save) {
                     new Ajax.Request('/plugins/docman/?action='+what+'&hide=1');
                 }
             } else {
-                $(what+'_icon').src = '". util_get_dir_image_theme() ."pointer_down.png';
+                $(what+'_icon').src = '" . util_get_dir_image_theme() . "pointer_down.png';
                 $(what).show();
                 if (save) {
                     new Ajax.Request('/plugins/docman/?action='+what+'&hide=0');
@@ -75,16 +75,16 @@ class Docman_Widget_MyDocman extends Widget
         $hp = Codendi_HTMLPurifier::instance();
         $html = '';
 
-        $content_html_id = 'plugin_docman_approval_'. ($reviewer ? 'reviewer' : 'requester');
+        $content_html_id = 'plugin_docman_approval_' . ($reviewer ? 'reviewer' : 'requester');
         $html           .= '<div style="font-weight:bold;" class="my-document-under-review">';
 
         if ($reviewer) {
-            $html .= $GLOBALS['Language']->getText('plugin_docman', 'my_reviews_reviewer');
+            $html .= dgettext('tuleap-docman', 'Reviewer');
         } else {
-            $html .= $GLOBALS['Language']->getText('plugin_docman', 'my_reviews_requester');
+            $html .= dgettext('tuleap-docman', 'Requester');
         }
         $html .= '</div>';
-        $html .= '<div id="'. $content_html_id .'">';
+        $html .= '<div id="' . $content_html_id . '">';
 
         $um   = UserManager::instance();
         $user = $um->getCurrentUser();
@@ -121,7 +121,7 @@ class Docman_Widget_MyDocman extends Widget
                             $request->get('dashboard_id')
                         );
                     $docmanUrl = $this->pluginPath . '/?group_id=' . $review['group_id'];
-                    $docmanHref = '<a href="' . $docmanUrl . '">' . $review['group'] . '</a>';
+                    $docmanHref = '<a href="' . $docmanUrl . '">' . $hp->purify($review['group']) . '</a>';
 
                     if ($reviewer) {
                         $colspan = 2;
@@ -134,10 +134,10 @@ class Docman_Widget_MyDocman extends Widget
                 }
 
                 if (!$hideNow) {
-                    $html .= '<tr class="'. util_get_alt_row_color($i++).'">';
+                    $html .= '<tr class="' . util_get_alt_row_color($i++) . '">';
                     // Document
                     $html .= '<td align="left">';
-                    $html .= '<a href="'.$review['url'].'">'. $hp->purify($review['title'], CODENDI_PURIFIER_CONVERT_HTML) .'</a>';
+                    $html .= '<a href="' . $review['url'] . '">' . $hp->purify($review['title'], CODENDI_PURIFIER_CONVERT_HTML) . '</a>';
                     $html .= '</td>';
 
                     // For requester, precise the status
@@ -160,13 +160,13 @@ class Docman_Widget_MyDocman extends Widget
             $html .= '</table>';
         } else {
             if ($reviewer) {
-                $html .= $GLOBALS['Language']->getText('plugin_docman', 'my_no_review');
+                $html .= dgettext('tuleap-docman', 'No document under review.');
             } else {
-                $html .= $GLOBALS['Language']->getText('plugin_docman', 'my_no_request');
+                $html .= dgettext('tuleap-docman', 'No review requested.');
             }
         }
         $html .= '</div>';
-        if (user_get_preference('hide_plugin_docman_approval_'. ($reviewer ? 'reviewer' : 'requester'))) {
+        if (user_get_preference('hide_plugin_docman_approval_' . ($reviewer ? 'reviewer' : 'requester'))) {
             $html .= '<script type="text/javascript">';
             $html .= "document.observe('dom:loaded', function()
                 {
@@ -177,18 +177,18 @@ class Docman_Widget_MyDocman extends Widget
         }
         return $html;
     }
-    function isAjax()
+    public function isAjax()
     {
         return true;
     }
-    function getCategory()
+    public function getCategory()
     {
         return dgettext('tuleap-docman', 'Document manager');
     }
 
-    function getDescription()
+    public function getDescription()
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'widget_description_my_docman');
+        return dgettext('tuleap-docman', 'List the documents under review.');
     }
 
     public function getAjaxUrl($owner_id, $owner_type, $dashboard_id)
@@ -205,8 +205,8 @@ class Docman_Widget_MyDocman extends Widget
     public function getStylesheetDependencies() : CssAssetCollection
     {
         $theme_include_assets = new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/docman/themes/',
-            '/assets/docman/themes'
+            __DIR__ . '/../../../src/www/assets/docman/',
+            '/assets/docman'
         );
         return new CssAssetCollection([new CssAsset($theme_include_assets, 'burningparrot-style')]);
     }

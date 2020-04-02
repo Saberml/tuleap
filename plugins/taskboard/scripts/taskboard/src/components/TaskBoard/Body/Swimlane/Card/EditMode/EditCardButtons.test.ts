@@ -25,7 +25,7 @@ import EventBus from "../../../../../../helpers/event-bus";
 
 function createWrapper(card: Card): Wrapper<EditCardButtons> {
     return shallowMount(EditCardButtons, {
-        propsData: { card }
+        propsData: { card },
     });
 }
 
@@ -35,8 +35,8 @@ describe("EditCardButtons", () => {
             const wrapper = createWrapper({
                 is_in_edit_mode: false,
                 remaining_effort: {
-                    is_in_edit_mode: false
-                }
+                    is_in_edit_mode: false,
+                },
             } as Card);
 
             expect(wrapper.isEmpty()).toBe(true);
@@ -45,7 +45,7 @@ describe("EditCardButtons", () => {
         it("displays nothing if there isn't any remaining effort", () => {
             const wrapper = createWrapper({
                 is_in_edit_mode: false,
-                remaining_effort: null
+                remaining_effort: null,
             } as Card);
 
             expect(wrapper.isEmpty()).toBe(true);
@@ -54,7 +54,7 @@ describe("EditCardButtons", () => {
         it("displays buttons if remaining effort is in edit mode", () => {
             const wrapper = createWrapper({
                 is_in_edit_mode: false,
-                remaining_effort: { is_in_edit_mode: true }
+                remaining_effort: { is_in_edit_mode: true },
             } as Card);
 
             expect(wrapper.contains(CancelSaveButtons)).toBe(true);
@@ -63,7 +63,7 @@ describe("EditCardButtons", () => {
         it("displays buttons if card is in edit mode", () => {
             const wrapper = createWrapper({
                 is_in_edit_mode: true,
-                remaining_effort: null
+                remaining_effort: null,
             } as Card);
 
             expect(wrapper.contains(CancelSaveButtons)).toBe(true);
@@ -76,7 +76,7 @@ describe("EditCardButtons", () => {
             const wrapper = createWrapper(card);
             const event_bus_emit = jest.spyOn(EventBus, "$emit");
 
-            wrapper.find(CancelSaveButtons).vm.$emit("cancel");
+            wrapper.get(CancelSaveButtons).vm.$emit("cancel");
 
             expect(event_bus_emit).toHaveBeenCalledWith(TaskboardEvent.CANCEL_CARD_EDITION, card);
         });
@@ -84,12 +84,12 @@ describe("EditCardButtons", () => {
         it("Broadcasts save-card-edition event when buttons emit a save event", () => {
             const card = {
                 is_in_edit_mode: true,
-                remaining_effort: null
+                remaining_effort: null,
             } as Card;
             const wrapper = createWrapper(card);
             const event_bus_emit = jest.spyOn(EventBus, "$emit");
 
-            wrapper.find(CancelSaveButtons).vm.$emit("save");
+            wrapper.get(CancelSaveButtons).vm.$emit("save");
 
             expect(event_bus_emit).toHaveBeenCalledWith(TaskboardEvent.SAVE_CARD_EDITION, card);
         });
@@ -99,9 +99,9 @@ describe("EditCardButtons", () => {
         it will set the action ongoing flag to true`, () => {
         const wrapper = createWrapper({
             is_in_edit_mode: true,
-            is_being_saved: true
+            is_being_saved: true,
         } as Card);
-        const buttons = wrapper.find(CancelSaveButtons);
+        const buttons = wrapper.get(CancelSaveButtons);
         expect(buttons.props("is_action_ongoing")).toBe(true);
     });
 
@@ -110,9 +110,9 @@ describe("EditCardButtons", () => {
         const wrapper = createWrapper({
             is_in_edit_mode: true,
             remaining_effort: null,
-            is_being_saved: false
+            is_being_saved: false,
         } as Card);
-        const buttons = wrapper.find(CancelSaveButtons);
+        const buttons = wrapper.get(CancelSaveButtons);
         expect(buttons.props("is_action_ongoing")).toBe(false);
     });
 
@@ -121,9 +121,9 @@ describe("EditCardButtons", () => {
         const wrapper = createWrapper({
             is_in_edit_mode: false,
             remaining_effort: { is_in_edit_mode: true, is_being_saved: true },
-            is_being_saved: false
+            is_being_saved: false,
         } as Card);
-        const buttons = wrapper.find(CancelSaveButtons);
+        const buttons = wrapper.get(CancelSaveButtons);
         expect(buttons.props("is_action_ongoing")).toBe(true);
     });
 });

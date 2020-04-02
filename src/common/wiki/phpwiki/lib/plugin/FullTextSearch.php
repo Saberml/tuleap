@@ -35,17 +35,17 @@ require_once("lib/PageList.php");
  */
 class WikiPlugin_FullTextSearch extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("FullTextSearch");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Search the content of all pages in this wiki.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -54,7 +54,7 @@ class WikiPlugin_FullTextSearch extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(), // paging and more.
@@ -69,9 +69,8 @@ class WikiPlugin_FullTextSearch extends WikiPlugin
         );  // be less verbose
     }
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
-
         $args = $this->getArgs($argstr, $request);
         if (empty($args['s'])) {
             return '';
@@ -141,7 +140,7 @@ class WikiPlugin_FullTextSearch extends WikiPlugin
         );
     }
 
-    function showhits($page, $hilight_re)
+    public function showhits($page, $hilight_re)
     {
         $current = $page->getCurrentRevision();
         $matches = preg_grep("/$hilight_re/i", $current->getContent());
@@ -156,7 +155,7 @@ class WikiPlugin_FullTextSearch extends WikiPlugin
         return $html;
     }
 
-    function highlight_line($line, $hilight_re)
+    public function highlight_line($line, $hilight_re)
     {
         while (preg_match("/^(.*?)($hilight_re)/i", $line, $m)) {
             $line = substr($line, strlen($m[0]));
@@ -166,7 +165,7 @@ class WikiPlugin_FullTextSearch extends WikiPlugin
         $html[] = $line;        // postmatch
         return $html;
     }
-};
+}
 
 // $Log: FullTextSearch.php,v $
 // Revision 1.26  2005/11/14 22:33:04  rurban

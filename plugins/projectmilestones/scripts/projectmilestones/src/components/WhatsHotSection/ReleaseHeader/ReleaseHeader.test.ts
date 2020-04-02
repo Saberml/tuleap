@@ -23,6 +23,9 @@ import { createStoreMock } from "../../../../../../../../src/www/scripts/vue-com
 import { MilestoneData, StoreOptions } from "../../../type";
 import { setUserLocale } from "../../../helpers/user-locale-helper";
 import { createReleaseWidgetLocalVue } from "../../../helpers/local-vue-for-test";
+import ReleaseHeaderRemainingDays from "./ReleaseHeaderRemainingDays.vue";
+import ReleaseHeaderRemainingPoints from "./ReleaseHeaderRemainingPoints.vue";
+import PastReleaseHeaderInitialPoints from "./PastReleaseHeaderInitialPoints.vue";
 
 let release_data: MilestoneData;
 let component_options: ShallowMountOptions<ReleaseHeader>;
@@ -43,20 +46,20 @@ describe("ReleaseHeader", () => {
 
     beforeEach(() => {
         store_options = {
-            state: {}
+            state: {},
         };
 
         release_data = {
             label: "mile",
             id: 2,
             start_date: new Date("2017-01-22T13:42:08+02:00").toDateString(),
-            end_date: new Date("2019-10-05T13:42:08+02:00").toDateString()
+            end_date: new Date("2019-10-05T13:42:08+02:00").toDateString(),
         } as MilestoneData;
 
         component_options = {
             propsData: {
-                release_data
-            }
+                release_data,
+            },
         };
     });
 
@@ -72,11 +75,11 @@ describe("ReleaseHeader", () => {
         it("When there isn't a start date of a release, Then there isn't an arrow", async () => {
             release_data = {
                 id: 2,
-                start_date: null
+                start_date: null,
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
 
             const wrapper = await getPersonalWidgetInstance(store_options);
@@ -86,12 +89,12 @@ describe("ReleaseHeader", () => {
 
     it("When the widget is loading, Then there is a skeleton instead of points", async () => {
         release_data = {
-            id: 2
+            id: 2,
         } as MilestoneData;
 
         component_options.propsData = {
             release_data,
-            isLoading: true
+            isLoading: true,
         };
 
         const wrapper = await getPersonalWidgetInstance(store_options);
@@ -101,15 +104,41 @@ describe("ReleaseHeader", () => {
     it("When release's title contains '>', Then '>' is displayed", async () => {
         release_data = {
             label: "1 > 2",
-            id: 2
+            id: 2,
         } as MilestoneData;
 
         component_options.propsData = {
             release_data,
-            isLoading: true
+            isLoading: true,
         };
 
         const wrapper = await getPersonalWidgetInstance(store_options);
-        expect(wrapper.find("[data-test=title-release]").text()).toEqual("1 > 2");
+        expect(wrapper.get("[data-test=title-release]").text()).toEqual("1 > 2");
+    });
+
+    describe("Display PastReleaseHeader", () => {
+        it("When the release is not past, Then ReleaseHeaderRemaining components are displayed", async () => {
+            component_options.propsData = {
+                release_data,
+                isPastRelease: false,
+            };
+
+            const wrapper = await getPersonalWidgetInstance(store_options);
+            expect(wrapper.contains(ReleaseHeaderRemainingDays)).toBe(true);
+            expect(wrapper.contains(ReleaseHeaderRemainingPoints)).toBe(true);
+            expect(wrapper.contains(PastReleaseHeaderInitialPoints)).toBe(false);
+        });
+
+        it("When the release is past, Then PastReleaseHeaderInitialPoints component are displayed", async () => {
+            component_options.propsData = {
+                release_data,
+                isPastRelease: true,
+            };
+
+            const wrapper = await getPersonalWidgetInstance(store_options);
+            expect(wrapper.contains(ReleaseHeaderRemainingDays)).toBe(false);
+            expect(wrapper.contains(ReleaseHeaderRemainingPoints)).toBe(false);
+            expect(wrapper.contains(PastReleaseHeaderInitialPoints)).toBe(true);
+        });
     });
 });

@@ -20,6 +20,7 @@
 $timeline-color: mix($tlp-theme-color, $tlp-ui-white, 10%);
 
 @import '../../../../plugins/tracker/themes/default/css/includes/burndown-chart';
+@import '../../../../plugins/agiledashboard/themes/FlamingParrot/css/burnup-chart';
 @import 'headers';
 @import 'release-toggle';
 @import 'release-toggle-tracker-artifacts-badges';
@@ -82,7 +83,7 @@ $timeline-color: mix($tlp-theme-color, $tlp-ui-white, 10%);
     padding: 0 0 0 5px;
 }
 
-.project-release-roadmap-icon {
+.project-release-time-stripe-icon {
     display: flex;
     z-index: 2;
     top: 1px;

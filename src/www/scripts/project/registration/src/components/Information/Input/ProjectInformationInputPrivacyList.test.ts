@@ -27,7 +27,8 @@ describe("ProjectInformationInputPrivacyList", () => {
     describe("The selected default project visibility when the component is mounted -", () => {
         it("Should select the 'Public' by default", async () => {
             const state = {
-                project_default_visibility: "public"
+                project_default_visibility: "public",
+                can_user_choose_project_visibility: true,
             } as State;
 
             const store_options = { state };
@@ -36,12 +37,12 @@ describe("ProjectInformationInputPrivacyList", () => {
 
             const wrapper = shallowMount(ProjectInformationInputPrivacyList, {
                 localVue: await createProjectRegistrationLocalVue(),
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
 
             await wrapper.vm.$nextTick();
 
-            expect((wrapper.find("[data-test=public]").element as HTMLOptionElement).selected).toBe(
+            expect((wrapper.get("[data-test=public]").element as HTMLOptionElement).selected).toBe(
                 true
             );
         });
@@ -49,7 +50,8 @@ describe("ProjectInformationInputPrivacyList", () => {
         it("Should select the 'Public incl. restricted' by default", async () => {
             const state = {
                 project_default_visibility: "unrestricted",
-                are_restricted_users_allowed: true
+                are_restricted_users_allowed: true,
+                can_user_choose_project_visibility: true,
             } as State;
 
             const store_options = { state };
@@ -58,17 +60,19 @@ describe("ProjectInformationInputPrivacyList", () => {
 
             const wrapper = shallowMount(ProjectInformationInputPrivacyList, {
                 localVue: await createProjectRegistrationLocalVue(),
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
+            await wrapper.vm.$nextTick();
 
             expect(
-                (wrapper.find("[data-test=unrestricted]").element as HTMLOptionElement).selected
+                (wrapper.get("[data-test=unrestricted]").element as HTMLOptionElement).selected
             ).toBe(true);
         });
 
         it("Should select the 'Private' by default", async () => {
             const state = {
-                project_default_visibility: "private-wo-restr"
+                project_default_visibility: "private-wo-restr",
+                can_user_choose_project_visibility: true,
             } as State;
 
             const store_options = { state };
@@ -77,18 +81,19 @@ describe("ProjectInformationInputPrivacyList", () => {
 
             const wrapper = shallowMount(ProjectInformationInputPrivacyList, {
                 localVue: await createProjectRegistrationLocalVue(),
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
 
             expect(
-                (wrapper.find("[data-test=private-wo-restr]").element as HTMLOptionElement).selected
+                (wrapper.get("[data-test=private-wo-restr]").element as HTMLOptionElement).selected
             ).toBe(true);
         });
 
         it("Should select the 'Private incl. restricted' by default", async () => {
             const state = {
                 project_default_visibility: "private",
-                are_restricted_users_allowed: true
+                are_restricted_users_allowed: true,
+                can_user_choose_project_visibility: true,
             } as State;
 
             const store_options = { state };
@@ -97,12 +102,13 @@ describe("ProjectInformationInputPrivacyList", () => {
 
             const wrapper = shallowMount(ProjectInformationInputPrivacyList, {
                 localVue: await createProjectRegistrationLocalVue(),
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
+            await wrapper.vm.$nextTick();
 
-            expect(
-                (wrapper.find("[data-test=private]").element as HTMLOptionElement).selected
-            ).toBe(true);
+            expect((wrapper.get("[data-test=private]").element as HTMLOptionElement).selected).toBe(
+                true
+            );
         });
     });
 
@@ -110,7 +116,8 @@ describe("ProjectInformationInputPrivacyList", () => {
         it("Displays only public and private when platform does not allow restricted", async () => {
             const state = {
                 project_default_visibility: "private",
-                are_restricted_users_allowed: false
+                are_restricted_users_allowed: false,
+                can_user_choose_project_visibility: true,
             } as State;
 
             const store_options = { state };
@@ -119,7 +126,7 @@ describe("ProjectInformationInputPrivacyList", () => {
 
             const wrapper = shallowMount(ProjectInformationInputPrivacyList, {
                 localVue: await createProjectRegistrationLocalVue(),
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
             expect(wrapper.contains("[data-test=unrestricted]")).toBe(false);
             expect(wrapper.contains("[data-test=private]")).toBe(false);
@@ -130,7 +137,8 @@ describe("ProjectInformationInputPrivacyList", () => {
         it("Displays all options when restricted are allowed", async () => {
             const state = {
                 project_default_visibility: "private",
-                are_restricted_users_allowed: true
+                are_restricted_users_allowed: true,
+                can_user_choose_project_visibility: true,
             } as State;
 
             const store_options = { state };
@@ -139,7 +147,7 @@ describe("ProjectInformationInputPrivacyList", () => {
 
             const wrapper = shallowMount(ProjectInformationInputPrivacyList, {
                 localVue: await createProjectRegistrationLocalVue(),
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
 
             expect(wrapper.contains("[data-test=private]")).toBe(true);

@@ -19,7 +19,7 @@
 
 <template>
     <tr>
-        <td>
+        <td data-test="cross-tracker-results-artifact">
             <a class="direct-link-to-artifact" v-bind:href="artifact.badge.uri">
                 <span class="tlp-badge-outline link-to-tracker-badge" v-bind:class="badge_color">
                     {{ artifact.badge.cross_ref }}
@@ -51,12 +51,12 @@ export default {
     name: "ArtifactTableRow",
     components: { ListBindUser },
     props: {
-        artifact: Object
+        artifact: Object,
     },
     computed: {
         badge_color() {
             return "tlp-badge-" + this.artifact.badge.color;
-        }
-    }
+        },
+    },
 };
 </script>

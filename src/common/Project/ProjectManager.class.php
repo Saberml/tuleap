@@ -42,6 +42,7 @@ class ProjectManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamesp
     public const CONFIG_NB_PROJECTS_WAITING_FOR_VALIDATION_PER_USER = 'nb_projects_waiting_for_validation_per_user';
     public const CONFIG_RESTRICTED_USERS_CAN_CREATE_PROJECTS        = 'restricted_users_can_create_projects';
     public const FORCE_NEW_PROJECT_CREATION_USAGE                   = 'force_new_project_creation_usage';
+    public const SYS_USER_CAN_CHOOSE_PROJECT_PRIVACY                = 'sys_user_can_choose_project_privacy';
 
     /**
      * The Projects dao used to fetch data
@@ -247,7 +248,6 @@ class ProjectManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamesp
      */
     public function getAllProjectsButDeleted()
     {
-
         $projects_active     = $this->getProjectsByStatus(Project::STATUS_ACTIVE);
         $projects_pending    = $this->getProjectsByStatus(Project::STATUS_PENDING);
         $projects_holding    = $this->getProjectsByStatus(Project::STATUS_SUSPENDED);
@@ -384,7 +384,6 @@ class ProjectManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamesp
     /**
      * Make project available
      *
-     * @param Project $project
      *
      * @return bool
      */
@@ -392,7 +391,7 @@ class ProjectManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamesp
     {
         if ($this->activateWithoutNotifications($project)) {
             if (! send_new_project_email($project)) {
-                $GLOBALS['Response']->addFeedback('warning', $project->getPublicName()." - ".$GLOBALS['Language']->getText('global', 'mail_failed', array($GLOBALS['sys_email_admin'])));
+                $GLOBALS['Response']->addFeedback('warning', $project->getPublicName() . " - " . $GLOBALS['Language']->getText('global', 'mail_failed', array($GLOBALS['sys_email_admin'])));
             }
             return true;
         }
@@ -536,7 +535,7 @@ class ProjectManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamesp
                 $is_private = true;
                 break;
             default:
-                $GLOBALS['Response']->addFeedback('error', 'bad value '.$access_level);
+                $GLOBALS['Response']->addFeedback('error', 'bad value ' . $access_level);
                 return;
         }
 
@@ -705,11 +704,26 @@ class ProjectManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamesp
             $group = $this->getProject($groupId);
         }
         if (!$group || !is_object($group)) {
-            throw new SoapFault('GET_GROUP_FAULT', $groupId.' : '.$GLOBALS['Language']->getText('include_group', 'g_not_found'), $method);
+            throw new SoapFault('GET_GROUP_FAULT', $groupId . ' : ' . $GLOBALS['Language']->getText('include_group', 'g_not_found'), $method);
         } elseif ($group->isError()) {
             throw new SoapFault('GET_GROUP_FAULT', $group->getErrorMessage(), $method);
         } elseif (!$group->isActive()) {
-            throw new SoapFault('GET_GROUP_FAULT', $group->getUnixName().' : '.$GLOBALS['Language']->getText('include_exit', 'project_status_'.$group->getStatus()), $method);
+            $status = '';
+            switch ($group->getStatus()) {
+                case Project::STATUS_DELETED:
+                    $status = $GLOBALS['Language']->getText('include_exit', 'project_status_D');
+                    break;
+                case Project::STATUS_PENDING:
+                    $status = $GLOBALS['Language']->getText('include_exit', 'project_status_P');
+                    break;
+                case Project::STATUS_SUSPENDED:
+                    $status = $GLOBALS['Language']->getText('include_exit', 'project_status_H');
+                    break;
+                case Project::STATUS_SYSTEM:
+                    $status = $GLOBALS['Language']->getText('include_exit', 'project_status_s');
+                    break;
+            }
+            throw new SoapFault('GET_GROUP_FAULT', $group->getUnixName() . ' : ' . $status, $method);
         }
         if (!$this->checkRestrictedAccess($group, $this->_getUserManager()->getCurrentUser())) {
             throw new SoapFault('GET_GROUP_FAULT', 'Restricted user: permission denied.', $method);

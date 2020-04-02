@@ -91,7 +91,7 @@ class tracker_encryptionPlugin extends PluginWithLegacyInternalRouting
 
     public function tracker_encryption_add_key($params)
     {
-        $logger      = new BackendLogger();
+        $logger      = BackendLogger::getDefaultLogger();
         $dao_pub_key = new TrackerPublicKeyDao();
         $value_dao   = new ValueDao();
         $tracker_key = new Tracker_Key($dao_pub_key, $value_dao, $params['tracker_id'], $params['key']);
@@ -186,21 +186,25 @@ class tracker_encryptionPlugin extends PluginWithLegacyInternalRouting
         $this->displayTrackerKeyForm($tracker_id);
     }
 
-    public function javascript_file($params)
+    public function javascript_file($params): void
     {
         if ($this->currentRequestIsForPlugin() || strpos($_SERVER['REQUEST_URI'], 'plugins/tracker') == true) {
-            echo $this->getMinifiedAssetHTML().PHP_EOL;
+            echo $this->getAssets()->getHTMLSnippet('tracker_encryption.js');
         }
     }
 
-    public function cssFile($params)
+    public function cssFile($params): void
     {
         if (strpos($_SERVER['REQUEST_URI'], '/plugins/tracker') === 0) {
-            $css_assets = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/tracker_encryption/themes',
-                '/assets/tracker_encryption/themes'
-            );
-            echo '<link rel="stylesheet" type="text/css" href="' . $css_assets->getFileURL('style.css') . '" />';
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getAssets()->getFileURL('style.css') . '" />';
         }
+    }
+
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/tracker_encryption',
+            '/assets/tracker_encryption/'
+        );
     }
 }

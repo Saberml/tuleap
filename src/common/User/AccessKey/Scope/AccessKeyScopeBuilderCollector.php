@@ -22,26 +22,24 @@ declare(strict_types=1);
 
 namespace Tuleap\User\AccessKey\Scope;
 
-use Tuleap\Event\Dispatchable;
+use Tuleap\Authentication\Scope\AuthenticationScopeBuilder;
+use Tuleap\Authentication\Scope\AuthenticationScopeBuilderCollectorEvent;
 
-final class AccessKeyScopeBuilderCollector implements Dispatchable
+final class AccessKeyScopeBuilderCollector implements AuthenticationScopeBuilderCollectorEvent
 {
     public const NAME = 'collectAccessKeyScopeBuilder';
 
     /**
-     * @var AccessKeyScopeBuilder[]
+     * @var AuthenticationScopeBuilder[]
      */
     private $builders = [];
 
-    public function addAccessKeyScopeBuilder(AccessKeyScopeBuilder $access_key_scope_builder): void
+    public function addAccessKeyScopeBuilder(AuthenticationScopeBuilder $access_key_scope_builder): void
     {
         $this->builders[] = $access_key_scope_builder;
     }
 
-    /**
-     * @return AccessKeyScopeBuilder[]
-     */
-    public function getAccessKeyScopeBuilders(): array
+    public function getAuthenticationKeyScopeBuilders(): array
     {
         return $this->builders;
     }

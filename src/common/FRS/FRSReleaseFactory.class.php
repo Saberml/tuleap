@@ -36,7 +36,7 @@ class FRSReleaseFactory
     public $STATUS_HIDDEN  = FRSRelease::STATUS_HIDDEN;
     private static $instance;
 
-    function __construct()
+    public function __construct()
     {
     }
 
@@ -58,7 +58,7 @@ class FRSReleaseFactory
         self::$instance = null;
     }
 
-    function getFRSReleaseFromArray(&$array)
+    public function getFRSReleaseFromArray(&$array)
     {
         $frs_release = new FRSRelease($array);
         return $frs_release;
@@ -77,7 +77,7 @@ class FRSReleaseFactory
          *
          * @return FRSRelease|null
      */
-    function getFRSReleaseFromDb($release_id, $group_id = null, $package_id = null, $extraFlags = 0)
+    public function getFRSReleaseFromDb($release_id, $group_id = null, $package_id = null, $extraFlags = 0)
     {
         $_id = (int) $release_id;
         $dao = $this->_getFRSReleaseDao();
@@ -102,7 +102,7 @@ class FRSReleaseFactory
 
         $data_array = $dar->current();
 
-        return (FRSReleaseFactory :: getFRSReleaseFromArray($data_array));
+        return (FRSReleaseFactory::getFRSReleaseFromArray($data_array));
     }
 
     /**
@@ -170,7 +170,7 @@ class FRSReleaseFactory
      *
      * @return Array
      */
-    function getFRSReleasesInfoListFromDb($group_id, $package_id = null)
+    public function getFRSReleasesInfoListFromDb($group_id, $package_id = null)
     {
         $_id = (int) $group_id;
         $dao = $this->_getFRSReleaseDao();
@@ -191,7 +191,7 @@ class FRSReleaseFactory
         return;
     }
 
-    function isActiveReleases($package_id)
+    public function isActiveReleases($package_id)
     {
         $_id = (int) $package_id;
         $dao = $this->_getFRSReleaseDao();
@@ -231,24 +231,24 @@ class FRSReleaseFactory
      *
      * @return bool true if there is already a release named $release_name in the package package_id, false otherwise
      */
-    function isReleaseNameExist($release_name, $package_id)
+    public function isReleaseNameExist($release_name, $package_id)
     {
         $release_exists = $this->getReleaseIdByName($release_name, $package_id);
-        return ($release_exists && count($release_exists) >=1);
+        return ($release_exists && count($release_exists) >= 1);
     }
 
 
     public $dao;
 
-    function _getFRSReleaseDao()
+    public function _getFRSReleaseDao()
     {
         if (!$this->dao) {
-            $this->dao =  new FRSReleaseDao(CodendiDataAccess :: instance(), $this->STATUS_DELETED);
+            $this->dao =  new FRSReleaseDao(CodendiDataAccess::instance(), $this->STATUS_DELETED);
         }
         return $this->dao;
     }
 
-    function update($data_array)
+    public function update($data_array)
     {
         $dao =  $this->_getFRSReleaseDao();
         if ($dao->updateFromArray($data_array)) {
@@ -263,7 +263,7 @@ class FRSReleaseFactory
         return false;
     }
 
-    function create($data_array)
+    public function create($data_array)
     {
         $dao = $this->_getFRSReleaseDao();
         if ($id = $dao->createFromArray($data_array)) {
@@ -278,7 +278,7 @@ class FRSReleaseFactory
         return false;
     }
 
-    function _delete($release_id)
+    public function _delete($release_id)
     {
         $_id = (int) $release_id;
         $release = $this->getFRSReleaseFromDb($_id);
@@ -307,7 +307,7 @@ class FRSReleaseFactory
      *
      * @return bool
      */
-    function delete_release($group_id, $release_id)
+    public function delete_release($group_id, $release_id)
     {
         global $ftp_incoming_dir;
 
@@ -340,7 +340,7 @@ class FRSReleaseFactory
      *
      * @return bool
      */
-    function deleteProjectReleases($groupId)
+    public function deleteProjectReleases($groupId)
     {
         $deleteState = true;
         $resReleases = $this->getFRSReleasesInfoListFromDb($groupId);
@@ -426,7 +426,7 @@ class FRSReleaseFactory
      *
      * @return bool true if user can update the release $release_id, false otherwise
      */
-    function userCanUpdate($group_id, $release_id, $user_id = false)
+    public function userCanUpdate($group_id, $release_id, $user_id = false)
     {
         return $this->userCanCreate($group_id, $user_id);
     }
@@ -442,7 +442,7 @@ class FRSReleaseFactory
      *
      * @return bool true if the user has permission to create releases, false otherwise
      */
-    function userCanCreate($group_id, $user_id = false)
+    public function userCanCreate($group_id, $user_id = false)
     {
         $um = $this->getUserManager();
         if (! $user_id) {
@@ -463,13 +463,13 @@ class FRSReleaseFactory
      *
      * @return bool
      */
-    function setDefaultPermissions(FRSRelease $release)
+    public function setDefaultPermissions(FRSRelease $release)
     {
         $pm = $this->getPermissionsManager();
         // Reset permissions for this release, before setting the new ones
         if ($pm->clearPermission(FRSRelease::PERM_READ, $release->getReleaseID())) {
             $dar = $pm->getAuthorizedUgroups($release->getPackageID(), FRSPackage::PERM_READ, false);
-            if ($dar && !$dar->isError() && $dar->rowCount()>0) {
+            if ($dar && !$dar->isError() && $dar->rowCount() > 0) {
                 foreach ($dar as $row) {
                     // Set new permissions
                     $pm->addPermission(FRSRelease::PERM_READ, $release->getReleaseID(), $row['ugroup_id']);
@@ -488,7 +488,7 @@ class FRSReleaseFactory
      *
      * @return int The number of people notified. False in case of error.
      */
-    function emailNotification(FRSRelease $release)
+    public function emailNotification(FRSRelease $release)
     {
         $fmmf   = new FileModuleMonitorFactory();
         $result = $fmmf->whoIsMonitoringPackageById($release->getGroupID(), $release->getPackageID());
@@ -531,7 +531,7 @@ class FRSReleaseFactory
      */
     private function getNotification(FRSRelease $release, FRSPackage $package, array $array_emails)
     {
-        $subject = ' '.$GLOBALS['Language']->getText(
+        $subject = ' ' . $GLOBALS['Language']->getText(
             'file_admin_editreleases',
             'file_rel_notice_subject',
             array($GLOBALS['sys_name'], $release->getProject()->getPublicName(), $package->getName())
@@ -578,8 +578,8 @@ class FRSReleaseFactory
     {
         $server_url = HTTPRequest::instance()->getServerUrl();
 
-        $fileUrl  = $server_url . "/file/showfiles.php?group_id=".$package->getGroupID()."&release_id=".$release->getReleaseID();
-        $notifUrl = $server_url . "/file/filemodule_monitor.php?filemodule_id=".$package->getPackageID()."&group_id=".$package->getGroupID();
+        $fileUrl  = $server_url . "/file/showfiles.php?group_id=" . $package->getGroupID() . "&release_id=" . $release->getReleaseID();
+        $notifUrl = $server_url . "/file/filemodule_monitor.php?filemodule_id=" . $package->getPackageID() . "&group_id=" . $package->getGroupID();
 
         $body  = $GLOBALS['Language']->getText('file_admin_editreleases', 'download_explain_modified_package', array($release->getProject()->getPublicName(), $package->getName(), $release->getName(), $fileUrl));
 
@@ -600,7 +600,7 @@ class FRSReleaseFactory
      *
      * @return EventManager
      */
-    function getEventManager()
+    public function getEventManager()
     {
          $em = EventManager::instance();
          FRSLog::instance();
@@ -612,7 +612,7 @@ class FRSReleaseFactory
      *
      * @return PermissionsManager
      */
-    function getPermissionsManager()
+    public function getPermissionsManager()
     {
         return PermissionsManager::instance();
     }
@@ -620,7 +620,7 @@ class FRSReleaseFactory
     /**
      * @return UserManager
      */
-    function getUserManager()
+    public function getUserManager()
     {
         return UserManager::instance();
     }
@@ -630,7 +630,7 @@ class FRSReleaseFactory
      *
      * @return FRSPackageFactory
      */
-    function _getFRSPackageFactory()
+    public function _getFRSPackageFactory()
     {
         if (empty($this->package_factory)) {
             $this->package_factory = new FRSPackageFactory();
@@ -643,7 +643,7 @@ class FRSReleaseFactory
      *
      * @return FRSFileFactory
      */
-    function _getFRSFileFactory()
+    public function _getFRSFileFactory()
     {
         if (empty($this->file_factory)) {
             $this->file_factory = new FRSFileFactory();

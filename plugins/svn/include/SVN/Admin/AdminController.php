@@ -23,7 +23,7 @@ namespace Tuleap\SVN\Admin;
 use CSRFSynchronizerToken;
 use Feedback;
 use HTTPRequest;
-use Logger;
+use Psr\Log\LoggerInterface;
 use Project;
 use Rule_Email;
 use Tuleap\SVN\Notifications\CannotAddUgroupsNotificationException;
@@ -83,7 +83,7 @@ class AdminController
         MailHeaderManager $mail_header_manager,
         RepositoryManager $repository_manager,
         MailNotificationManager $mail_notification_manager,
-        Logger $logger,
+        LoggerInterface $logger,
         NotificationListBuilder $notification_list_builder,
         NotificationsEmailsBuilder $emails_builder,
         UserManager $user_manager,
@@ -371,8 +371,8 @@ class AdminController
     {
         $repository  = $this->repository_manager->getByIdAndProject($request->get('repo_id'), $request->getProject());
         $hook_config = array(
-            HookConfig::MANDATORY_REFERENCE => (bool)$request->get("pre_commit_must_contain_reference"),
-            HookConfig::COMMIT_MESSAGE_CAN_CHANGE => (bool)$request->get("allow_commit_message_changes")
+            HookConfig::MANDATORY_REFERENCE => (bool) $request->get("pre_commit_must_contain_reference"),
+            HookConfig::COMMIT_MESSAGE_CAN_CHANGE => (bool) $request->get("allow_commit_message_changes")
         );
         $this->hook_config_updator->updateHookConfig($repository, $hook_config);
 
@@ -486,9 +486,6 @@ class AdminController
         ));
     }
 
-    /**
-     * @param HTTPRequest $request
-     */
     private function redirectOnDisplayNotification(HTTPRequest $request)
     {
         $GLOBALS['Response']->redirect(SVN_BASE_URL . '/?' . http_build_query(

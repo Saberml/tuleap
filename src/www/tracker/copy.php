@@ -14,6 +14,7 @@ if (!$ath->isValid()) {
 $art_field_fact = new ArtifactFieldFactory($ath);
 
 // Printer version ?
+$ro = false;
 if (!$request->exist('pv')) {
     $pv = false;
     $ro = false;
@@ -24,11 +25,10 @@ if (!$request->exist('pv')) {
     }
 }
 
-$params=array('title'=>$group->getPublicName().' '.$ath->getName().' #'.$ah->getID(). ' - \'' . $ah->getSummary().'\'',
-              'pagename'=>'tracker',
-              'atid'=>$ath->getID(),
-              'sectionvals'=>array($group->getPublicName()),
-              'pv'=>$pv,
+$params = array('title' => $group->getPublicName() . ' ' . $ath->getName() . ' #' . $ah->getID() . ' - \'' . $ah->getSummary() . '\'',
+              'pagename' => 'tracker',
+              'atid' => $ath->getID(),
+              'pv' => $pv,
               'help' => 'tracker-v3.html#artifact-update');
 
 $ath->header($params);
@@ -43,7 +43,7 @@ echo "<script type=\"text/javascript\">\n";
 $armh = new ArtifactRulesManagerHtml($ath);
 $armh->displayRulesAsJavascript();
 echo "new UserAutoCompleter('tracker_cc',
-                          '".util_get_dir_image_theme()."',
+                          '" . util_get_dir_image_theme() . "',
                           true);\n";
 echo "</script>";
 

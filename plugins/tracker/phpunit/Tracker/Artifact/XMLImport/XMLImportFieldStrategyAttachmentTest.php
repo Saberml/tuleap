@@ -73,7 +73,7 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
         $this->extraction_path = vfsStream::setup()->url() . '/tmp';
         mkdir($this->extraction_path);
 
-        $this->logger         = Mockery::mock(Logger::class);
+        $this->logger         = Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->files_importer = Mockery::mock(Tracker_Artifact_XMLImport_CollectionOfFilesToImportInArtifact::class);
 
         $this->strategy = new Tracker_Artifact_XMLImport_XMLImportFieldStrategyAttachment(
@@ -158,7 +158,7 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
                     'type'         => 'text/plain',
                     'description'  => '',
                     'size'         => 1024,
-                    'tmp_name'     => $this->extraction_path .'/Readme.mkd',
+                    'tmp_name'     => $this->extraction_path . '/Readme.mkd',
                     'error'        => 0
                 ],
                 [
@@ -168,7 +168,7 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
                     'type'         => 'image/png',
                     'description'  => '',
                     'size'         => 2048,
-                    'tmp_name'     => $this->extraction_path .'/Lenna.png',
+                    'tmp_name'     => $this->extraction_path . '/Lenna.png',
                     'error'        => 0
                 ]
             ],
@@ -179,7 +179,7 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
     public function testItReturnsEmtpyArrayIfFieldChangeDoesNotHaveRefAttribute(): void
     {
         $this->logger
-            ->shouldReceive('warn')
+            ->shouldReceive('warning')
             ->with('Skipped attachment field Attachments: field value is empty.')
             ->once();
 
@@ -201,8 +201,8 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
         touch($this->extraction_path . '/Lenna.png');
 
         $this->logger
-            ->shouldReceive('warn')
-            ->with('Skipped attachment field Attachments: File not found: '. $this->extraction_path .'/Readme.mkd')
+            ->shouldReceive('warning')
+            ->with('Skipped attachment field Attachments: File not found: ' . $this->extraction_path . '/Readme.mkd')
             ->once();
 
         $field_change = new SimpleXMLElement(
@@ -266,7 +266,7 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
                     'type'         => 'image/png',
                     'description'  => '',
                     'size'         => 2048,
-                    'tmp_name'     => $this->extraction_path .'/Lenna.png',
+                    'tmp_name'     => $this->extraction_path . '/Lenna.png',
                     'error'        => 0
                 ]
             ],
@@ -277,12 +277,12 @@ class XMLImportFieldStrategyAttachmentTest extends TestCase
     public function testItRaisesExceptionIfNoFileCannotBeFound(): void
     {
         $this->logger
-            ->shouldReceive('warn')
-            ->with('Skipped attachment field Attachments: File not found: '. $this->extraction_path .'/Readme.mkd')
+            ->shouldReceive('warning')
+            ->with('Skipped attachment field Attachments: File not found: ' . $this->extraction_path . '/Readme.mkd')
             ->once();
         $this->logger
-            ->shouldReceive('warn')
-            ->with('Skipped attachment field Attachments: File not found: '. $this->extraction_path .'/Lenna.png')
+            ->shouldReceive('warning')
+            ->with('Skipped attachment field Attachments: File not found: ' . $this->extraction_path . '/Lenna.png')
             ->once();
 
         $field_change = new SimpleXMLElement(

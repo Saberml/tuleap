@@ -42,4 +42,32 @@ final class ConcealedStringTest extends TestCase
 
         $this->assertStringNotContainsString($value_to_hide, print_r($concealed_string, true));
     }
+
+    public function testCompareWithIdenticatlStringsSucceeds() : void
+    {
+        $string_a = new ConcealedString('some content');
+        $string_b = new ConcealedString('some content');
+        $this->assertTrue($string_a->isIdenticalTo($string_b));
+    }
+
+    public function testCompareWithDifferentStringsFails() : void
+    {
+        $string_a = new ConcealedString('some content');
+        $string_b = new ConcealedString('another content');
+        $this->assertFalse($string_a->isIdenticalTo($string_b));
+    }
+
+    public function testSerializationIsNotAllowed(): void
+    {
+        $secret = new ConcealedString('a');
+
+        $this->expectException(\LogicException::class);
+        serialize($secret);
+    }
+
+    public function testDeserializationIsNotAllowed(): void
+    {
+        $this->expectException(\LogicException::class);
+        unserialize('O:35:"Tuleap\Cryptography\ConcealedString":0:{}');
+    }
 }

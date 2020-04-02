@@ -24,7 +24,7 @@ use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 use Tuleap\Git\Gitolite\GitoliteAccessURLGenerator;
 
-require_once __DIR__.'/bootstrap.php';
+require_once __DIR__ . '/bootstrap.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class GitBackendGitoliteUserAccessRightsTest extends TestCase
@@ -40,7 +40,7 @@ class GitBackendGitoliteUserAccessRightsTest extends TestCase
     {
         parent::setUp();
         $driver        = \Mockery::spy(\Git_GitoliteDriver::class);
-        $this->backend = new Git_Backend_Gitolite($driver, \Mockery::spy(GitoliteAccessURLGenerator::class), \Mockery::spy(\Logger::class));
+        $this->backend = new Git_Backend_Gitolite($driver, \Mockery::spy(GitoliteAccessURLGenerator::class), \Mockery::spy(\Psr\Log\LoggerInterface::class));
 
         $this->user       = \Mockery::spy(\PFUser::class);
         $this->repository = \Mockery::spy(\GitRepository::class);

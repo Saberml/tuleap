@@ -22,7 +22,10 @@ import Vue from "vue";
 import VueDOMPurifyHTML from "vue-dompurify-html";
 import { createStore } from "./src/store";
 import App from "./src/components/App.vue";
-import { initVueGettext } from "../../../../src/www/scripts/tuleap/gettext/vue-gettext-init";
+import {
+    initVueGettext,
+    getPOFileFromLocale,
+} from "../../../../src/www/scripts/tuleap/gettext/vue-gettext-init";
 import { ColumnDefinition, Tracker } from "./src/type";
 import Vuex from "vuex";
 import { UserState } from "./src/store/user/type";
@@ -58,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             : [];
 
     await initVueGettext(Vue, (locale: string) =>
-        import(/* webpackChunkName: "taskboard-po-" */ `./po/${locale}.po`)
+        import(/* webpackChunkName: "taskboard-po-" */ "./po/" + getPOFileFromLocale(locale))
     );
     Vue.use(Vuex);
     Vue.use(VueDOMPurifyHTML);
@@ -74,20 +77,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         are_closed_items_displayed,
         card_being_dragged: null,
         trackers,
-        is_a_cell_adding_in_place: false
+        is_a_cell_adding_in_place: false,
     } as RootState;
 
     const initial_user_state: UserState = {
         user_is_admin,
         user_id,
-        user_has_accessibility_mode
+        user_has_accessibility_mode,
     };
 
     const initial_column_state: ColumnState = {
-        columns
+        columns,
     };
 
     new AppComponent({
-        store: createStore(initial_root_state, initial_user_state, initial_column_state)
+        store: createStore(initial_root_state, initial_user_state, initial_column_state),
     }).$mount(vue_mount_point);
 });

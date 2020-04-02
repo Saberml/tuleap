@@ -22,8 +22,10 @@
 use Tuleap\BurningParrotCompatiblePageDetector;
 use Tuleap\CookieManager;
 use Tuleap\Event\Events\HitEvent;
+use Tuleap\Instrument\Prometheus\Prometheus;
 use Tuleap\Plugin\PluginLoader;
 use Tuleap\Request\CurrentPage;
+use Tuleap\Request\RequestInstrumentation;
 use Tuleap\TimezoneRetriever;
 
 if (PHP_VERSION_ID < 70300) {
@@ -39,12 +41,12 @@ $locar_inc_finder = new Config_LocalIncFinder();
 $local_inc = $locar_inc_finder->getLocalIncPath();
 require($local_inc);
 require($GLOBALS['db_config_file']);
-ForgeConfig::loadFromFile($GLOBALS['codendi_dir'] .'/src/etc/local.inc.dist'); //load the default settings
+ForgeConfig::loadFromFile($GLOBALS['codendi_dir'] . '/src/etc/local.inc.dist'); //load the default settings
 ForgeConfig::loadFromFile($local_inc);
 ForgeConfig::loadFromFile($GLOBALS['db_config_file']);
 if (isset($GLOBALS['DEBUG_MODE'])) {
-    ForgeConfig::loadFromFile($GLOBALS['codendi_dir'] .'/src/etc/development.inc.dist');
-    ForgeConfig::loadFromFile(dirname($local_inc).'/development.inc');
+    ForgeConfig::loadFromFile($GLOBALS['codendi_dir'] . '/src/etc/development.inc.dist');
+    ForgeConfig::loadFromFile(dirname($local_inc) . '/development.inc');
 }
 ForgeConfig::loadFromDatabase();
 ForgeConfig::loadFromFile(ForgeConfig::get('redis_config_file'));
@@ -102,7 +104,7 @@ foreach (array(
         'pv',
     ) as $variable) {
     if (isset($_REQUEST[$variable])) {
-        $$variable = $_REQUEST[$variable] = $_GET[$variable] = $_POST[$variable] = (int)$_REQUEST[$variable];
+        $$variable = $_REQUEST[$variable] = $_GET[$variable] = $_POST[$variable] = (int) $_REQUEST[$variable];
     }
 }
 //}}}
@@ -127,7 +129,7 @@ $plugin_manager = PluginManager::instance();
 $plugin_loader  = new PluginLoader(
     $event_manager,
     PluginFactory::instance(),
-    new BackendLogger()
+    BackendLogger::getDefaultLogger()
 );
 $cookie_manager = new CookieManager();
 
@@ -159,14 +161,14 @@ if (!IS_SCRIPT) {
     header('Content-Security-Policy: ' . $csp_rules);
 }
 
-$feedback=''; // Initialize global var
+$feedback = ''; // Initialize global var
 
 $request = HTTPRequest::instance();
 $request->setTrustedProxies(array_map('trim', explode(',', ForgeConfig::get('sys_trusted_proxies'))));
 
 //Language
 if (!$GLOBALS['sys_lang']) {
-    $GLOBALS['sys_lang']="en_US";
+    $GLOBALS['sys_lang'] = "en_US";
 }
 $Language = new BaseLanguage($GLOBALS['sys_supported_languages'], $GLOBALS['sys_lang']);
 
@@ -210,14 +212,15 @@ if (! defined('FRONT_ROUTER')) {
 if (!IS_SCRIPT) {
     if (! defined('FRONT_ROUTER')) {
         $urlVerifFactory = new URLVerificationFactory($event_manager);
-        $urlVerif = $urlVerifFactory->getURLVerification($_SERVER);
-        $urlVerif->assertValidUrl($_SERVER, $request);
+        $global_server   = $_SERVER ?? [];
+        $urlVerif = $urlVerifFactory->getURLVerification($global_server);
+        $urlVerif->assertValidUrl($global_server, $request);
 
-        \Tuleap\Request\RequestInstrumentation::incrementLegacy();
+        (new RequestInstrumentation(Prometheus::instance()))->incrementLegacy();
     }
 
     if (! $current_user->isAnonymous()) {
-        header('X-Tuleap-Username: '.$current_user->getUserName());
+        header('X-Tuleap-Username: ' . $current_user->getUserName());
     }
 }
 

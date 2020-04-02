@@ -45,15 +45,14 @@ class ArtifactDateReminderFactory
      */
     private $logger;
 
-    function __construct($notification_id, TrackerDateReminder_Logger $logger)
+    public function __construct($notification_id, TrackerDateReminder_Logger $logger)
     {
-
         // Set object attributes
         $this->notification_id = $notification_id;
         $notif_array = $this->getNotificationData($notification_id);
         $this->setFromArray($notif_array);
 
-        $this->logger = new TrackerDateReminder_Logger_Prefix($logger, '[Notif id '.$notification_id.']');
+        $this->logger = new TrackerDateReminder_Logger_Prefix($logger, '[Notif id ' . $notification_id . ']');
     }
 
     /**
@@ -63,7 +62,7 @@ class ArtifactDateReminderFactory
      *
      * @return void
      */
-    function setFromArray($notif_array)
+    public function setFromArray($notif_array)
     {
         $this->reminder_id       = $notif_array['reminder_id'];
         $this->group_artifact_id = $notif_array['group_artifact_id'];
@@ -78,11 +77,11 @@ class ArtifactDateReminderFactory
      *
      * @return array
      */
-    function getNotificationData($notification_id)
+    public function getNotificationData($notification_id)
     {
         $qry = sprintf(
             'SELECT * FROM artifact_date_reminder_processing'
-            .' WHERE notification_id=%d',
+            . ' WHERE notification_id=%d',
             db_ei($notification_id)
         );
         $result = db_query($qry);
@@ -96,7 +95,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getReminderId()
+    public function getReminderId()
     {
         return $this->reminder_id;
     }
@@ -106,11 +105,11 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getGroupId()
+    public function getGroupId()
     {
         $sql = sprintf(
             'SELECT group_id FROM artifact_group_list'
-            .' WHERE group_artifact_id=%d',
+            . ' WHERE group_artifact_id=%d',
             db_ei($this->getGroupArtifactId())
         );
         $res = db_query($sql);
@@ -122,7 +121,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getGroupArtifactId()
+    public function getGroupArtifactId()
     {
         return $this->group_artifact_id;
     }
@@ -132,7 +131,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getArtifactId()
+    public function getArtifactId()
     {
         return $this->artifact_id;
     }
@@ -142,7 +141,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getFieldId()
+    public function getFieldId()
     {
         return $this->field_id;
     }
@@ -152,11 +151,11 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getNotificationSent()
+    public function getNotificationSent()
     {
         $sql = sprintf(
             'SELECT notification_sent FROM artifact_date_reminder_processing'
-            .' WHERE notification_id = %d',
+            . ' WHERE notification_id = %d',
             db_ei($this->notification_id)
         );
         $res = db_query($sql);
@@ -168,7 +167,7 @@ class ArtifactDateReminderFactory
      *
      * @return string
      */
-    function getTrackerName()
+    public function getTrackerName()
     {
         $group = ProjectManager::instance()->getProject($this->getGroupId());
         $at = new ArtifactType($group, $this->getGroupArtifactId());
@@ -180,18 +179,18 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getNotificationStartDate()
+    public function getNotificationStartDate()
     {
         $sql = sprintf(
             'SELECT notification_start, notification_type FROM artifact_date_reminder_settings'
-            .' WHERE reminder_id=%d'
-            .' AND field_id=%d'
-            .' AND group_artifact_id=%d',
+            . ' WHERE reminder_id=%d'
+            . ' AND field_id=%d'
+            . ' AND group_artifact_id=%d',
             db_ei($this->getReminderId()),
             db_ei($this->getFieldId()),
             db_ei($this->getGroupArtifactId())
         );
-        $res  =db_query($sql);
+        $res  = db_query($sql);
         $start = db_result($res, 0, 'notification_start');
         $type = db_result($res, 0, 'notification_type');
         $date_value = $this->getDateValue();
@@ -212,13 +211,13 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getRecurse()
+    public function getRecurse()
     {
         $sql = sprintf(
             'SELECT recurse FROM artifact_date_reminder_settings'
-                      .' WHERE reminder_id=%d'
-                      .' AND field_id=%d'
-                      .' AND group_artifact_id=%d',
+                      . ' WHERE reminder_id=%d'
+                      . ' AND field_id=%d'
+                      . ' AND group_artifact_id=%d',
             db_ei($this->getReminderId()),
             db_ei($this->getFieldId()),
             db_ei($this->getGroupArtifactId())
@@ -233,13 +232,13 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getFrequency()
+    public function getFrequency()
     {
         $sql = sprintf(
             'SELECT frequency FROM artifact_date_reminder_settings'
-                      .' WHERE reminder_id=%d'
-                      .' AND field_id=%d'
-                      .' AND group_artifact_id=%d',
+                      . ' WHERE reminder_id=%d'
+                      . ' AND field_id=%d'
+                      . ' AND group_artifact_id=%d',
             db_ei($this->getReminderId()),
             db_ei($this->getFieldId()),
             db_ei($this->getGroupArtifactId())
@@ -254,7 +253,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getNextReminderDate()
+    public function getNextReminderDate()
     {
         if ($this->getNotificationSent() < $this->getRecurse()) {
             $shift = intval($this->getFrequency() * $this->getNotificationSent() * 24 * 3600);
@@ -267,7 +266,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getDateValue()
+    public function getDateValue()
     {
         $group = ProjectManager::instance()->getProject($this->getGroupId());
         $at = new ArtifactType($group, $this->getGroupArtifactId());
@@ -277,8 +276,8 @@ class ArtifactDateReminderFactory
         if (! $field->isStandardField()) {
             $qry = sprintf(
                 'SELECT valueDate FROM artifact_field_value'
-                          .' WHERE artifact_id=%d'
-                          .' AND field_id=%d',
+                          . ' WHERE artifact_id=%d'
+                          . ' AND field_id=%d',
                 db_ei($this->getArtifactId()),
                 db_ei($this->getFieldId())
             );
@@ -288,8 +287,8 @@ class ArtifactDateReminderFactory
             //End Date
             $qry = sprintf(
                 'SELECT close_date FROM artifact'
-                          .' WHERE artifact_id=%d'
-                          .' AND group_artifact_id=%d',
+                          . ' WHERE artifact_id=%d'
+                          . ' AND group_artifact_id=%d',
                 db_ei($this->getArtifactId()),
                 db_ei($this->getGroupArtifactId())
             );
@@ -308,7 +307,7 @@ class ArtifactDateReminderFactory
      *
      * @return int
      */
-    function getNotificationToBeSent($current_time)
+    public function getNotificationToBeSent($current_time)
     {
         $start_date = $this->getNotificationStartDate();
         if ($current_time >= $start_date + 24 * 3600) {
@@ -324,7 +323,7 @@ class ArtifactDateReminderFactory
      *
      * @return array
      */
-    function getNotifiedPeople()
+    public function getNotifiedPeople()
     {
         global $art_field_fact;
 
@@ -337,9 +336,9 @@ class ArtifactDateReminderFactory
         $notified_people = array();
         $sql = sprintf(
             'SELECT notified_people FROM artifact_date_reminder_settings'
-                      .' WHERE reminder_id=%d'
-                      .' AND group_artifact_id=%d'
-                      .' AND field_id=%d',
+                      . ' WHERE reminder_id=%d'
+                      . ' AND group_artifact_id=%d'
+                      . ' AND field_id=%d',
             db_ei($this->getReminderId()),
             db_ei($this->getGroupArtifactId()),
             db_ei($this->getFieldId())
@@ -458,7 +457,7 @@ class ArtifactDateReminderFactory
      * Increment the number of notifications sent
      *
      */
-    function updateNotificationSent($adjust = 0)
+    public function updateNotificationSent($adjust = 0)
     {
         if (!$adjust) {
             $upd = $this->getNotificationSent() + 1;
@@ -467,8 +466,8 @@ class ArtifactDateReminderFactory
         }
         $sql = sprintf(
             'UPDATE artifact_date_reminder_processing'
-                      .' SET notification_sent=%d'
-                      .' WHERE notification_id=%d',
+                      . ' SET notification_sent=%d'
+                      . ' WHERE notification_id=%d',
             db_ei($upd),
             db_ei($this->notification_id)
         );
@@ -482,7 +481,7 @@ class ArtifactDateReminderFactory
      *
      * @return bool
      */
-    function isUserAllowedToBeNotified($user_id)
+    public function isUserAllowedToBeNotified($user_id)
     {
         global $art_field_fact;
 
@@ -500,7 +499,7 @@ class ArtifactDateReminderFactory
      *
      * @return bool
      */
-    function handleNotification()
+    public function handleNotification()
     {
         global $art_field_fact;
 
@@ -513,29 +512,29 @@ class ArtifactDateReminderFactory
         $field          = $art_field_fact->getFieldFromId($this->getFieldId());
         $art            = new Artifact($at, $this->getArtifactId(), false);
 
-        $logger->info("tracker: ".$this->getGroupArtifactId());
-        $logger->info("artifact: ".$this->getArtifactId());
+        $logger->info("tracker: " . $this->getGroupArtifactId());
+        $logger->info("artifact: " . $this->getArtifactId());
 
         $sent = true;
         $week = date("W", $this->getDateValue());
 
         $mail = new Codendi_Mail();
         $mail->setFrom($GLOBALS['sys_noreply']);
-        $mail->setSubject("[" . $this->getTrackerName()."] ".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_subject', array($field->getLabel(),date("j F Y", $this->getDateValue()),$art->getSummary())));
+        $mail->setSubject("[" . $this->getTrackerName() . "] " . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_subject', array($field->getLabel(),date("j F Y", $this->getDateValue()),$art->getSummary())));
 
-        $body = "\n".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_header', array($field->getLabel(),date("l j F Y", $this->getDateValue()),$week)).
-        "\n\n".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_project', array($group->getPublicName())).
-        "\n".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_tracker', array($this->getTrackerName())).
-        "\n".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_art', array($art->getSummary())).
-        "\n".$field->getLabel().": ".date("D j F Y", $this->getDateValue()).
-        "\n\n".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_art_link').
-        "\n".HTTPRequest::instance()->getServerUrl()."/tracker/?func=detail&aid=".$this->getArtifactId()."&atid=".$this->getGroupArtifactId()."&group_id=".$this->getGroupId().
-        "\n\n______________________________________________________________________".
-        "\n".$GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_footer')."\n";
+        $body = "\n" . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_header', array($field->getLabel(),date("l j F Y", $this->getDateValue()),$week)) .
+        "\n\n" . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_project', array($group->getPublicName())) .
+        "\n" . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_tracker', array($this->getTrackerName())) .
+        "\n" . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_art', array($art->getSummary())) .
+        "\n" . $field->getLabel() . ": " . date("D j F Y", $this->getDateValue()) .
+        "\n\n" . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_body_art_link') .
+        "\n" . HTTPRequest::instance()->getServerUrl() . "/tracker/?func=detail&aid=" . $this->getArtifactId() . "&atid=" . $this->getGroupArtifactId() . "&group_id=" . $this->getGroupId() .
+        "\n\n______________________________________________________________________" .
+        "\n" . $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'reminder_mail_footer') . "\n";
         $mail->setBodyText($body);
 
         $allNotified = $this->getNotifiedPeople();
-        $logger->info("notify: ".implode(', ', $allNotified));
+        $logger->info("notify: " . implode(', ', $allNotified));
         foreach ($allNotified as $notified) {
             $mail->setTo($notified);
             if (!$mail->send()) {
@@ -559,7 +558,7 @@ class ArtifactDateReminderFactory
      *
      * @param int $current_time Time when the reminder status should be checked (appart for test should be time())
      */
-    function checkReminderStatus($current_time)
+    public function checkReminderStatus($current_time)
     {
         $this->logger->info("Start");
 

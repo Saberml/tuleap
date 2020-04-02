@@ -30,17 +30,17 @@ require_once('lib/PageList.php');
 
 class WikiPlugin_OrphanedPages extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("OrphanedPages");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("List pages which are not linked to by any other page.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -49,7 +49,7 @@ class WikiPlugin_OrphanedPages extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('noheader'      => false,
                      'include_empty' => false,
@@ -64,7 +64,7 @@ class WikiPlugin_OrphanedPages extends WikiPlugin
     // info=mtime,hits,summary,version,author,locked,minor,markup or all
     // exclude arg allows multiple pagenames exclude=HomePage,RecentChanges
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         extract($args);
@@ -98,7 +98,7 @@ class WikiPlugin_OrphanedPages extends WikiPlugin
         if (!$pagesize) {
             $pagelist->addPageList($pages);
         } else {
-            for ($i=$offset; $i < $offset + $pagesize - 1; $i++) {
+            for ($i = $offset; $i < $offset + $pagesize - 1; $i++) {
                 if ($i >= $args['count']) {
                     break;
                 }
@@ -107,7 +107,7 @@ class WikiPlugin_OrphanedPages extends WikiPlugin
         }
         return $pagelist;
     }
-};
+}
 
 // $Log: OrphanedPages.php,v $
 // Revision 1.10  2004/07/09 13:05:34  rurban

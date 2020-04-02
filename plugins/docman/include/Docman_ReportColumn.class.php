@@ -28,51 +28,51 @@ class Docman_ReportColumn
     public $md;
     public $sort;
 
-    function __construct($md)
+    public function __construct($md)
     {
         $this->md = $md;
         $this->sort = null;
     }
 
-    function setSort($s)
+    public function setSort($s)
     {
         $this->sort = $s;
     }
-    function getSort()
+    public function getSort()
     {
         return $this->sort;
     }
 
-    function getSortParameter()
+    public function getSortParameter()
     {
         $sortParam = null;
         if ($this->md !== null) {
-            $sortParam = 'sort_'.$this->md->getLabel();
+            $sortParam = 'sort_' . $this->md->getLabel();
         }
         return $sortParam;
     }
 
-    function getSortSelectorHtml()
+    public function getSortSelectorHtml()
     {
         $html = '';
         $sort = $this->getSort();
         if ($sort !== null) {
-            $html .= '<input type="hidden" name="'.$this->getSortParameter().'" value="'.$sort.'" />';
+            $html .= '<input type="hidden" name="' . $this->getSortParameter() . '" value="' . $sort . '" />';
             $html .= "\n";
         }
         return $html;
     }
 
 
-    function getTitle($view, $viewParams)
+    public function getTitle($view, $viewParams)
     {
         $sort = $this->getSort();
         if ($sort == 1) {
             $toggleValue = '0';
-            $toogleIcon = '<img src="'.util_get_image_theme("up_arrow.png").'" border="0" >';
+            $toogleIcon = '<img src="' . util_get_image_theme("up_arrow.png") . '" border="0" >';
         } else {
             $toggleValue = '1';
-            $toogleIcon = '<img src="'.util_get_image_theme("dn_arrow.png").'" border="0" >';
+            $toogleIcon = '<img src="' . util_get_image_theme("dn_arrow.png") . '" border="0" >';
         }
 
         // URL
@@ -83,21 +83,21 @@ class Docman_ReportColumn
         }
 
         $url = $view->_buildSearchUrl($viewParams, array($sortParam => $toggleValue));
-        $title = $GLOBALS['Language']->getText('plugin_docman', 'view_documenttable_toggletitle');
+        $title = dgettext('tuleap-docman', 'Click on title to toggle table sort');
 
         $purifier = Codendi_HTMLPurifier::instance();
         $link = $purifier->purify($this->md->getName());
 
         if ($sort !== null) {
-            $link .= '&nbsp;'.$toogleIcon;
+            $link .= '&nbsp;' . $toogleIcon;
         }
 
-        $href = '<a href="'.$url.'" title="'.$title.'">'.$link.'</a>';
+        $href = '<a href="' . $url . '" title="' . $title . '">' . $link . '</a>';
 
         return $href;
     }
 
-    function initFromRequest($request)
+    public function initFromRequest($request)
     {
         $sortparam = $this->getSortParameter();
         if ($request->exist($sortparam)) {
@@ -105,7 +105,7 @@ class Docman_ReportColumn
         }
     }
 
-    function _getMdHtml($item)
+    public function _getMdHtml($item)
     {
         $mdHtml = null;
         $md = $item->getMetadataFromLabel($this->md->getLabel());
@@ -115,7 +115,7 @@ class Docman_ReportColumn
         return $mdHtml;
     }
 
-    function getTableBox($item, $view, $params)
+    public function getTableBox($item, $view, $params)
     {
         $mdHtml = $this->_getMdHtml($item);
         if ($mdHtml !== null) {
@@ -124,7 +124,7 @@ class Docman_ReportColumn
         return '';
     }
 
-    function getJavascript($item, $view)
+    public function getJavascript($item, $view)
     {
         return '';
     }
@@ -132,24 +132,24 @@ class Docman_ReportColumn
 
 class Docman_ReportColumnLocation extends Docman_ReportColumn
 {
-    function __construct()
+    public function __construct()
     {
         $this->sort = null;
     }
 
-    function setSort($s)
+    public function setSort($s)
     {
         return;
     }
 
-    function getSortSelectorHtml()
+    public function getSortSelectorHtml()
     {
         return;
     }
 
     public function getTitle($defaultUrl, $viewParams = '')
     {
-        return $GLOBALS['Language']->getText('plugin_docman', 'view_documenttable_location');
+        return dgettext('tuleap-docman', 'Location');
     }
 
     public function initFromRequest($request)
@@ -157,7 +157,7 @@ class Docman_ReportColumnLocation extends Docman_ReportColumn
         return;
     }
 
-    function getTableBox($item, $view, $params)
+    public function getTableBox($item, $view, $params)
     {
         $hp = Codendi_HTMLPurifier::instance();
         $pathTitle = $item->getPathTitle();
@@ -171,7 +171,7 @@ class Docman_ReportColumnLocation extends Docman_ReportColumn
             $dfltParams['id'] = $id;
             $url              = DocmanViewURLBuilder::buildActionUrl($params['item'], $params, $dfltParams);
 
-            $href = '<a href="'.$url.'">'. $hp->purify($title, CODENDI_PURIFIER_CONVERT_HTML) .'</a>';
+            $href = '<a href="' . $url . '">' . $hp->purify($title, CODENDI_PURIFIER_CONVERT_HTML) . '</a>';
             $pathUrl[] = $href;
         }
         $html = implode(' / ', $pathUrl);
@@ -181,17 +181,17 @@ class Docman_ReportColumnLocation extends Docman_ReportColumn
 
 class Docman_ReportColumnTitle extends Docman_ReportColumn
 {
-    function __construct($md)
+    public function __construct($md)
     {
         parent::__construct($md);
     }
 
-    function getTableBox($item, $view, $params)
+    public function getTableBox($item, $view, $params)
     {
         $html = '';
         $docmanIcons = $view->_getDocmanIcons($params);
         $icon_src = $docmanIcons->getIconForItem($item, $params);
-        $icon = '<img src="'. $icon_src .'" class="docman_item_icon" />';
+        $icon = '<img src="' . $icon_src . '" class="docman_item_icon" />';
         $html .= '<span style="white-space: nowrap;">';
         $html .= $icon;
         $url   = DocmanViewURLBuilder::buildActionUrl(
@@ -201,7 +201,7 @@ class Docman_ReportColumnTitle extends Docman_ReportColumn
             false,
             true
         );
-        $html .= '<a href="'.$url.'" id="docman_item_title_link_'.$item->getId().'">';
+        $html .= '<a href="' . $url . '" id="docman_item_title_link_' . $item->getId() . '">';
         $html .=  htmlentities($item->getTitle(), ENT_QUOTES, 'UTF-8');
         $html .=  '</a>';
         $html .= $view->getItemMenu($item, $params);
@@ -209,7 +209,7 @@ class Docman_ReportColumnTitle extends Docman_ReportColumn
         return $html;
     }
 
-    function getJavascript($item, $view)
+    public function getJavascript($item, $view)
     {
         return $view->getActionForItem($item);
     }
@@ -217,12 +217,12 @@ class Docman_ReportColumnTitle extends Docman_ReportColumn
 
 class Docman_ReportColumnList extends Docman_ReportColumn
 {
-    function __construct($md)
+    public function __construct($md)
     {
         parent::__construct($md);
     }
 
-    function getTableBox($item, $view, $params)
+    public function getTableBox($item, $view, $params)
     {
         $mdHtml = $this->_getMdHtml($item);
         if ($mdHtml !== null) {

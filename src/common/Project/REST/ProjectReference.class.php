@@ -42,9 +42,9 @@ class ProjectReference
     {
         if ($project instanceof Project) {
             $this->id    = (int) $project->getId();
-            $this->label = (string) $project->getUnconvertedPublicName();
+            $this->label = (string) $project->getPublicName();
         } else {
-            $this->id = (int)$project;
+            $this->id = (int) $project;
         }
 
         $this->uri = ProjectRepresentation::ROUTE . '/' . $this->id;

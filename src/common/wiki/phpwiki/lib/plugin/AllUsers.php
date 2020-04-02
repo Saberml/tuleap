@@ -33,17 +33,17 @@ require_once('lib/PageList.php');
  */
 class WikiPlugin_AllUsers extends WikiPlugin
 {
-    function getName()
+    public function getName()
     {
         return _("AllUsers");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("List all once authenticated users.");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -52,7 +52,7 @@ class WikiPlugin_AllUsers extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array_merge(
             PageList::supportedArgs(),
@@ -71,7 +71,7 @@ class WikiPlugin_AllUsers extends WikiPlugin
     //
     // sortby: [+|-] pagename|mtime|hits
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         $args = $this->getArgs($argstr, $request);
         extract($args);
@@ -98,7 +98,7 @@ class WikiPlugin_AllUsers extends WikiPlugin
         if (!$pagesize) {
             $pagelist->addPageList($allusers);
         } else {
-            for ($i=$offset; $i < $offset + $pagesize - 1; $i++) {
+            for ($i = $offset; $i < $offset + $pagesize - 1; $i++) {
                 if ($i >= $args['count']) {
                     break;
                 }
@@ -122,7 +122,7 @@ class WikiPlugin_AllUsers extends WikiPlugin
             return $pagelist;
         }
     }
-};
+}
 
 // $Log: AllUsers.php,v $
 // Revision 1.18  2004/11/23 15:17:19  rurban

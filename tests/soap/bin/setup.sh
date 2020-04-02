@@ -2,10 +2,6 @@
 
 set -ex
 
-if [ -z "$MYSQL_DAEMON" ]; then
-    MYSQL_DAEMON=mysqld
-fi
-
 setup_tuleap() {
     echo "Setup Tuleap"
     mkdir -p \
@@ -20,10 +16,11 @@ setup_tuleap() {
 
     cat /usr/share/tuleap/src/etc/database.inc.dist | \
         sed \
+         -e "s/localhost/$DB_HOST/" \
 	     -e "s/%sys_dbname%/tuleap/" \
 	     -e "s/%sys_dbuser%/tuleapadm/" \
 	     -e "s/%sys_dbpasswd%/welcome0/" > /etc/tuleap/conf/database.inc
-    chgrp runner /etc/tuleap/conf/database.inc
+     chgrp runner /etc/tuleap/conf/database.inc
 
     cat /usr/share/tuleap/src/etc/local.inc.dist | \
 	sed \
@@ -61,29 +58,36 @@ setup_tuleap() {
 }
 
 setup_database() {
-    MYSQL_HOST=localhost
     MYSQL_USER=tuleapadm
     MYSQL_PASSWORD=welcome0
     MYSQL_DBNAME=tuleap
-    MYSQL="mysql -h$MYSQL_HOST -u$MYSQL_USER -p$MYSQL_PASSWORD"
 
-    echo "Setup database $MYSQL_DAEMON"
-    service $MYSQL_DAEMON start
-    mysql -e "GRANT ALL PRIVILEGES on *.* to '$MYSQL_USER'@'$MYSQL_HOST' identified by '$MYSQL_PASSWORD'"
-    $MYSQL -e "DROP DATABASE IF EXISTS $MYSQL_DBNAME"
-    $MYSQL -e "CREATE DATABASE $MYSQL_DBNAME CHARACTER SET utf8"
-    $MYSQL $MYSQL_DBNAME < "/usr/share/tuleap/src/db/mysql/database_structure.sql"
-    $MYSQL $MYSQL_DBNAME < "/usr/share/tuleap/src/db/mysql/database_initvalues.sql"
-    $MYSQL $MYSQL_DBNAME < "/usr/share/tuleap/src/db/mysql/trackerv3structure.sql"
-    $MYSQL $MYSQL_DBNAME < "/usr/share/tuleap/src/db/mysql/trackerv3values.sql"
+    MYSQLROOT="mysql -h$DB_HOST -uroot -pwelcome0"
 
-    mysql -e "FLUSH PRIVILEGES;"
+    /usr/share/tuleap/src/tuleap-cfg/tuleap-cfg.php setup:mysql-init \
+        --host="${DB_HOST}" \
+        --admin-user="root" \
+        --admin-password="welcome0" \
+        --db-name="${MYSQL_DBNAME}" \
+        --app-user="${MYSQL_USER}@%" \
+        --app-password="${MYSQL_PASSWORD}"
+
+    /usr/share/tuleap/src/tuleap-cfg/tuleap-cfg.php setup:mysql \
+        --host="$DB_HOST" \
+        --user="$MYSQL_USER" \
+        --dbname="$MYSQL_DBNAME" \
+        --password="$MYSQL_PASSWORD" \
+        welcome0 \
+        localhost
+
+    $MYSQLROOT $MYSQL_DBNAME < "/usr/share/tuleap/src/db/mysql/trackerv3structure.sql"
+    $MYSQLROOT $MYSQL_DBNAME < "/usr/share/tuleap/src/db/mysql/trackerv3values.sql"
 }
 
 load_project() {
     base_dir=$1
 
-    PHP=/opt/remi/php"$PHP_VERSION"/root/usr/bin/php /usr/share/tuleap/src/utils/tuleap import-project-xml \
+    PHP="$PHP_CLI" /usr/share/tuleap/src/utils/tuleap import-project-xml \
         -u admin \
         -i $base_dir \
         -m $base_dir/user_map.csv
@@ -97,12 +101,21 @@ seed_data() {
     su -c "/usr/share/tuleap/src/utils/php-launcher.sh /usr/share/tuleap/tools/utils/admin/activate_plugin.php tracker" -l codendiadm
 
     echo "Load initial data"
-    /opt/remi/php"$PHP_VERSION"/root/usr/bin/php /usr/share/tuleap/tests/soap/bin/init_data.php
+    "$PHP_CLI" /usr/share/tuleap/tests/soap/bin/init_data.php
 }
 
 setup_tuleap
-/usr/share/tuleap/tools/utils/php"$PHP_VERSION"/run.php --modules=nginx,fpm
-service php"$PHP_VERSION"-php-fpm start
-service nginx start
+case "$PHP_FPM" in
+    '/opt/remi/php73/root/usr/sbin/php-fpm')
+    echo "Deploy PHP FPM 7.3"
+    "$PHP_CLI" /usr/share/tuleap/tools/utils/php73/run.php --modules=nginx,fpm
+    ;;
+    '/opt/remi/php74/root/usr/sbin/php-fpm')
+    echo "Deploy PHP FPM 7.4"
+    "$PHP_CLI" /usr/share/tuleap/tools/utils/php74/run.php --modules=nginx,fpm
+    ;;
+esac
+"$PHP_FPM" --daemonize
+nginx
 setup_database
 seed_data

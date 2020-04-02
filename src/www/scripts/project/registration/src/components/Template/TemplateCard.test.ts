@@ -37,7 +37,7 @@ describe("CardWithChildren", () => {
         return shallowMount(TemplateCard, {
             localVue: local_vue,
             propsData: { template: tuleap_template },
-            mocks: { $store: store }
+            mocks: { $store: store },
         });
     }
 
@@ -47,7 +47,7 @@ describe("CardWithChildren", () => {
             description: "scrum desc",
             id: "scrum_template",
             glyph: "<svg></svg>",
-            is_built_in: true
+            is_built_in: true,
         };
         const wrapper = createWrapper(tuleap_template);
 
@@ -60,13 +60,13 @@ describe("CardWithChildren", () => {
             description: "scrum desc",
             id: "scrum_template",
             glyph: "<svg></svg>",
-            is_built_in: true
+            is_built_in: true,
         };
         const wrapper = createWrapper(tuleap_template);
 
-        wrapper.find("[data-test=project-registration-card-label]").trigger("click");
+        wrapper.get("[data-test=project-registration-card-label]").trigger("click");
 
-        const radio: HTMLInputElement = wrapper.find("[data-test=project-registration-radio]")
+        const radio: HTMLInputElement = wrapper.get("[data-test=project-registration-radio]")
             .element as HTMLInputElement;
         expect(radio.checked).toBe(true);
     });
@@ -77,12 +77,12 @@ describe("CardWithChildren", () => {
             description: "scrum desc",
             id: "scrum_template",
             glyph: "<svg></svg>",
-            is_built_in: true
+            is_built_in: true,
         };
 
         const wrapper = createWrapper(tuleap_template);
 
-        wrapper.find("[data-test=project-registration-radio]").trigger("change");
+        wrapper.get("[data-test=project-registration-radio]").trigger("change");
 
         expect(store.dispatch).toHaveBeenCalledWith("setSelectedTemplate", tuleap_template);
     });

@@ -46,8 +46,6 @@ class GroupAutocompleteController implements DispatchableWithRequest
     /**
      * Is able to process a request routed by FrontRouter
      *
-     * @param HTTPRequest $request
-     * @param BaseLayout  $layout
      * @param array       $variables
      * @return void
      * @throws ForbiddenException
@@ -69,8 +67,8 @@ class GroupAutocompleteController implements DispatchableWithRequest
                     $display_name = $lr->getGroupDisplayName();
 
                     $group_list[] = array(
-                        'id' =>$common_name,
-                        'text' =>$display_name
+                        'id' => $common_name,
+                        'text' => $display_name
                     );
                     $lri->next();
                 }

@@ -27,7 +27,6 @@
 # Host: localhost    Database: tuleap
 #-------------------------------------------------------
 # Server version	3.23.51-log
-
 CREATE TABLE tuleap_installed_version
 (
     version VARCHAR(254) NULL
@@ -148,7 +147,7 @@ CREATE TABLE forum_group_list (
   PRIMARY KEY  (group_forum_id),
   FULLTEXT (description),
   KEY idx_forum_group_list_group_id (group_id)
-) ENGINE=MyISAM;
+);
 
 #
 # Table structure for table 'forum_monitored_forums'
@@ -884,7 +883,7 @@ CREATE TABLE user (
   register_purpose text,
   status char(1) NOT NULL default 'A',
   shell varchar(50) NOT NULL default '/sbin/nologin',
-  unix_pw varchar(255) NOT NULL default '',
+  unix_pw varchar(255) NOT NULL default 'no_passwd',
   unix_status char(1) NOT NULL default 'N',
   unix_uid int(11) NOT NULL default '0',
   unix_box varchar(10) NOT NULL default 'shell1',
@@ -1118,7 +1117,7 @@ CREATE TABLE svn_commits (
   INDEX idx_date (date),
   INDEX reverse_rev (group_id, revision),
   FULLTEXT (description)
-) ENGINe=MyISAM;
+);
 
 CREATE TABLE svn_dirs (
   id int(11) NOT NULL auto_increment,

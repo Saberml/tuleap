@@ -432,11 +432,9 @@ class CrossTrackerReportsResource extends AuthenticatedResource
      * @param int    $limit Number of elements displayed per page {@from path}{@min 1}{@max 50}
      * @param int    $offset Position of the first element to display {@from path}{@min 0}
      *
-     * @return CrossTrackerArtifactReportRepresentation[]
-     *
      * @throws RestException 404
      */
-    public function getIdContent($id, $query, $limit = self::MAX_LIMIT, $offset = 0)
+    public function getIdContent($id, $query, $limit = self::MAX_LIMIT, $offset = 0): array
     {
         $this->checkAccess();
         Header::allowOptionsGet();
@@ -547,7 +545,6 @@ class CrossTrackerReportsResource extends AuthenticatedResource
     /**
      * @param Tracker[] $trackers
      * @param $expert_query
-     * @param PFUser $user
      * @throws RestException
      */
     private function checkQueryIsValid(array $trackers, $expert_query, PFUser $user)
@@ -599,7 +596,6 @@ class CrossTrackerReportsResource extends AuthenticatedResource
 
     /**
      * @param                    $query
-     * @param CrossTrackerReport $report
      *
      * @throws RestException 400
      *
@@ -636,8 +632,6 @@ class CrossTrackerReportsResource extends AuthenticatedResource
     }
 
     /**
-     * @param PFUser             $user
-     * @param CrossTrackerReport $report
      *
      * @throws RestException 403
      */

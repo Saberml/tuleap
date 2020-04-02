@@ -20,6 +20,8 @@
 import { VueConstructor } from "vue/types/vue";
 import VueGettext from "vue-gettext";
 
+export { getPOFileFromLocale } from "./gettext-init";
+
 interface TranslatedStrings {
     readonly [key: string]: string;
 }
@@ -47,7 +49,7 @@ export async function initVueGettext(
     }
     vue_instance.use(VueGettext, {
         translations,
-        silent: true
+        silent: true,
     });
     if (locale) {
         vue_instance.config.language = locale;

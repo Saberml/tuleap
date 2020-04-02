@@ -21,9 +21,9 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-define('PHPWIKI_DIR', dirname(__FILE__).'/../phpwiki');
-require_once PHPWIKI_DIR.'/lib/prepend.php';
-require_once PHPWIKI_DIR.'/lib/IniConfig.php';
+define('PHPWIKI_DIR', dirname(__FILE__) . '/../phpwiki');
+require_once PHPWIKI_DIR . '/lib/prepend.php';
+require_once PHPWIKI_DIR . '/lib/IniConfig.php';
 
 /**
  * Wrapper to access to PhpWiki WikiPage objects
@@ -37,14 +37,14 @@ class WikiPageWrapper
   /* private int    */ public $gid;
 
 
-    function __construct($id = 0)
+    public function __construct($id = 0)
     {
         $this->gid = (int) $id;
 
         $pm = ProjectManager::instance();
         $go = $pm->getProject($this->gid);
 
-        $this->wikiname = ucfirst($go->getUnixName()).'Wiki';
+        $this->wikiname = ucfirst($go->getUnixName()) . 'Wiki';
 
       // Set PhpWiki init values
         define('WIKI_NAME', $this->wikiname);
@@ -55,49 +55,49 @@ class WikiPageWrapper
   /**
    * @return WikiRequest
    */
-    function getRequest()
+    public function getRequest()
     {
         define('PHPWIKI_NOMAIN', true);
-        IniConfig(PHPWIKI_DIR."/config/config.ini");
-        ini_set('include_path', PHPWIKI_DIR.':'.ini_get('include_path'));
+        IniConfig(PHPWIKI_DIR . "/config/config.ini");
+        ini_set('include_path', PHPWIKI_DIR . ':' . ini_get('include_path'));
 
-        require_once(PHPWIKI_DIR.'/lib/WikiDB.php');
-        require_once(PHPWIKI_DIR.'/lib/main.php');
+        require_once(PHPWIKI_DIR . '/lib/WikiDB.php');
+        require_once(PHPWIKI_DIR . '/lib/main.php');
 
         return new WikiRequest();
     }
 
-    function getProjectEmptyLinks()
+    public function getProjectEmptyLinks()
     {
       // Dirty hack to 'give' a WikiRequest object to phpwiki
       // Obscure functions seems require it.
         $request = $this->getRequest();
 
-        $page='ProjectWantedPages';
+        $page = 'ProjectWantedPages';
 
         $dbi = $request->getDbh();
         $pagehandle = $dbi->getPage($page);
 
         $links = $pagehandle->getPageLinks(true);
-        $allPages=array();
+        $allPages = array();
         while ($link_handle = $links->next()) {
             if (!$dbi->isWikiPage($linkname = $link_handle->getName())) {
-                $allPages[]=$link_handle->getName();
+                $allPages[] = $link_handle->getName();
             }
         }
         return $allPages;
     }
 
-    function addNewProjectPage($pagename)
+    public function addNewProjectPage($pagename)
     {
-        $projectPageName='ProjectWantedPages';
+        $projectPageName = 'ProjectWantedPages';
 
       // Dirty hack to 'give' a WikiRequest object to phpwiki
       // So obscure functions seems require it.
         $request = $this->getRequest();
 
         $dbi = $request->getDbh();
-        require_once(PHPWIKI_DIR."/lib/loadsave.php");
+        require_once(PHPWIKI_DIR . "/lib/loadsave.php");
         $pagehandle = $dbi->getPage($projectPageName);
         if ($pagehandle->exists()) {// don't replace default contents
             $current = $pagehandle->getCurrentRevision();
@@ -145,14 +145,14 @@ class WikiPageWrapper
         return ! $page_created->exists() && ! in_array($pagename, $this->getProjectEmptyLinks());
     }
 
-    function addUploadPage()
+    public function addUploadPage()
     {
         // Dirty hack to 'give' a WikiRequest object to phpwiki
         // So obscure functions seems require it.
         $request = $this->getRequest();
 
         $dbi = $request->getDbh();
-        require_once(PHPWIKI_DIR."/lib/loadsave.php");
+        require_once(PHPWIKI_DIR . "/lib/loadsave.php");
         $pagehandle = $dbi->getPage("UpLoad");
         if ($pagehandle->exists()) {// don't replace default contents
             $current = $pagehandle->getCurrentRevision();
@@ -179,7 +179,7 @@ Upload:num_rev/filename
     }
 
 
-    function render($lite = false, $full_screen = false)
+    public function render($lite = false, $full_screen = false)
     {
         if ($lite) {
             define('THEME', 'Codendi-lite');
@@ -188,16 +188,16 @@ Upload:num_rev/filename
             define('THEME', 'Codendi-light-printer-version');
         }
 
-        IniConfig(PHPWIKI_DIR."/config/config.ini");
-        ini_set('include_path', PHPWIKI_DIR.':'.ini_get('include_path'));
-        include(PHPWIKI_DIR."/codendi.php");
+        IniConfig(PHPWIKI_DIR . "/config/config.ini");
+        ini_set('include_path', PHPWIKI_DIR . ':' . ini_get('include_path'));
+        include(PHPWIKI_DIR . "/codendi.php");
     }
 
   /**
    * special install function
    *
    */
-    function install()
+    public function install()
     {
         if ($this->gid == 1) {
             if (!user_is_super_user()) {
@@ -224,7 +224,7 @@ Upload:num_rev/filename
               // English
             case 'en_US':
                 define('WIKI_PGSRC', 'codendipgsrc');
-                define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR.'/codendipgsrc');
+                define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR . '/codendipgsrc');
                 $we->setName($name_en);
                 $we->setPage($page_en);
                 $we->setDesc($desc_en);
@@ -232,7 +232,7 @@ Upload:num_rev/filename
          // French
             case 'fr_FR':
                 define('WIKI_PGSRC', 'pgsrc');
-                define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR.'/locale/fr/pgsrc');
+                define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR . '/locale/fr/pgsrc');
                 $we->setName($name_fr);
                 $we->setPage($page_fr);
                 $we->setDesc($desc_fr);
@@ -240,7 +240,7 @@ Upload:num_rev/filename
 
             default:
                 define('WIKI_PGSRC', 'codendipgsrc');
-                define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR.'/codendipgsrc');
+                define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR . '/codendipgsrc');
                 $we->setName($name_en);
                 $we->setPage($page_en);
                 $we->setDesc($desc_en);
@@ -249,15 +249,15 @@ Upload:num_rev/filename
         $this->render();
     }
 
-    function getNextGroupWithWiki($currentGroupId, &$nbMatchFound)
+    public function getNextGroupWithWiki($currentGroupId, &$nbMatchFound)
     {
         $nextId = null;
 
         $sql = sprintf(
-            'SELECT SQL_CALC_FOUND_ROWS DISTINCT group_id'.
-                       ' FROM wiki_page'.
-                       ' WHERE group_id > %d'.
-                       ' ORDER BY group_id ASC'.
+            'SELECT SQL_CALC_FOUND_ROWS DISTINCT group_id' .
+                       ' FROM wiki_page' .
+                       ' WHERE group_id > %d' .
+                       ' ORDER BY group_id ASC' .
                        ' LIMIT 1',
             $currentGroupId
         );
@@ -276,23 +276,23 @@ Upload:num_rev/filename
           return $nextId;
     }
 
-    function upgrade()
+    public function upgrade()
     {
         global $request;
         global $WikiTheme;
 
         define('WIKI_PGSRC', 'codendipgsrc');
-        define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR.'/codendipgsrc');
+        define('DEFAULT_WIKI_PGSRC', PHPWIKI_DIR . '/codendipgsrc');
         define('ENABLE_EMAIL_NOTIFIFICATION', false);
 
         $request = $this->getRequest();
         $request->setArg('overwrite', 'true');
 
-        require_once(PHPWIKI_DIR."/lib/upgrade.php");
+        require_once(PHPWIKI_DIR . "/lib/upgrade.php");
         // WikiTheme and those files are required because of the WikiLink
         // function used during upgrade process.
-        require_once(PHPWIKI_DIR."/lib/Theme.php");
-        require_once(PHPWIKI_DIR."/themes/Codendi/themeinfo.php");
+        require_once(PHPWIKI_DIR . "/lib/Theme.php");
+        require_once(PHPWIKI_DIR . "/themes/Codendi/themeinfo.php");
 
         $check = false;
         CheckActionPageUpdate($request, $check);

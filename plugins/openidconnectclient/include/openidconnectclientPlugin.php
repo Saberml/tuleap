@@ -49,7 +49,6 @@ use Tuleap\OpenIDConnectClient\Login;
 use Tuleap\OpenIDConnectClient\Login\ConnectorPresenterBuilder;
 use Tuleap\OpenIDConnectClient\Login\IncoherentDataUniqueProviderException;
 use Tuleap\OpenIDConnectClient\LoginController;
-use Tuleap\OpenIDConnectClient\OpenIDConnectClientLogger;
 use Tuleap\OpenIDConnectClient\OpenIDConnectClientPluginInfo;
 use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\AzureADProviderDao;
 use Tuleap\OpenIDConnectClient\Provider\AzureADProvider\AzureADProviderManager;
@@ -59,18 +58,21 @@ use Tuleap\OpenIDConnectClient\Provider\GenericProvider\GenericProviderManager;
 use Tuleap\OpenIDConnectClient\Provider\ProviderDao;
 use Tuleap\OpenIDConnectClient\Provider\ProviderManager;
 use Tuleap\OpenIDConnectClient\Router;
-use Tuleap\OpenIDConnectClient\UserMapping;
+use Tuleap\OpenIDConnectClient\UserAccount\AccountTabsBuilder;
+use Tuleap\OpenIDConnectClient\UserAccount\OIDCProvidersController;
+use Tuleap\OpenIDConnectClient\UserAccount\UnlinkController;
 use Tuleap\OpenIDConnectClient\UserMapping\UserMappingDao;
 use Tuleap\OpenIDConnectClient\UserMapping\UserMappingManager;
-use Tuleap\OpenIDConnectClient\UserMapping\UserPreferencesPresenter;
 use Tuleap\Request\CollectRoutesEvent;
 use Tuleap\Request\DispatchableWithRequest;
 use Tuleap\Request\DispatchTemporaryRedirect;
+use Tuleap\User\Account\AccountTabPresenterCollection;
+use Tuleap\User\Account\PasswordPreUpdateEvent;
 
 require_once __DIR__ . '/constants.php';
 require_once __DIR__ . '/../vendor/autoload.php';
 
-class openidconnectclientPlugin extends Plugin
+class openidconnectclientPlugin extends Plugin // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace,Squiz.Classes.ValidClassName.NotCamelCaps
 {
     public function __construct($id)
     {
@@ -86,15 +88,14 @@ class openidconnectclientPlugin extends Plugin
         $this->addHook('anonymous_access_to_script_allowed');
         $this->addHook('javascript_file');
         $this->addHook('cssfile');
-        $this->addHook(Event::MANAGE_THIRD_PARTY_APPS);
         $this->addHook('site_admin_option_hook');
         $this->addHook(BurningParrotCompatiblePageEvent::NAME);
         $this->addHook(Event::BURNING_PARROT_GET_STYLESHEETS);
-        $this->addHook(Event::BURNING_PARROT_GET_JAVASCRIPT_FILES);
-        $this->addHook(Event::IS_OLD_PASSWORD_REQUIRED_FOR_PASSWORD_CHANGE);
+        $this->addHook(PasswordPreUpdateEvent::NAME);
         $this->addHook(Event::GET_LOGIN_URL);
         $this->addHook('display_newaccount');
         $this->addHook(CollectRoutesEvent::NAME);
+        $this->addHook(AccountTabPresenterCollection::NAME);
     }
 
     /**
@@ -108,58 +109,40 @@ class openidconnectclientPlugin extends Plugin
         return $this->pluginInfo;
     }
 
-    public function anonymous_access_to_script_allowed($params)
+    public function anonymous_access_to_script_allowed($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (strpos($params['script_name'], $this->getPluginPath()) === 0) {
             $params['anonymous_allowed'] = true;
         }
     }
 
-    public function javascript_file($params)
+    public function javascript_file($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0) {
-            echo '<script type="text/javascript" src="'.$this->getPluginPath().'/scripts/open-id-connect-client.js"></script>';
+            echo '<script type="text/javascript" src="' . $this->getAssets()->getFileURL('open-id-connect-client.js') . '"></script>';
         }
     }
 
     public function cssfile()
     {
         if (strpos($_SERVER['REQUEST_URI'], '/account') === 0 || strpos($_SERVER['REQUEST_URI'], '/plugins/openidconnectclient') === 0) {
-            echo '<link rel="stylesheet" type="text/css" href="'. $this->getThemeIncludeAssets()->getFileURL('fp-style.css') .'" />';
+            echo '<link rel="stylesheet" type="text/css" href="' . $this->getAssets()->getFileURL('fp-style.css') . '" />';
         }
     }
 
-    public function burning_parrot_get_stylesheets($params)
+    public function burning_parrot_get_stylesheets($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if ($this->isInBurningParrotCompatiblePage()) {
+        if ($_SERVER['REQUEST_URI'] === '/') {
             $variant = $params['variant'];
-            $params['stylesheets'][] = $this->getThemeIncludeAssets()->getFileURL('bp-style-' . $variant->getName() . '.css');
+            $params['stylesheets'][] = $this->getAssets()->getFileURL('bp-style-' . $variant->getName() . '.css');
         }
     }
 
-    private function getThemeIncludeAssets(): IncludeAssets
+    private function getAssets(): IncludeAssets
     {
         return new IncludeAssets(
-            __DIR__ . '/../../../src/www/assets/openidconnectclient/themes',
-            '/assets/openidconnectclient/themes'
-        );
-    }
-
-    public function burning_parrot_get_javascript_files($params)
-    {
-        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0) {
-            $params['javascript_files'][] = $this->getPluginPath().'/scripts/open-id-connect-client.js';
-        }
-    }
-
-    private function isInBurningParrotCompatiblePage()
-    {
-        $uri = $_SERVER['REQUEST_URI'];
-
-        return (
-            strpos($uri, '/account') === 0
-            || strpos($uri, '/plugins/openidconnectclient') === 0
-            || $uri === '/'
+            __DIR__ . '/../../../src/www/assets/openidconnectclient',
+            '/assets/openidconnectclient'
         );
     }
 
@@ -184,15 +167,14 @@ class openidconnectclientPlugin extends Plugin
         $provider_manager->isAProviderConfiguredAsUniqueAuthenticationEndpoint();
     }
 
-    public function old_password_required_for_password_change($params)
+    public function passwordPreUpdateEvent(PasswordPreUpdateEvent $event)
     {
-        $provider_manager                = $this->getProviderManager();
-        $params['old_password_required'] = !$this->isLoginConfiguredToUseAProviderAsUniqueAuthenticationEndpoint(
-            $provider_manager
-        );
+        if ($this->isLoginConfiguredToUseAProviderAsUniqueAuthenticationEndpoint($this->getProviderManager())) {
+            $event->oldPasswordIsNotRequiredToUpdatePassword();
+        }
     }
 
-    public function get_login_url($params)
+    public function get_login_url($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $provider_manager = $this->getProviderManager();
         if (! $this->isLoginConfiguredToUseAProviderAsUniqueAuthenticationEndpoint($provider_manager)) {
@@ -216,7 +198,7 @@ class openidconnectclientPlugin extends Plugin
         }
     }
 
-    public function display_newaccount($params)
+    public function display_newaccount($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $provider_manager = $this->getProviderManager();
         if ($this->isLoginConfiguredToUseAProviderAsUniqueAuthenticationEndpoint($provider_manager)) {
@@ -270,7 +252,7 @@ class openidconnectclientPlugin extends Plugin
         return ForgeConfig::get('sys_auth_type') !== 'ldap';
     }
 
-    public function login_additional_connector(array $params)
+    public function login_additional_connector(array $params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (! $this->canPluginAuthenticateUser()) {
             return;
@@ -296,7 +278,7 @@ class openidconnectclientPlugin extends Plugin
         $params['additional_connector'] .= $renderer->renderToString('login_connector', $login_connector_presenter);
     }
 
-    public function before_register(array $params)
+    public function before_register(array $params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $request = $params['request'];
         $link_id = $request->get('openidconnect_link_id');
@@ -330,7 +312,7 @@ class openidconnectclientPlugin extends Plugin
         return ! $is_registration_confirmation && $link_id && $this->canPluginAuthenticateUser();
     }
 
-    public function user_register_additional_field(array $params)
+    public function user_register_additional_field(array $params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $request = $params['request'];
         $link_id = $request->get('openidconnect_link_id');
@@ -342,7 +324,7 @@ class openidconnectclientPlugin extends Plugin
         }
     }
 
-    public function after_user_registration(array $params)
+    public function after_user_registration(array $params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $request = $params['request'];
         $link_id = $request->get('openidconnect_link_id');
@@ -363,21 +345,7 @@ class openidconnectclientPlugin extends Plugin
         }
     }
 
-    public function manage_third_party_apps(array $params)
-    {
-        $user                 = $params['user'];
-        $user_mapping_manager = new UserMappingManager(new UserMappingDao());
-        $user_mappings_usage  = $user_mapping_manager->getUsageByUser($user);
-
-        if (count($user_mappings_usage) > 0 && $this->canPluginAuthenticateUser()) {
-            $renderer        = TemplateRendererFactory::build()->getRenderer(OPENIDCONNECTCLIENT_TEMPLATE_DIR);
-            $csrf_token      = new CSRFSynchronizerToken('openid-connect-user-preferences');
-            $presenter       = new UserPreferencesPresenter($user_mappings_usage, $csrf_token);
-            $params['html'] .= $renderer->renderToString('user_preference', $presenter);
-        }
-    }
-
-    public function site_admin_option_hook($params)
+    public function site_admin_option_hook($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $params['plugins'][] = array(
             'label' => dgettext('tuleap-openidconnectclient', 'OpenID Connect Client'),
@@ -385,12 +353,60 @@ class openidconnectclientPlugin extends Plugin
         );
     }
 
-    public function burningParrotCompatiblePage(BurningParrotCompatiblePageEvent $event)
+    public function burningParrotCompatiblePage(BurningParrotCompatiblePageEvent $event) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath().'/admin') === 0) {
+        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath() . '/admin') === 0) {
             $event->setIsInBurningParrotCompatiblePage();
         }
     }
+
+    private function getLogger(): \Psr\Log\LoggerInterface
+    {
+        return \BackendLogger::getDefaultLogger('openid_connect_client.log');
+    }
+
+    public function accountTabPresenterCollection(AccountTabPresenterCollection $collection): void
+    {
+        if ($this->canPluginAuthenticateUser()) {
+            (new AccountTabsBuilder())->addTabs($collection);
+        }
+    }
+
+    public function routeGetUserAccount(): DispatchableWithRequest
+    {
+        if (! $this->canPluginAuthenticateUser()) {
+            return new DispatchTemporaryRedirect('/account');
+        }
+
+        return new OIDCProvidersController(
+            EventManager::instance(),
+            TemplateRendererFactory::build(),
+            OIDCProvidersController::getCSRFToken(),
+            new UserMappingManager(
+                new UserMappingDao()
+            ),
+            $this->isLoginConfiguredToUseAProviderAsUniqueAuthenticationEndpoint(
+                $this->getProviderManager()
+            ),
+            $this->getAssets(),
+        );
+    }
+
+    public function routePostUserAccount(): DispatchableWithRequest
+    {
+        if (! $this->canPluginAuthenticateUser()) {
+            return new DispatchTemporaryRedirect('/account');
+        }
+
+        return new UnlinkController(
+            OIDCProvidersController::getCSRFToken(),
+            $this->getProviderManager(),
+            new UserMappingManager(
+                new UserMappingDao()
+            )
+        );
+    }
+
     public function routeAzureIndex() : DispatchableWithRequest
     {
         $user_manager             = UserManager::instance();
@@ -417,7 +433,7 @@ class openidconnectclientPlugin extends Plugin
                 $unlinked_account_manager,
                 $automatic_user_registration,
                 $flow,
-                new OpenIDConnectClientLogger()
+                $this->getLogger(),
             )
         );
     }
@@ -449,7 +465,7 @@ class openidconnectclientPlugin extends Plugin
             $unlinked_account_manager,
             $automatic_user_registration,
             $flow,
-            new OpenIDConnectClientLogger()
+            $this->getLogger(),
         );
         $account_linker_controller = new AccountLinker\Controller(
             $user_manager,
@@ -457,15 +473,9 @@ class openidconnectclientPlugin extends Plugin
             $user_mapping_manager,
             $unlinked_account_manager
         );
-        $user_mapping_controller   = new UserMapping\Controller(
-            $user_manager,
-            $provider_manager,
-            $user_mapping_manager
-        );
         return new Router(
             $login_controller,
             $account_linker_controller,
-            $user_mapping_controller
         );
     }
 
@@ -488,7 +498,8 @@ class openidconnectclientPlugin extends Plugin
             $enable_unique_authentication_endpoint_verifier,
             $icon_presenter_factory,
             $color_presenter_factory,
-            $admin_page_renderer
+            $admin_page_renderer,
+            $this->getAssets(),
         );
         $csrf_token                                     = new CSRFSynchronizerToken(
             OPENIDCONNECTCLIENT_BASE_URL . '/admin'
@@ -518,6 +529,9 @@ class openidconnectclientPlugin extends Plugin
             $r->addRoute(['GET', 'POST'], '/admin[/[index.php]]', $this->getRouteHandler('routeAdminIndex'));
             $r->addRoute(['GET', 'POST'], '/login.php', $this->getRouteHandler('routeLogin'));
             $r->get('/azure/', $this->getRouteHandler('routeAzureIndex'));
+
+            $r->get('/account', $this->getRouteHandler('routeGetUserAccount'));
+            $r->post('/account', $this->getRouteHandler('routePostUserAccount'));
         });
     }
 }

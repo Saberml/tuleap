@@ -22,7 +22,7 @@
     <div class="project-release-timeframe">
         <span class="project-release-label">Roadmap</span>
         <div class="project-other-releases">
-            <div class="project-release-roadmap-icon">
+            <div class="project-release-time-stripe-icon">
                 <i class="fa fa-angle-double-up"></i>
             </div>
             <a class="releases-link" v-bind:href="backlog_link" data-test="backlog-link">
@@ -36,7 +36,7 @@
                 <translate
                     v-bind:translate-params="{
                         nb_upcoming_releases: nb_upcoming_releases,
-                        label_tracker: label_tracker_planning
+                        label_tracker: label_tracker_planning,
                     }"
                     v-bind:translate-n="nb_upcoming_releases"
                     translate-plural="%{nb_upcoming_releases} upcoming %{label_tracker}."

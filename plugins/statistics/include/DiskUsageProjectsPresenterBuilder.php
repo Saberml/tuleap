@@ -118,7 +118,7 @@ class DiskUsageProjectsPresenterBuilder
         foreach ($projects as $value) {
             $data_project = array(
                 'project_id'          => $value['group_id'],
-                'group_name'          => util_unconvert_htmlspecialchars($value['group_name']),
+                'group_name'          => $value['group_name'],
                 'start_size'          => $this->usage_output->sizeReadable($value['start_size']),
                 'end_size'            => $this->usage_output->sizeReadable($value['end_size']),
                 'evolution'           => $this->usage_output->sizeReadable($value['evolution']),
@@ -162,7 +162,7 @@ class DiskUsageProjectsPresenterBuilder
             'project_id' => $project_id
         );
 
-        return $page.'?'.http_build_query($params);
+        return $page . '?' . http_build_query($params);
     }
 
     private function buildProjectUrl($project_id)
@@ -172,6 +172,6 @@ class DiskUsageProjectsPresenterBuilder
             'group_id' => $project_id
         );
 
-        return $page.'?'.http_build_query($params);
+        return $page . '?' . http_build_query($params);
     }
 }

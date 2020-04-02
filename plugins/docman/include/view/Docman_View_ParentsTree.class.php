@@ -22,7 +22,7 @@
 class Docman_View_ParentsTree /* implements Visitor*/
 {
     public $docman;
-    function __construct(&$docman)
+    public function __construct(&$docman)
     {
         $this->docman = $docman;
     }
@@ -31,7 +31,7 @@ class Docman_View_ParentsTree /* implements Visitor*/
     //docman_icons
     //current
     //hierarchy
-    function fetch($params)
+    public function fetch($params)
     {
         $html  = '';
         $html .= '<div id="docman_new_item_location_current_folder"></div>';
@@ -47,14 +47,14 @@ class Docman_View_ParentsTree /* implements Visitor*/
         $html .= '<div id="docman_new_item_location_position_panel" style="border-top:1px solid #e7e7e7">Position : ';
         $html .= '<span id="docman_new_item_location_position">';
         $html .= '<select id="docman_item_ordering" name="ordering">';
-        $html .= '<option value="beginning">'. $GLOBALS['Language']->getText('plugin_docman', 'move_position_beginning') .'</option>';
-        $html .= '<option value="end">'. $GLOBALS['Language']->getText('plugin_docman', 'move_position_end') .'</option>';
+        $html .= '<option value="beginning">' . dgettext('tuleap-docman', 'At the beginning') . '</option>';
+        $html .= '<option value="end">' . dgettext('tuleap-docman', 'At the end') . '</option>';
         $html .= '</select>';
         $html .= '</span>';
         $html .= '</div>';
         return $html;
     }
-    function fetchFolder($folder, $params)
+    public function fetchFolder($folder, $params)
     {
         $hp = Codendi_HTMLPurifier::instance();
         $selected = '';
@@ -67,12 +67,12 @@ class Docman_View_ParentsTree /* implements Visitor*/
         $disabled = ($this->docman->userCanWrite($folder['id'])) ? '' : 'disabled="disabled"';
         $label_classes = $selected ? 'docman_item_actual_parent' : '';
 
-        $h  = '<li  class="'. Docman_View_Browse::getItemClasses(array('is_last' => $params['is_last'])) .'">';
-        $h .= '<label for="item_parent_id_'. $folder['id'] .'" class="'. $label_classes .'" >';
-        $h .= '<input type="radio" '. $selected .' name="'. $params['input_name'] .'" value="'. $folder['id'] .'" id="item_parent_id_'. $folder['id'] .'" '. $disabled .' />';
-        $h .= '<img src="'. $folder['icon_src'] .'" class="docman_item_icon" />';
-        $h .=  $hp->purify($folder['title'], CODENDI_PURIFIER_CONVERT_HTML)  .'</label>';
-        $h .= '<script type="text/javascript">docman.addParentFoldersForNewItem('. $folder['id'] .', '. $folder['parent_id'] .", '".  $hp->purify(addslashes($folder['title']), CODENDI_PURIFIER_CONVERT_HTML) ."');</script>\n";
+        $h  = '<li  class="' . Docman_View_Browse::getItemClasses(array('is_last' => $params['is_last'])) . '">';
+        $h .= '<label for="item_parent_id_' . $folder['id'] . '" class="' . $label_classes . '" >';
+        $h .= '<input type="radio" ' . $selected . ' name="' . $params['input_name'] . '" value="' . $folder['id'] . '" id="item_parent_id_' . $folder['id'] . '" ' . $disabled . ' />';
+        $h .= '<img src="' . $folder['icon_src'] . '" class="docman_item_icon" />';
+        $h .=  $hp->purify($folder['title'], CODENDI_PURIFIER_CONVERT_HTML)  . '</label>';
+        $h .= '<script type="text/javascript">docman.addParentFoldersForNewItem(' . $folder['id'] . ', ' . $folder['parent_id'] . ", '" .  $hp->purify(addslashes($folder['title']), CODENDI_PURIFIER_CONVERT_HTML) . "');</script>\n";
         $h .= '<ul class="docman_items">';
 
         $params['is_last'] = false;
@@ -85,16 +85,16 @@ class Docman_View_ParentsTree /* implements Visitor*/
             }
             $h .= $this->fetchFolder($item, $params);
         }
-        return $h.'</ul></li>';
+        return $h . '</ul></li>';
     }
 
-    function _itemCanBeFetched(&$item, $params)
+    public function _itemCanBeFetched(&$item, $params)
     {
         $ok = !isset($params['excludes']) || !in_array($item->getId(), $params['excludes']);
         return $ok;
     }
 
-    function visitFolder(&$item, $params = array())
+    public function visitFolder(&$item, $params = array())
     {
         $t = '';
         if ($this->docman->userCanRead($item->getId()) && $this->_itemCanBeFetched($item, $params)) {
@@ -121,28 +121,28 @@ class Docman_View_ParentsTree /* implements Visitor*/
         }
         return $t;
     }
-    function visitDocument(&$item, $params = array())
+    public function visitDocument(&$item, $params = array())
     {
         return false;
     }
-    function visitWiki(&$item, $params = array())
+    public function visitWiki(&$item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }
-    function visitLink(&$item, $params = array())
+    public function visitLink(&$item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }
-    function visitFile(&$item, $params = array())
+    public function visitFile(&$item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }
-    function visitEmbeddedFile(&$item, $params = array())
+    public function visitEmbeddedFile(&$item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }
 
-    function visitEmpty(&$item, $params = array())
+    public function visitEmpty(&$item, $params = array())
     {
         return $this->visitDocument($item, $params);
     }

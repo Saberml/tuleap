@@ -32,7 +32,7 @@ describe("DropDownMenu", () => {
             return shallowMount(DropDownMenu, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
         store.getters.is_item_an_empty_document = () => false;
@@ -41,16 +41,17 @@ describe("DropDownMenu", () => {
     describe("Approval table menu option -", () => {
         it(`Given item type is empty
             When we display the menu
-            Then the approval table link should not be available`, () => {
+            Then the approval table link should not be available`, async () => {
             const wrapper = dropdown_menu_factory({
                 item: {
                     id: 4,
                     title: "my item title",
                     type: "empty",
-                    can_user_manage: false
-                }
+                    can_user_manage: false,
+                },
             });
             store.getters.is_item_an_empty_document = () => true;
+            await wrapper.vm.$nextTick();
             expect(wrapper.contains("[data-test=document-dropdown-approval-tables]")).toBeFalsy();
         });
         it(`Given item type is a file
@@ -61,8 +62,8 @@ describe("DropDownMenu", () => {
                     id: 4,
                     title: "my item title",
                     type: "file",
-                    can_user_manage: false
-                }
+                    can_user_manage: false,
+                },
             });
             expect(wrapper.contains("[data-test=document-dropdown-approval-tables]")).toBeTruthy();
         });

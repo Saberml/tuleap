@@ -31,7 +31,7 @@ describe("CustomMetadataList", () => {
             return shallowMount(CustomMetadataList, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -45,14 +45,14 @@ describe("CustomMetadataList", () => {
                     allowed_list_values: [
                         { id: 100, value: "None" },
                         { id: 101, value: "abcde" },
-                        { id: 102, value: "fghij" }
-                    ]
+                        { id: 102, value: "fghij" },
+                    ],
                 },
                 {
                     short_name: "an other list",
-                    allowed_list_values: [{ id: 100, value: "None" }]
-                }
-            ]
+                    allowed_list_values: [{ id: 100, value: "None" }],
+                },
+            ],
         };
 
         const currentlyUpdatedItemMetadata = {
@@ -61,14 +61,14 @@ describe("CustomMetadataList", () => {
             value: 101,
             is_required: false,
             type: "list",
-            is_multiple_value_allowed: false
+            is_multiple_value_allowed: false,
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
 
         await wrapper.vm.$nextTick().then(() => {});
 
         const all_options = wrapper
-            .find("[data-test=document-custom-list-select]")
+            .get("[data-test=document-custom-list-select]")
             .findAll("option");
         expect(all_options.length).toBe(3);
 
@@ -83,9 +83,9 @@ describe("CustomMetadataList", () => {
             project_metadata_list: [
                 {
                     short_name: "list",
-                    allowed_list_values: [{ id: 101, value: "abcde" }]
-                }
-            ]
+                    allowed_list_values: [{ id: 101, value: "abcde" }],
+                },
+            ],
         };
 
         const currentlyUpdatedItemMetadata = {
@@ -94,13 +94,13 @@ describe("CustomMetadataList", () => {
             value: 101,
             is_required: true,
             type: "list",
-            is_multiple_value_allowed: false
+            is_multiple_value_allowed: false,
         };
         const wrapper = factory({ currentlyUpdatedItemMetadata });
 
         expect(wrapper.contains("[data-test=document-custom-list-select]")).toBeTruthy();
 
-        const input = wrapper.find("[data-test=document-custom-list-select]");
+        const input = wrapper.get("[data-test=document-custom-list-select]");
         expect(input.element.required).toBe(true);
     });
 
@@ -109,9 +109,9 @@ describe("CustomMetadataList", () => {
             project_metadata_list: [
                 {
                     short_name: "list",
-                    allowed_list_values: [{ id: 101, value: "abcde" }]
-                }
-            ]
+                    allowed_list_values: [{ id: 101, value: "abcde" }],
+                },
+            ],
         };
 
         const currentlyUpdatedItemMetadata = {
@@ -119,7 +119,7 @@ describe("CustomMetadataList", () => {
             name: "custom text",
             value: "test",
             is_required: true,
-            type: "text"
+            type: "text",
         };
 
         const wrapper = factory({ currentlyUpdatedItemMetadata });
@@ -131,9 +131,9 @@ describe("CustomMetadataList", () => {
             project_metadata_list: [
                 {
                     short_name: "list",
-                    allowed_list_values: [{ id: 101, value: "abcde" }]
-                }
-            ]
+                    allowed_list_values: [{ id: 101, value: "abcde" }],
+                },
+            ],
         };
 
         const currentlyUpdatedItemMetadata = {
@@ -142,7 +142,7 @@ describe("CustomMetadataList", () => {
             list_value: [101],
             is_required: true,
             type: "list",
-            is_multiple_value_allowed: true
+            is_multiple_value_allowed: true,
         };
 
         const wrapper = factory({ currentlyUpdatedItemMetadata });

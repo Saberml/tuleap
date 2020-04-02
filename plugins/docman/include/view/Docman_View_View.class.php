@@ -39,14 +39,14 @@
      */
     public $hp;
 
-    function __construct(&$controller)
+    public function __construct(&$controller)
     {
         $this->_controller = $controller;
         $this->hp = Codendi_HTMLPurifier::instance();
         $this->javascript = "";
     }
 
-    function display($params = array())
+    public function display($params = array())
     {
         $this->_header($params);
         $this->_scripts($params);
@@ -59,56 +59,56 @@
         $this->_javascript($params);
         $this->_footer($params);
     }
-    /* protected */ function _header($params)
+    /* protected */ public function _header($params)
     {
     }
-    /* protected */ function _scripts($params)
+    /* protected */ public function _scripts($params)
     {
     }
-    /* protected */ function _feedback($params)
+    /* protected */ public function _feedback($params)
     {
     }
-    /* protected */ function _title($params)
+    /* protected */ public function _title($params)
     {
     }
-    /* protected */ function _breadCrumbs($params)
+    /* protected */ public function _breadCrumbs($params)
     {
     }
-    /* protected */ function _mode($params)
+    /* protected */ public function _mode($params)
     {
     }
-    /* protected */ function _filter($params)
+    /* protected */ public function _filter($params)
     {
     }
-    /* protected */ function _content($params)
+    /* protected */ public function _content($params)
     {
     }
-    /* protected */ function _javascript($params)
+    /* protected */ public function _javascript($params)
     {
         if ($this->javascript != "") {
-            echo "<script type=\"text/javascript\">\n".
-            "//<!--\n".
-            $this->javascript.
-            "//-->\n".
+            echo "<script type=\"text/javascript\">\n" .
+            "//<!--\n" .
+            $this->javascript .
+            "//-->\n" .
             "</script>\n";
         }
     }
-    /* protected */ function _footer($params)
+    /* protected */ public function _footer($params)
     {
     }
 
 
-    function &_getVersionFactory($params)
+    public function &_getVersionFactory($params)
     {
         $vf = new Docman_VersionFactory();
         return $vf;
     }
-    function &_getDocmanIcons($params)
+    public function &_getDocmanIcons($params)
     {
-        $icons = new Docman_Icons($params['theme_path'] .'/images/ic/');
+        $icons = new Docman_Icons($params['theme_path'] . '/images/ic/');
         return $icons;
     }
-    function &_getItemFactory($params)
+    public function &_getItemFactory($params)
     {
         $f = new Docman_ItemFactory();
         return $f;
@@ -118,7 +118,7 @@
      * This method build the paramater list of the current url for filters and
      * sort.
      */
-    function _initSearchAndSortParams($params)
+    public function _initSearchAndSortParams($params)
     {
         if (!count($this->dfltSortParams)) {
             $this->dfltSortParams = array();
@@ -168,13 +168,13 @@
         }
     }
 
-    function getSearchParams($params)
+    public function getSearchParams($params)
     {
         $this->_initSearchAndSortParams($params);
         return $this->dfltSearchParams;
     }
 
-    function getSortParams($params)
+    public function getSortParams($params)
     {
         $this->_initSearchAndSortParams($params);
         return $this->dfltSortParams;
@@ -183,11 +183,10 @@
     /**
      * Get the JS action for the item/user couple
      *
-     * @param Docman_Item $item
      */
     public function getActionForItem(Docman_Item $item)
     {
-        $js = 'docman.addActionForItem('.$item->getId().', ';
+        $js = 'docman.addActionForItem(' . $item->getId() . ', ';
         $params = array();
         $user = $this->_controller->getUser();
         $itemMenuVisitor = new Docman_View_GetMenuItemsVisitor($user, $item->getGroupId());
@@ -197,13 +196,13 @@
         return $js;
     }
 
-    function getItemMenu(&$item, $params, $bc = false)
+    public function getItemMenu(&$item, $params, $bc = false)
     {
         $docman_icons = $this->_getDocmanIcons($params);
 
         $html = '';
         $html .= '<span class="docman_item_options">';
-        $html .= '<a data-test="document_item" title="' . $GLOBALS['Language']->getText('plugin_docman', 'tooltip_show_actions') . '"
+        $html .= '<a data-test="document_item" title="' . dgettext('tuleap-docman', 'Show actions') . '"
             href="' . $params['default_url'] . '&amp;action=details&amp;id=' . $item->getId() . '"
             id="docman_item_show_menu_' . $item->getId() . '"
             data-test-document-id="' . $item->getId() . '"

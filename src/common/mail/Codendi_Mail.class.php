@@ -43,7 +43,7 @@ class Codendi_Mail implements Codendi_Mail_Interface
      */
     public const DISCARD_COMMON_LOOK_AND_FEEL = false;
     /**
-     * @var BackendLogger
+     * @var \Psr\Log\LoggerInterface
      */
     private $logger;
 
@@ -126,7 +126,7 @@ class Codendi_Mail implements Codendi_Mail_Interface
      *
      * @return Array
      */
-    function _cleanupMailFormat($mail)
+    public function _cleanupMailFormat($mail)
     {
         $pattern = '/(.*)<(.*)>/';
         if (preg_match($pattern, $mail, $matches)) {
@@ -306,7 +306,7 @@ class Codendi_Mail implements Codendi_Mail_Interface
      *
      * @return String
      */
-    function getCc()
+    public function getCc()
     {
         return $this->getRecipientsFromHeader('Cc');
     }
@@ -435,7 +435,7 @@ class Codendi_Mail implements Codendi_Mail_Interface
     /**
      * @param String $message
      */
-    function setBody($message)
+    public function setBody($message)
     {
         $this->setBodyHtml($message);
     }
@@ -445,7 +445,7 @@ class Codendi_Mail implements Codendi_Mail_Interface
      *
      * @return String
      */
-    function getBody()
+    public function getBody()
     {
         return $this->getBodyHtml();
     }

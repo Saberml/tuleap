@@ -52,7 +52,7 @@ class SVN_RepositoryListing
 
         foreach ($content as $line) {
             if ($this->svn_permissions_manager->userCanRead($user, $project, $line)) {
-                $paths[]= $this->extractDirectoryContent($line, $svn_path);
+                $paths[] = $this->extractDirectoryContent($line, $svn_path);
             }
         }
         return array_filter($paths);
@@ -61,8 +61,6 @@ class SVN_RepositoryListing
     /**
      * Returns array of svn paths with log details
      *
-     * @param PFUser  $user
-     * @param Project $project
      * @param string  $svn_path
      * @param String  $sort        The type of sort wanted: ASC or DESC
      *
@@ -85,7 +83,7 @@ class SVN_RepositoryListing
     {
         $date_based_path = array();
         foreach ($paths as $path) {
-            $path_info = $this->getSvnSinglePathWithLogDetails($project, $svn_path.'/'.$path);
+            $path_info = $this->getSvnSinglePathWithLogDetails($project, $svn_path . '/' . $path);
             $date_based_path[$path_info->getTimestamp()][] = $path_info;
         }
 
@@ -136,7 +134,6 @@ class SVN_RepositoryListing
         $date_parts = explode(' (', $info[1]);
 
         return new SVN_RevisionPathInfo(
-            $revision['revision'],
             $revision['path'],
             $this->getUserId($info[0]),
             strtotime($date_parts[0]),

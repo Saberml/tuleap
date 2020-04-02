@@ -33,22 +33,26 @@ use Tuleap\LDAP\GroupSyncAdminEmailNotificationsManager;
 use Tuleap\LDAP\LdapLogger;
 use Tuleap\LDAP\LinkModalContentPresenter;
 use Tuleap\LDAP\NonUniqueUidRetriever;
+use Tuleap\LDAP\Project\UGroup\Binding\AdditionalModalPresenterBuilder;
 use Tuleap\LDAP\ProjectGroupManagerRestrictedUserFilter;
 use Tuleap\Project\Admin\ProjectMembers\MembersEditProcessAction;
 use Tuleap\Project\Admin\ProjectMembers\ProjectMembersAdditionalModalCollectionPresenter;
-use Tuleap\LDAP\Project\UGroup\Binding\AdditionalModalPresenterBuilder;
 use Tuleap\Project\Admin\ProjectUGroup\BindingAdditionalModalPresenterCollection;
 use Tuleap\Project\Admin\ProjectUGroup\UGroupEditProcessAction;
 use Tuleap\Project\Admin\ProjectUGroup\UGroupRouter;
+use Tuleap\Project\UserRemover;
+use Tuleap\Project\UserRemoverDao;
 use Tuleap\Request\CollectRoutesEvent;
 use Tuleap\Request\DispatchableWithRequest;
 use Tuleap\svn\Event\GetSVNLoginNameEvent;
 use Tuleap\SystemEvent\RootDailyStartEvent;
+use Tuleap\User\Account\AccountInformationCollection;
+use Tuleap\User\Account\AccountInformationPresenter;
+use Tuleap\User\Account\PasswordPreUpdateEvent;
 use Tuleap\User\Admin\UserDetailsPresenter;
-use Tuleap\Project\UserRemover;
-use Tuleap\Project\UserRemoverDao;
 use Tuleap\User\UserRetrieverByLoginNameEvent;
 
+// phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 class LdapPlugin extends Plugin
 {
     /**
@@ -64,7 +68,7 @@ class LdapPlugin extends Plugin
     /**
      * @type LDAP_UserManager
      */
-    private $_ldapUmInstance;
+    private $_ldapUmInstance; // phpcs:ignore PSR2.Classes.PropertyDeclaration.Underscore
 
     public function __construct($id)
     {
@@ -101,18 +105,10 @@ class LdapPlugin extends Plugin
         $this->addHook('user_home_pi_entry', 'personalInformationEntry', false);
 
         // User account
-        $this->addHook('account_pi_entry', 'accountPiEntry', false);
-        $this->addHook('before_change_email-complete', 'cancelChangeAndUserLdap', false);
-        $this->addHook('before_change_email-confirm', 'cancelChangeAndUserLdap', false);
-        $this->addHook('before_change_email', 'cancelChangeAndUserLdap', false);
-        $this->addHook('before_change_pw', 'cancelChangeAndUserLdap', false);
-        $this->addHook('before_change_realname', 'cancelChangeAndUserLdap', false);
         $this->addHook('before_lostpw-confirm', 'cancelChange', false);
         $this->addHook('before_lostpw', 'cancelChange', false);
-        $this->addHook('display_change_password', 'forbidIfLdapAuthAndUserLdap', false);
-        $this->addHook('display_change_email', 'forbidIfLdapAuthAndUserLdap', false);
-        // Comment if want to allow real name change in LDAP mode
-        $this->addHook('display_change_realname', 'forbidIfLdapAuthAndUserLdap', false);
+        $this->addHook(PasswordPreUpdateEvent::NAME);
+        $this->addHook(AccountInformationCollection::NAME);
 
         // User group
         $this->addHook('project_admin_ugroup_deletion');
@@ -177,7 +173,7 @@ class LdapPlugin extends Plugin
     /**
      * @return LdapPluginInfo
      */
-    function getPluginInfo()
+    public function getPluginInfo()
     {
         if (! $this->pluginInfo instanceof LdapPluginInfo) {
             $this->pluginInfo = new LdapPluginInfo($this);
@@ -204,10 +200,7 @@ class LdapPlugin extends Plugin
         );
     }
 
-    /**
-     * @return LdapLogger
-     */
-    public function getLogger()
+    public function getLogger(): \Psr\Log\LoggerInterface
     {
         return new LdapLogger();
     }
@@ -274,7 +267,7 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    function layout_search_entry($params)
+    public function layout_search_entry($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $params['search_entries'][] = array(
             'value'    => 'people_ldap',
@@ -297,7 +290,7 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    function ajax_search_user($params)
+    public function ajax_search_user($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLDAPUserManagementEnabled() && !$params['codendiUserOnly']) {
             $params['pluginAnswered'] = true;
@@ -314,7 +307,7 @@ class LdapPlugin extends Plugin
                     $tuleap_user    = $user_manager->getUserByLdapId($lr->getEdUid());
                     if ($tuleap_user !== null) {
                         $params['userList'][] = array(
-                            'display_name' => $tuleap_user->getRealName().' ('.$tuleap_user->getUserName().')',
+                            'display_name' => $tuleap_user->getRealName() . ' (' . $tuleap_user->getUserName() . ')',
                             'login'        => $tuleap_user->getUserName(),
                             'user_id'      => $tuleap_user->getId(),
                             'has_avatar'   => $tuleap_user->hasAvatar(),
@@ -322,7 +315,7 @@ class LdapPlugin extends Plugin
                         );
                     } else {
                         $params['userList'][] = array(
-                            'display_name' => $sync->getCommonName($lr).' ('.$lr->getLogin().')',
+                            'display_name' => $sync->getCommonName($lr) . ' (' . $lr->getLogin() . ')',
                             'login'        => $lr->getLogin(),
                             'user_id'      => $tuleap_user_id,
                             'has_avatar'   => false,
@@ -343,7 +336,7 @@ class LdapPlugin extends Plugin
     /**
      * @see Event::SEARCH_TYPE
      */
-    public function search_type($params)
+    public function search_type($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $query  = $params['query'];
         $result = $params['results'];
@@ -359,8 +352,8 @@ class LdapPlugin extends Plugin
     {
         return TemplateRendererFactory::build()->getRenderer(
             array(
-                dirname(__FILE__).'/../templates',
-                ForgeConfig::get('codendi_dir') .'/src/templates/search',
+                dirname(__FILE__) . '/../templates',
+                ForgeConfig::get('codendi_dir') . '/src/templates/search',
             )
         );
     }
@@ -374,7 +367,7 @@ class LdapPlugin extends Plugin
      *                 $params['auth_user_id']
      *                 $params['auth_user_status']
      */
-    function authenticate($params)
+    public function authenticate($params)
     {
         if ($this->isLdapAuthType()) {
             try {
@@ -390,7 +383,7 @@ class LdapPlugin extends Plugin
                 $GLOBALS['Response']->addFeedback(Feedback::ERROR, $exception->getMessage());
             } catch (LDAP_AuthenticationFailedException $exception) {
                 $logger = $this->getLogger();
-                $logger->info("[LDAP] User ".$params['loginname']." failed to authenticate");
+                $logger->info("[LDAP] User " . $params['loginname'] . " failed to authenticate");
             }
         }
     }
@@ -401,23 +394,23 @@ class LdapPlugin extends Plugin
      * account was automatically created and user must complete his
      * registeration.
      */
-    function account_redirect_after_login($params)
+    public function account_redirect_after_login($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType()) {
             $ldapUserDao = new LDAP_UserDao(CodendiDataAccess::instance());
             if (!$ldapUserDao->alreadyLoggedInOnce(UserManager::instance()->getCurrentUser()->getId())) {
                 $return_to_arg = "";
                 if ($params['return_to']) {
-                    $return_to_arg ='?return_to='.urlencode($params['return_to']);
+                    $return_to_arg = '?return_to=' . urlencode($params['return_to']);
                     if (isset($pv) && $pv == 2) {
-                        $return_to_arg .= '&pv='.$pv;
+                        $return_to_arg .= '&pv=' . $pv;
                     }
                 } else {
                     if (isset($pv) && $pv == 2) {
-                        $return_to_arg .= '?pv='.$pv;
+                        $return_to_arg .= '?pv=' . $pv;
                     }
                 }
-                $params['return_to'] = '/plugins/ldap/welcome'.$return_to_arg;
+                $params['return_to'] = '/plugins/ldap/welcome' . $return_to_arg;
             }
         }
     }
@@ -426,7 +419,7 @@ class LdapPlugin extends Plugin
      * @params $params $params['user'] IN
      *                 $params['allow_codendi_login'] IN/OUT
      */
-    function allowCodendiLogin($params)
+    public function allowCodendiLogin($params)
     {
         if ($this->isLdapAuthType()) {
             if ($params['user']->getLdapId() != null) {
@@ -438,7 +431,7 @@ class LdapPlugin extends Plugin
             $lr = $ldapUm->getLdapFromUserId($params['user']->getId());
             if ($lr) {
                 $params['allow_codendi_login'] = false;
-                $GLOBALS['feedback'] .= ' '.$GLOBALS['Language']->getText(
+                $GLOBALS['feedback'] .= ' ' . $GLOBALS['Language']->getText(
                     'plugin_ldap',
                     'login_pls_use_ldap',
                     array($GLOBALS['sys_name'])
@@ -452,7 +445,7 @@ class LdapPlugin extends Plugin
             try {
                 $this->getLDAPUserWrite()->updateWithUser($params['user']);
             } catch (Exception $exception) {
-                $this->getLogger()->error('An error occured while registering user (session_after_login): '.$exception->getMessage());
+                $this->getLogger()->error('An error occured while registering user (session_after_login): ' . $exception->getMessage());
             }
         }
     }
@@ -463,7 +456,7 @@ class LdapPlugin extends Plugin
      *  IN  $params['ident']
      *  IN/OUT  $params['user'] User object if found or null.
      */
-    function user_manager_find_user($params)
+    public function user_manager_find_user($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLDAPUserManagementEnabled()) {
             $ldap = $this->getLdap();
@@ -488,7 +481,7 @@ class LdapPlugin extends Plugin
         }
     }
 
-    public function user_manager_get_user_by_identifier($params)
+    public function user_manager_get_user_by_identifier($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType() && $this->isLDAPUserManagementEnabled()) {
             try {
@@ -539,7 +532,7 @@ class LdapPlugin extends Plugin
     }
 
     /** @see UserDetailsPresenter::ADDITIONAL_DETAILS */
-    public function additional_details($params)
+    public function additional_details($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType()) {
             $user = $params['user'];
@@ -575,35 +568,8 @@ class LdapPlugin extends Plugin
 
     /**
      * Hook
-     * Params:
-     *  IN  $params['user_id']
-     *  OUT $params['entry_label']
-     *  OUT $params['entry_value']
-     *  OUT $params['entry_change']
      */
-    function accountPiEntry($params)
-    {
-        if ($this->isLdapAuthType()) {
-            $ldapUm = $this->getLdapUserManager();
-            $lr = $ldapUm->getLdapFromUserId($params['user']->getId());
-            if ($lr) {
-                $params['user_info'][] = new User_ImmutableInfoPresenter(
-                    $GLOBALS['Language']->getText('plugin_ldap', 'ldap_login'),
-                    $lr->getLogin()
-                );
-            } else {
-                $params['user_info'][] = new User_ImmutableInfoPresenter(
-                    $GLOBALS['Language']->getText('plugin_ldap', 'ldap_login'),
-                    $GLOBALS['Language']->getText('plugin_ldap', 'no_ldap_login_found')
-                );
-            }
-        }
-    }
-
-    /**
-     * Hook
-     */
-    function buildLinkToDirectory(LDAPResult $lr, $value = '')
+    public function buildLinkToDirectory(LDAPResult $lr, $value = '')
     {
         if ($value === '') {
             $value = $lr->getLogin();
@@ -621,36 +587,21 @@ class LdapPlugin extends Plugin
     /**
      * Hook
      */
-    function cancelChange($params)
+    public function cancelChange($params)
     {
         if ($this->isLdapAuthType()) {
             exit_permission_denied();
         }
     }
 
-    /**
-     * Hook
-     */
-    function cancelChangeAndUserLdap($params)
-    {
-        $um = UserManager::instance();
-        $user = $um->getCurrentUser();
-        if ($this->isLdapAuthType() && $user->getLdapId() != '') {
-            if (! $this->hasLDAPWrite()) {
-                exit_permission_denied();
-            }
-        }
-    }
-
-
-    function before_register($params)
+    public function before_register($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType() && ! $this->hasLDAPWrite()) {
             util_return_to('/account/login.php');
         }
     }
 
-    function warnNoPwChange($params)
+    public function warnNoPwChange($params)
     {
         global $Language;
         if ($this->isLdapAuthType()) {
@@ -658,11 +609,11 @@ class LdapPlugin extends Plugin
         }
     }
 
-    function addLdapInput($params)
+    public function addLdapInput($params)
     {
         global $Language;
         if ($this->isLdapAuthType()) {
-            echo $Language->getText('admin_usergroup', 'ldap_id').': <INPUT TYPE="TEXT" NAME="ldap_id" VALUE="'.$params['row_user']['ldap_id'].'" SIZE="35" MAXLENGTH="55">
+            echo $Language->getText('admin_usergroup', 'ldap_id') . ': <INPUT TYPE="TEXT" NAME="ldap_id" VALUE="' . $params['row_user']['ldap_id'] . '" SIZE="35" MAXLENGTH="55">
 <P>';
         }
     }
@@ -676,20 +627,20 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    function updateLdapID($params)
+    public function updateLdapID($params)
     {
         global $Language;
         if ($this->isLdapAuthType()) {
             $request = HTTPRequest::instance();
             $ldapId = $request->getValidated('ldap_id', 'string', false);
             if ($ldapId !== false) {
-                $result = db_query("UPDATE user SET ldap_id='".db_es($ldapId)."' WHERE user_id=".db_ei($params['user_id']));
+                $result = db_query("UPDATE user SET ldap_id='" . db_es($ldapId) . "' WHERE user_id=" . db_ei($params['user_id']));
             }
             if (!$result) {
-                $GLOBALS['feedback'] .= ' '.$Language->getText('admin_usergroup', 'error_upd_u');
+                $GLOBALS['feedback'] .= ' ' . $Language->getText('admin_usergroup', 'error_upd_u');
                 echo db_error();
             } else {
-                $GLOBALS['feedback'] .= ' '.$Language->getText('admin_usergroup', 'success_upd_u');
+                $GLOBALS['feedback'] .= ' ' . $Language->getText('admin_usergroup', 'success_upd_u');
             }
         }
     }
@@ -703,7 +654,7 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    function forbidIfLdapAuth($params)
+    public function forbidIfLdapAuth($params)
     {
         if ($this->isLdapAuthType()) {
             if (! $this->hasLDAPWrite()) {
@@ -721,18 +672,51 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    function forbidIfLdapAuthAndUserLdap($params)
+    public function forbidIfLdapAuthAndUserLdap($params)
     {
         $um = UserManager::instance();
         $user = $um->getCurrentUser();
-        if ($this->isLdapAuthType()&& $user->getLdapId() != '') {
+        if ($this->isLdapAuthType() && $user->getLdapId() != '') {
             if (! $this->hasLDAPWrite()) {
                 $params['allow'] = false;
             }
         }
     }
 
-    public function project_admin_ugroup_deletion($params)
+    public function passwordPreUpdateEvent(PasswordPreUpdateEvent $event)
+    {
+        if ($this->isLdapAuthType() && $event->getUser()->getLdapId() !== '' && ! $this->hasLDAPWrite()) {
+            $event->forbidUserToChangePassword();
+        }
+    }
+
+    public function accountInformationCollection(AccountInformationCollection $account_information)
+    {
+        if ($this->isLdapAuthType()) {
+            if ($account_information->getUser()->getLdapId() !== '' && ! $this->hasLDAPWrite()) {
+                $account_information->disableChangeRealName();
+                $account_information->disableChangeEmail();
+            }
+            $ldap_result = $this->getLdapUserManager()->getLdapFromUserId($account_information->getUser()->getId());
+            if ($ldap_result) {
+                $account_information->addInformation(
+                    new AccountInformationPresenter(
+                        $GLOBALS['Language']->getText('plugin_ldap', 'ldap_login'),
+                        $ldap_result->getLogin(),
+                    )
+                );
+            } else {
+                $account_information->addInformation(
+                    new AccountInformationPresenter(
+                        $GLOBALS['Language']->getText('plugin_ldap', 'ldap_login'),
+                        $GLOBALS['Language']->getText('plugin_ldap', 'no_ldap_login_found'),
+                    )
+                );
+            }
+        }
+    }
+
+    public function project_admin_ugroup_deletion($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $ldap_usergroup_manager = $this->getLdapUserGroupManager();
         $ldap_usergroup_manager->setId($params['ugroup_id']);
@@ -743,7 +727,7 @@ class LdapPlugin extends Plugin
     /**
      * @see Event::SVN_INTRO
      */
-    public function svn_intro($params)
+    public function svn_intro($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $ldap_project_manager = new LDAP_ProjectManager();
 
@@ -766,7 +750,7 @@ class LdapPlugin extends Plugin
      * $params['project_svnroot']
      * $params['username']
      */
-    function svn_check_access_username($params)
+    public function svn_check_access_username($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $svnProjectManager = new LDAP_ProjectManager();
         if ($this->isLdapAuthType()
@@ -787,11 +771,10 @@ class LdapPlugin extends Plugin
     /**
      * Collects additional modals to display in project-admin > members
      *
-     * @param ProjectMembersAdditionalModalCollectionPresenter $collector
      *
      * @return void
      */
-    function projectAdminMembersAdditionalModal(ProjectMembersAdditionalModalCollectionPresenter $collector)
+    public function projectAdminMembersAdditionalModal(ProjectMembersAdditionalModalCollectionPresenter $collector)
     {
         if ($this->isLDAPGroupsUsageEnabled()) {
             $project_members_manager = $this->getLdapProjectGroupManager();
@@ -841,47 +824,35 @@ class LdapPlugin extends Plugin
 
             $collector->addModalContent($modal_content);
 
-            $include_assets = new IncludeAssets(
-                $this->getFilesystemPath() . '/www/assets',
-                $this->getPluginPath() . '/assets'
-            );
-
-            $collector->setJavascriptFile($include_assets->getFileURL('project-admin-members.js'));
-            $collector->setCssAsset(
-                new \Tuleap\Layout\CssAsset(
-                    new IncludeAssets(
-                        __DIR__ . '/../../../src/www/assets/ldap/themes',
-                        '/assets/ldap/themes'
-                    ),
-                    'style'
-                )
-            );
+            $collector->setJavascriptFile($this->getAssets()->getFileURL('project-admin-members.js'));
+            $collector->setCssAsset(new \Tuleap\Layout\CssAsset($this->getAssets(), 'style'));
         }
     }
 
-    public function burningParrotGetJavascriptFiles(array $params)
+    public function burningParrotGetJavascriptFiles(array $params): void
     {
-        $include_assets = new IncludeAssets(
-            $this->getFilesystemPath() . '/www/assets',
-            $this->getPluginPath() . '/assets'
-        );
-
         if ($this->currentRequestIsForProjectUgroupAdmin()) {
-            $params['javascript_files'][] = $include_assets->getFileURL('project-admin-ugroups.js');
+            $params['javascript_files'][] = $this->getAssets()->getFileURL('project-admin-ugroups.js');
         }
     }
 
-    public function burningParrotGetStylesheets(array $params)
+    public function burningParrotGetStylesheets(array $params): void
     {
         if ($this->currentRequestIsForProjectUgroupAdmin()) {
-            $theme_include_assets = new IncludeAssets(
-                __DIR__ . '/../../../src/www/assets/ldap/themes',
-                '/assets/ldap/themes'
-            );
-
             $variant                 = $params['variant'];
-            $params['stylesheets'][] = $theme_include_assets->getFileURL('style-' . $variant->getName() . '.css');
+            $params['stylesheets'][] = $this->getAssets()->getFileURL('style-' . $variant->getName() . '.css');
         }
+    }
+
+    /**
+     * @psalm-mutation-free
+     */
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(
+            __DIR__ . '/../../../src/www/assets/ldap',
+            '/assets/ldap'
+        );
     }
 
     /**
@@ -891,7 +862,7 @@ class LdapPlugin extends Plugin
      *
      * @return Void
      */
-    function ugroup_update_users_allowed(array $params)
+    public function ugroup_update_users_allowed(array $params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($params['ugroup_id']) {
             $ldapUserGroupManager = $this->getLdapUserGroupManager();
@@ -908,7 +879,7 @@ class LdapPlugin extends Plugin
      *
      * @param Array $params
      */
-    function register_project_creation(array $params)
+    public function register_project_creation(array $params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType() && $this->getLdap()->getLDAPParam('svn_auth') == 1) {
             $svnProjectManager = new LDAP_ProjectManager();
@@ -923,7 +894,7 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    function backend_factory_get_svn(array $params)
+    public function backend_factory_get_svn(array $params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType()) {
             $params['base']  = 'LDAP_BackendSVN';
@@ -931,7 +902,7 @@ class LdapPlugin extends Plugin
         }
     }
 
-    public function svn_apache_auth($params)
+    public function svn_apache_auth($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType()) {
             $ldapProjectManager = new LDAP_ProjectManager();
@@ -979,7 +950,7 @@ class LdapPlugin extends Plugin
      *
      * @return void
      */
-    public function codendi_daily_start($params)
+    public function codendi_daily_start($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType() && $this->isDailySyncEnabled()) {
             $this->getLogger()->info('Starting LDAP daily synchronisation');
@@ -1028,7 +999,7 @@ class LdapPlugin extends Plugin
             $non_unique_uids = $retriever->getNonUniqueLdapUid();
             if ($non_unique_uids) {
                 $event->addWarning('The following ldap_uids are non unique: ' . implode(', ', $non_unique_uids)
-                                      . PHP_EOL .' This might lead to some SVN misbehaviours for concerned users');
+                                      . PHP_EOL . ' This might lead to some SVN misbehaviours for concerned users');
             }
         }
     }
@@ -1076,16 +1047,16 @@ class LdapPlugin extends Plugin
         return false;
     }
 
-    public function system_event_get_types_for_default_queue($params)
+    public function system_event_get_types_for_default_queue($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $params['types'][] = 'PLUGIN_LDAP_UPDATE_LOGIN';
     }
 
-    public function get_system_event_class($params)
+    public function get_system_event_class($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         switch ($params['type']) {
             case 'PLUGIN_LDAP_UPDATE_LOGIN':
-                include_once dirname(__FILE__).'/system_event/SystemEvent_PLUGIN_LDAP_UPDATE_LOGIN.class.php';
+                include_once dirname(__FILE__) . '/system_event/SystemEvent_PLUGIN_LDAP_UPDATE_LOGIN.class.php';
                 $params['class'] = 'SystemEvent_PLUGIN_LDAP_UPDATE_LOGIN';
                 $params['dependencies'] = array(
                     UserManager::instance(),
@@ -1097,17 +1068,17 @@ class LdapPlugin extends Plugin
         }
     }
 
-    public function get_ldap_login_name_for_user($params)
+    public function get_ldap_login_name_for_user($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType()) {
             $params['ldap_user'] = $this->getLdapUserManager()->getLDAPUserFromUser($params['user']);
         }
     }
 
-    public function login_presenter($params)
+    public function login_presenter($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if ($this->isLdapAuthType()) {
-            include_once dirname(__FILE__).'/LoginPresenter.class.php';
+            include_once dirname(__FILE__) . '/LoginPresenter.class.php';
             $params['authoritative'] = true;
             $params['presenter']     = new LDAP_LoginPresenter($params['presenter']);
         }
@@ -1116,14 +1087,14 @@ class LdapPlugin extends Plugin
     /**
      * @see Event::USER_MANAGER_UPDATE_DB
      */
-    public function user_manager_update_db(array $params)
+    public function user_manager_update_db(array $params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         try {
             $this->getLDAPUserWrite()->updateWithPreviousUser($params['old_user'], $params['new_user']);
         } catch (LDAP_Exception_NoWriteException $exception) {
             $this->getLogger()->debug('User info not updated in LDAP, no write LDAP configured');
         } catch (Exception $exception) {
-            $this->getLogger()->error('An error occured while updating user settings (user_manager_update_db): '.$exception->getMessage());
+            $this->getLogger()->error('An error occured while updating user settings (user_manager_update_db): ' . $exception->getMessage());
         }
     }
 
@@ -1131,14 +1102,14 @@ class LdapPlugin extends Plugin
      *
      * @see Event::USER_MANAGER_CREATE_ACCOUNT
      */
-    public function user_manager_create_account(array $params)
+    public function user_manager_create_account(array $params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         try {
             $this->getLDAPUserWrite()->updateWithUser($params['user']);
         } catch (LDAP_Exception_NoWriteException $exception) {
             $this->getLogger()->debug('User info not updated in LDAP, no write LDAP configured');
         } catch (Exception $exception) {
-            $this->getLogger()->error('An error occured while activating user as site admin (project_admin_activate_user): '.$exception->getMessage());
+            $this->getLogger()->error('An error occured while activating user as site admin (project_admin_activate_user): ' . $exception->getMessage());
         }
     }
 
@@ -1156,7 +1127,7 @@ class LdapPlugin extends Plugin
     /**
      * @see GIT_EVENT_PLATFORM_CAN_USE_GERRIT
      */
-    public function git_event_platform_can_use_gerrit($params)
+    public function git_event_platform_can_use_gerrit($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $ldap_params = $this->getLDAPParams();
 
@@ -1189,28 +1160,28 @@ class LdapPlugin extends Plugin
         }
 
         if ($ldap_type === LDAP::SERVER_TYPE_ACTIVE_DIRECTORY) {
-            $config_file = $this->getEtcDir().LDAP::SERVER_TYPE_ACTIVE_DIRECTORY.'.inc';
+            $config_file = $this->getEtcDir() . LDAP::SERVER_TYPE_ACTIVE_DIRECTORY . '.inc';
         } else {
-            $config_file = $this->getEtcDir().LDAP::SERVER_TYPE_OPEN_LDAP.'.inc';
+            $config_file = $this->getEtcDir() . LDAP::SERVER_TYPE_OPEN_LDAP . '.inc';
         }
 
         if (! file_exists($this->getConfigFilePath())) {
             copy($config_file, $this->getConfigFilePath());
-            $GLOBALS['Response']->redirect('/plugins/pluginsadministration//?view=properties&plugin_id='.$this->getId());
+            $GLOBALS['Response']->redirect('/plugins/pluginsadministration//?view=properties&plugin_id=' . $this->getId());
         }
     }
 
     private function getEtcDir()
     {
-        return $GLOBALS['sys_custompluginsroot'] .'ldap/etc/';
+        return $GLOBALS['sys_custompluginsroot'] . 'ldap/etc/';
     }
 
     private function getConfigFilePath()
     {
-        return $this->getEtcDir().'ldap.inc';
+        return $this->getEtcDir() . 'ldap.inc';
     }
 
-    public function ugroup_duplication($params)
+    public function ugroup_duplication($params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $dao              = $this->getUserGroupDao();
         $source_ugroup_id = $params['source_ugroup']->getId();
@@ -1219,12 +1190,9 @@ class LdapPlugin extends Plugin
         $dao->duplicateLdapBinding($source_ugroup_id, $new_ugroup_id);
     }
 
-    /**
-     * @return bool
-     * */
-    private function isGroupSyncAdminNotificationsEnabled()
+    private function isGroupSyncAdminNotificationsEnabled(): bool
     {
-        return $this->getLdap()->getLDAPParam('grp_sync_admin_notifications_enabled');
+        return (bool) $this->getLdap()->getLDAPParam('grp_sync_admin_notifications_enabled');
     }
 
     /**
@@ -1235,7 +1203,6 @@ class LdapPlugin extends Plugin
         if ($this->isGroupSyncAdminNotificationsEnabled()) {
             return new GroupSyncAdminEmailNotificationsManager(
                 $this->getLdapUserManager(),
-                ProjectManager::instance(),
                 new \Codendi_Mail(),
                 \UserManager::instance()
             );

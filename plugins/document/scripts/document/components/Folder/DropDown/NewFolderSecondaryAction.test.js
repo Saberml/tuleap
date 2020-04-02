@@ -33,7 +33,7 @@ describe("NewFolderSecondaryAction", () => {
             return shallowMount(NewFolderSecondaryAction, {
                 localVue,
                 propsData: { ...props },
-                mocks: { $store: store }
+                mocks: { $store: store },
             });
         };
     });
@@ -59,9 +59,9 @@ describe("NewFolderSecondaryAction", () => {
         const event_bus_emit = jest.spyOn(EventBus, "$emit");
         const wrapper = document_action_button_factory({ item });
 
-        wrapper.find("[data-test=document-new-folder-creation-button]").trigger("click");
+        wrapper.get("[data-test=document-new-folder-creation-button]").trigger("click");
         expect(event_bus_emit).toHaveBeenCalledWith("show-new-folder-modal", {
-            detail: { parent: item }
+            detail: { parent: item },
         });
     });
 });

@@ -27,7 +27,7 @@ class Tracker_FormElement_Field_Value_OpenListDao extends Tracker_FormElement_Fi
         $this->table_name = 'tracker_changeset_value_openlist';
     }
 
-    function searchById($changeset_value_id)
+    public function searchById($changeset_value_id)
     {
         $changeset_value_id = $this->da->escapeInt($changeset_value_id);
         $sql = "SELECT *
@@ -42,8 +42,8 @@ class Tracker_FormElement_Field_Value_OpenListDao extends Tracker_FormElement_Fi
         $changeset_value_id = $this->da->escapeInt($changeset_value_id);
         $values = array();
         foreach ($value_ids as $v) {
-            $b = $v['bindvalue_id'] ? (int)$v['bindvalue_id'] : 'NULL';
-            $o = $v['openvalue_id'] ? (int)$v['openvalue_id'] : 'NULL';
+            $b = $v['bindvalue_id'] ? (int) $v['bindvalue_id'] : 'NULL';
+            $o = $v['openvalue_id'] ? (int) $v['openvalue_id'] : 'NULL';
             $values[] = "($changeset_value_id, $b, $o)";
         }
         if ($values) {

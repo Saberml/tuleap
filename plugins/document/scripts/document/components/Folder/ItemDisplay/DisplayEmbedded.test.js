@@ -33,14 +33,14 @@ describe("DisplayEmbedded", () => {
             routes: [
                 {
                     path: "/folder/3/42",
-                    name: "item"
-                }
-            ]
+                    name: "item",
+                },
+            ],
         });
 
         component_options = {
             localVue,
-            router
+            router,
         };
     });
 
@@ -51,12 +51,12 @@ describe("DisplayEmbedded", () => {
             state: {
                 error: {
                     has_document_permission_error: true,
-                    has_document_loading_error: false
-                }
+                    has_document_loading_error: false,
+                },
             },
             getters: {
-                "error/does_document_have_any_error": true
-            }
+                "error/does_document_have_any_error": true,
+            },
         };
         store = createStoreMock(store_options);
 
@@ -75,12 +75,12 @@ describe("DisplayEmbedded", () => {
             state: {
                 error: {
                     has_document_permission_error: false,
-                    has_document_loading_error: true
-                }
+                    has_document_loading_error: true,
+                },
             },
             getters: {
-                "error/does_document_have_any_error": true
-            }
+                "error/does_document_have_any_error": true,
+            },
         };
         store = createStoreMock(store_options);
 
@@ -97,25 +97,25 @@ describe("DisplayEmbedded", () => {
         Backend load the embedded file content`, async () => {
         const store_options = {
             state: {
-                error: {}
+                error: {},
             },
             getters: {
-                "error/does_document_have_any_error": false
-            }
+                "error/does_document_have_any_error": false,
+            },
         };
 
         store = createStoreMock(store_options);
 
         const wrapper = shallowMount(DisplayEmbedded, { store, ...component_options });
 
-        await wrapper.vm.$nextTick().then(() => {});
-
+        await wrapper.vm.$nextTick();
         jest.spyOn(wrapper.vm, "loadDocumentWithAscendentHierarchy").mockReturnValue({
             id: 10,
             embedded_properties: {
-                content: "<p>my custom content </p>"
-            }
+                content: "<p>my custom content </p>",
+            },
         });
+        await wrapper.vm.$nextTick();
 
         expect(wrapper.find(DisplayEmbeddedContent).exists()).toBeTruthy();
         expect(wrapper.find(DisplayEmbeddedSpinner).exists()).toBeFalsy();
@@ -125,11 +125,11 @@ describe("DisplayEmbedded", () => {
         When component is destroyed`, () => {
         const store_options = {
             state: {
-                error: {}
+                error: {},
             },
             getters: {
-                "error/does_document_have_any_error": false
-            }
+                "error/does_document_have_any_error": false,
+            },
         };
 
         store = createStoreMock(store_options);

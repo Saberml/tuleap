@@ -29,7 +29,7 @@ use Tuleap\Tracker\Hierarchy\HierarchyDAO;
 use Tuleap\Tracker\XML\TrackerXmlImportFeedbackCollector;
 use Tuleap\XML\MappingsRegistry;
 
-require_once __DIR__.'/../bootstrap.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
@@ -55,15 +55,9 @@ class TrackerXmlImportArtifactLinkV2Activation extends TestCase
         $form_element_factory = new class extends Tracker_FormElementFactory {
             private $mapping = array();
 
-            /**
-             * @var \Mockery\MockInterface|TrackerXmlImportFeedbackCollector
-             */
-            private $error_logger;
-
             public function __construct()
             {
-                $this->mapping      = [];
-                $this->error_logger = \Mockery::mock(TrackerXmlImportFeedbackCollector::class);
+                $this->mapping = [];
             }
 
             public function getInstanceFromXML(
@@ -92,7 +86,7 @@ class TrackerXmlImportArtifactLinkV2Activation extends TestCase
             \Mockery::spy(\Tracker_Artifact_XMLImport::class),
             \Mockery::spy(\User\XML\Import\IFindUserFromXMLReference::class),
             \Mockery::spy(\UGroupManager::class),
-            \Mockery::spy(\Logger::class),
+            \Mockery::spy(\Psr\Log\LoggerInterface::class),
             $this->artifact_link_usage_updater,
             $this->artifact_link_usage_dao,
             \Mockery::spy(\Tuleap\Tracker\Webhook\WebhookFactory::class),

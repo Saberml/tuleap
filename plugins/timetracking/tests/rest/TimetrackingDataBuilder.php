@@ -103,7 +103,6 @@ class TimetrackingDataBuilder extends REST_TestDataBuilder
 
     /**
      * @param Tracker_Artifact[] $artifacts
-     * @param PFUser $user
      */
     private function addTimes(array $artifacts, PFUser $user)
     {
@@ -135,7 +134,7 @@ class TimetrackingDataBuilder extends REST_TestDataBuilder
         $time_dao->addTime(
             $user->getId(),
             $artifact->getId(),
-            date('Y-m-d', $_SERVER[ 'REQUEST_TIME' ]),
+            date('Y-m-d', $_SERVER['REQUEST_TIME']),
             200,
             'test'
         );

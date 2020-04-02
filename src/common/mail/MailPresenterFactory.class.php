@@ -19,6 +19,7 @@
  */
 
 use Tuleap\Mail\MailAccountSuspensionAlertPresenter;
+use Tuleap\Mail\MailAccountSuspensionPresenter;
 
 class MailPresenterFactory
 {
@@ -132,7 +133,7 @@ class MailPresenterFactory
         $confirm_hash   = $attributes_presenter["confirm_hash"];
 
         include($GLOBALS['Language']->getContent('include/new_user_email'));
-        $redirect_url = $base_url ."/account/login.php?confirm_hash=$confirm_hash";
+        $redirect_url = $base_url . "/account/login.php?confirm_hash=$confirm_hash";
 
         $presenter = new MailRegisterByUserPresenter(
             $attributes_presenter["logo_url"],
@@ -161,7 +162,7 @@ class MailPresenterFactory
     private function createAdminNotificationPresenter(array $attributes_presenter)
     {
         $base_url     = $attributes_presenter["base_url"];
-        $redirect_url = $base_url ."/admin/approve_pending_users.php?page=pending";
+        $redirect_url = $base_url . "/admin/approve_pending_users.php?page=pending";
 
         $presenter = new MailRegisterByAdminNotificationPresenter(
             $attributes_presenter["logo_url"],
@@ -280,10 +281,6 @@ class MailPresenterFactory
     /**
      * Creates a presenter for the account suspension notification email
      *
-     * @param DateTimeImmutable $last_access_date
-     * @param DateTimeImmutable $suspension_date
-     * @param BaseLanguage $language
-     * @return MailAccountSuspensionAlertPresenter
      */
     public function createMailAccountSuspensionAlertPresenter(DateTimeImmutable $last_access_date, DateTimeImmutable $suspension_date, BaseLanguage $language) : MailAccountSuspensionAlertPresenter
     {
@@ -292,5 +289,18 @@ class MailPresenterFactory
         $logo_retriever = new LogoRetriever();
         $logo_url = $logo_retriever->getUrl();
         return new MailAccountSuspensionAlertPresenter($logo_url, $color_logo, $last_access_date, $suspension_date, $language);
+    }
+
+    /**
+     * Creates a presenter for the account suspension email
+     *
+     */
+    public function createMailAccountSuspensionPresenter(DateTimeImmutable $last_access_date, BaseLanguage $language) : MailAccountSuspensionPresenter
+    {
+        $color_logo = "#000";
+        $this->setColorTheme($color_logo);
+        $logo_retriever = new LogoRetriever();
+        $logo_url = $logo_retriever->getUrl();
+        return new MailAccountSuspensionPresenter($logo_url, $color_logo, $last_access_date, $language);
     }
 }

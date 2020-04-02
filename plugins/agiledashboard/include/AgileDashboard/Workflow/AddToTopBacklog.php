@@ -68,7 +68,7 @@ class AddToTopBacklog extends Transition_PostAction
 
     public function exportToXml(SimpleXMLElement $root, $xmlMapping)
     {
-        //Does nothing for now
+        $root->addChild(self::XML_TAG_NAME);
     }
 
     public function bypassPermissions(Tracker_FormElement_Field $field)
@@ -84,7 +84,6 @@ class AddToTopBacklog extends Transition_PostAction
     /**
      * Execute actions after transition happens
      *
-     * @param Tracker_Artifact_Changeset $changeset
      * @return void
      */
     public function after(Tracker_Artifact_Changeset $changeset)

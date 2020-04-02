@@ -20,10 +20,10 @@
 
 use Tuleap\Admin\AdminPageRenderer;
 use Tuleap\Git\Mirror\MirrorPresenter;
+use Tuleap\Layout\IncludeAssets;
 
-class Git_AdminMirrorController
+class Git_AdminMirrorController //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 {
-
     /** @var Git_Mirror_MirrorDataMapper */
     private $git_mirror_mapper;
 
@@ -36,31 +36,32 @@ class Git_AdminMirrorController
     /** @var ProjectManager */
     private $project_manager;
 
-    /** @var Git_Mirror_ManifestManager */
-    private $git_mirror_manifest_manager;
-
     /** @var Git_SystemEventManager */
     private $git_system_event_manager;
 
     /** @var AdminPageRenderer */
     private $admin_page_renderer;
+    /**
+     * @var IncludeAssets
+     */
+    private $include_assets;
 
     public function __construct(
         CSRFSynchronizerToken $csrf,
         Git_Mirror_MirrorDataMapper $git_mirror_mapper,
         Git_MirrorResourceRestrictor $git_mirror_resource_restrictor,
         ProjectManager $project_manager,
-        Git_Mirror_ManifestManager $git_mirror_manifest_manager,
         Git_SystemEventManager $git_system_event_manager,
-        AdminPageRenderer $admin_page_renderer
+        AdminPageRenderer $admin_page_renderer,
+        IncludeAssets $include_assets
     ) {
         $this->csrf                           = $csrf;
         $this->git_mirror_mapper              = $git_mirror_mapper;
         $this->git_mirror_resource_restrictor = $git_mirror_resource_restrictor;
         $this->project_manager                = $project_manager;
-        $this->git_mirror_manifest_manager    = $git_mirror_manifest_manager;
         $this->git_system_event_manager       = $git_system_event_manager;
         $this->admin_page_renderer            = $admin_page_renderer;
+        $this->include_assets                 = $include_assets;
     }
 
     public function process(Codendi_Request $request)
@@ -83,7 +84,7 @@ class Git_AdminMirrorController
     public function display(Codendi_Request $request)
     {
         $title         = dgettext('tuleap-git', 'Git');
-        $template_path = dirname(GIT_BASE_DIR).'/templates';
+        $template_path = dirname(GIT_BASE_DIR) . '/templates';
         $presenter     = null;
 
         switch ($request->get('action')) {
@@ -95,8 +96,7 @@ class Git_AdminMirrorController
                 $this->renderAPresenter($title, $template_path, $presenter);
                 break;
             default:
-                $GLOBALS['HTML']->includeFooterJavascriptFile(GIT_BASE_URL . '/scripts/modal-add-mirror.js');
-                $GLOBALS['HTML']->includeFooterJavascriptFile(GIT_BASE_URL . '/scripts/modal-mirror-configuration.js');
+                $GLOBALS['HTML']->includeFooterJavascriptFile($this->include_assets->getFileURL('siteadmin-mirror.js'));
 
                 $presenter = $this->getAllMirrorsPresenter($title);
                 $this->renderANoFramedPresenter($title, $template_path, $presenter);
@@ -321,7 +321,7 @@ class Git_AdminMirrorController
     private function redirectToEditFormWithError($mirror_id, $message)
     {
         $GLOBALS['Response']->addFeedback('error', $message);
-        $GLOBALS['Response']->redirect("?pane=mirrors_admin&action=show-edit-mirror&mirror_id=".$mirror_id);
+        $GLOBALS['Response']->redirect("?pane=mirrors_admin&action=show-edit-mirror&mirror_id=" . $mirror_id);
     }
 
     private function deleteMirror(Codendi_Request $request)

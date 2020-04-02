@@ -109,7 +109,6 @@ class Tracker_Artifact_ChangesetValue_ArtifactLink extends Tracker_Artifact_Chan
     /**
      * Return diff between 2 changeset values
      *
-     * @param Tracker_Artifact_ChangesetValue_ArtifactLink $old_changeset_value
      *
      * @return Tracker_Artifact_ChangesetValue_ArtifactLinkDiff
      */
@@ -154,7 +153,7 @@ class Tracker_Artifact_ChangesetValue_ArtifactLink extends Tracker_Artifact_Chan
                 $added_arr[] = $added_element->getLink();
             }
             $added   = implode(', ', $added_arr);
-            $result = ' '.$GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to').' '.$added;
+            $result = ' ' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to') . ' ' . $added;
             return $result;
         }
     }
@@ -230,7 +229,6 @@ class Tracker_Artifact_ChangesetValue_ArtifactLink extends Tracker_Artifact_Chan
     /**
      * Returns the list of artifact id in all artifact links user can see
      *
-     * @param PFUser $user
      * @return type
      */
     public function getArtifactIdsUserCanSee(PFUser $user)

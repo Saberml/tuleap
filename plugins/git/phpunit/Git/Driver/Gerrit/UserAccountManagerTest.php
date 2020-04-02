@@ -21,9 +21,9 @@
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-require_once __DIR__.'/../../../bootstrap.php';
-require_once __DIR__.'/../../../../../ldap/include/LDAP_User.class.php';
-require_once __DIR__.'/../../../../../ldap/include/LDAPResult.class.php';
+require_once __DIR__ . '/../../../bootstrap.php';
+require_once __DIR__ . '/../../../../../ldap/include/LDAP_User.class.php';
+require_once __DIR__ . '/../../../../../ldap/include/LDAPResult.class.php';
 
 //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 class Git_Driver_Gerrit_UserAccountManager_SynchroniseSSHKeysTest extends TestCase
@@ -48,7 +48,10 @@ class Git_Driver_Gerrit_UserAccountManager_SynchroniseSSHKeysTest extends TestCa
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user                  = (new \UserTestBuilder())->withLdapId("testUser")->build();
+        $this->user = new PFUser([
+            'language_id' => 'en',
+            'ldap_id' => 'testUser'
+        ]);
         $this->gerrit_driver         = \Mockery::spy(\Git_Driver_Gerrit::class);
         $this->gerrit_driver_factory = \Mockery::spy(\Git_Driver_Gerrit_GerritDriverFactory::class)->shouldReceive('getDriver')->andReturns($this->gerrit_driver)->getMock();
         $this->remote_gerrit_factory = \Mockery::spy(\Git_RemoteServer_GerritServerFactory::class);

@@ -35,7 +35,7 @@ class Tracker_DateReminder_Role_Assignee implements Tracker_DateReminder_Role
      *
      * @return String
      */
-    function getLabel()
+    public function getLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_date_reminder', 'role_ASSIGNEE');
     }
@@ -43,11 +43,10 @@ class Tracker_DateReminder_Role_Assignee implements Tracker_DateReminder_Role
     /**
      * Retrieve assignee recipients for a given artifact
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return Array of PFUser
      */
-    function getRecipientsFromArtifact(Tracker_Artifact $artifact)
+    public function getRecipientsFromArtifact(Tracker_Artifact $artifact)
     {
         $permission_assignee = new Tracker_Permission_PermissionRetrieveAssignee($artifact->getUserManager());
         return $permission_assignee->getAssignees($artifact);

@@ -29,7 +29,7 @@ class Docman_View_ItemDetails
     public $current_section;
     public $url;
 
-    function __construct($item, $url)
+    public function __construct($item, $url)
     {
         $this->item             = $item;
         $this->url              = $url;
@@ -37,18 +37,18 @@ class Docman_View_ItemDetails
         $this->sections         = array();
     }
 
-    function addSection($section)
+    public function addSection($section)
     {
         $this->sections[$section->getId()] = $section;
         if (!$this->current_section && count($this->sections) == 1) {
             $this->setCurrentSection($section->getId());
         }
     }
-    function setCurrentSection($id_section)
+    public function setCurrentSection($id_section)
     {
         $this->current_section = $id_section;
     }
-    function fetch()
+    public function fetch()
     {
         $html = '';
 
@@ -56,11 +56,11 @@ class Docman_View_ItemDetails
         if (count($this->sections)) {
             $html .= '<ul class="docman_properties_navlist">';
             foreach ($this->sections as $section) {
-                $html .= '<li><a href="'. $this->url .'&amp;action=details&amp;id='. $this->item->getId() .'&amp;section='. $section->getId() .'"';
+                $html .= '<li><a href="' . $this->url . '&amp;action=details&amp;id=' . $this->item->getId() . '&amp;section=' . $section->getId() . '"';
                 if ($section->getId() == $this->current_section) {
                     $html .= ' class="docman_properties_navlist_current" ';
                 }
-                $html .= '>'. $section->getTitle() .'</a></li>';
+                $html .= '>' . $section->getTitle() . '</a></li>';
             }
             $html .= '</ul>';
             $html .= '<div class="docman_properties_content">';
@@ -69,7 +69,7 @@ class Docman_View_ItemDetails
         }
         return $html;
     }
-    function display()
+    public function display()
     {
         echo $this->fetch();
     }

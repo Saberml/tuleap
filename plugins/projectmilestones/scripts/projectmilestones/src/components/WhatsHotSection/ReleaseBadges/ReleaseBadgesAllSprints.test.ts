@@ -48,8 +48,8 @@ describe("ReleaseBadgesAllSprints", () => {
     beforeEach(() => {
         store_options = {
             state: {
-                project_id: project_id
-            }
+                project_id: project_id,
+            },
         };
 
         release_data = {
@@ -61,12 +61,12 @@ describe("ReleaseBadgesAllSprints", () => {
                     accept: {
                         trackers: [
                             {
-                                label: "Sprint1"
-                            }
-                        ]
-                    }
-                }
-            }
+                                label: "Sprint1",
+                            },
+                        ],
+                    },
+                },
+            },
         } as MilestoneData;
 
         component_options.propsData = { release_data };
@@ -77,7 +77,7 @@ describe("ReleaseBadgesAllSprints", () => {
             store_options.state.user_can_view_sub_milestones_planning = true;
             const wrapper = await getPersonalWidgetInstance(store_options);
 
-            expect(wrapper.find("[data-test=badge-sprint]").text()).toEqual("10 Sprint1");
+            expect(wrapper.get("[data-test=badge-sprint]").text()).toEqual("10 Sprint1");
         });
 
         it("When there isn't tracker, Then there is no link", async () => {
@@ -88,14 +88,14 @@ describe("ReleaseBadgesAllSprints", () => {
                 resources: {
                     milestones: {
                         accept: {
-                            trackers: [] as TrackerProjectLabel[]
-                        }
-                    }
-                }
+                            trackers: [] as TrackerProjectLabel[],
+                        },
+                    },
+                },
             } as MilestoneData;
 
             component_options.propsData = {
-                release_data
+                release_data,
             };
             store_options.state.user_can_view_sub_milestones_planning = true;
             const wrapper = await getPersonalWidgetInstance(store_options);

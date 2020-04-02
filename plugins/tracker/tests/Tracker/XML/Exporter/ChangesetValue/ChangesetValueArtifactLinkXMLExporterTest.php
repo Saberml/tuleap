@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
-require_once __DIR__.'/../../../../bootstrap.php';
+require_once __DIR__ . '/../../../../bootstrap.php';
 
 class Tracker_XML_Exporter_ChangesetValue_ChangesetValueArtifactLinkXMLExporterTest extends TuleapTestCase
 {
@@ -49,7 +49,7 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValueArtifactLinkXMLExporterT
         $tracker_factory = mock('TrackerFactory');
         TrackerFactory::setInstance($tracker_factory);
 
-        $this->user = aUser()->build();
+        $this->user = new PFUser(['language_id' => 'en']);
 
         $story_tracker  = aTracker()->withId(100)->build();
         $task_tracker   = aTracker()->withId(101)->build();
@@ -102,11 +102,11 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValueArtifactLinkXMLExporterT
 
         $field_change = $this->changeset_xml->field_change;
 
-        $this->assertEqual((string)$field_change['field_name'], 'artifact links');
-        $this->assertEqual((string)$field_change['type'], 'art_link');
+        $this->assertEqual((string) $field_change['field_name'], 'artifact links');
+        $this->assertEqual((string) $field_change['type'], 'art_link');
 
-        $this->assertEqual((int)$field_change->value[0], 111);
-        $this->assertEqual((int)$field_change->value[1], 222);
+        $this->assertEqual((int) $field_change->value[0], 111);
+        $this->assertEqual((int) $field_change->value[1], 222);
     }
 
     public function itExportsChildrenNatureMode()
@@ -130,11 +130,11 @@ class Tracker_XML_Exporter_ChangesetValue_ChangesetValueArtifactLinkXMLExporterT
 
         $field_change = $this->changeset_xml->field_change;
 
-        $this->assertEqual((string)$field_change['field_name'], 'artifact links');
-        $this->assertEqual((string)$field_change['type'], 'art_link');
+        $this->assertEqual((string) $field_change['field_name'], 'artifact links');
+        $this->assertEqual((string) $field_change['type'], 'art_link');
 
-        $this->assertEqual((int)$field_change->value[0], 111);
-        $this->assertEqual((int)$field_change->value[1], 222);
+        $this->assertEqual((int) $field_change->value[0], 111);
+        $this->assertEqual((int) $field_change->value[1], 222);
         $this->assertEqual(count($field_change->value), 2);
     }
 

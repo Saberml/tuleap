@@ -47,10 +47,6 @@ class SemanticVelocity extends Tracker_Semantic
      * @var SemanticDone
      */
     private $semantic_done;
-    /**
-     * @var BacklogRequiredTrackerCollectionFormatter
-     */
-    private $semantic_formatter;
 
     /**
      * @var \Tracker_FormElement_Field
@@ -60,14 +56,12 @@ class SemanticVelocity extends Tracker_Semantic
     public function __construct(
         Tracker $tracker,
         SemanticDone $semantic_done,
-        BacklogRequiredTrackerCollectionFormatter $semantic_formatter,
         ?Tracker_FormElement_Field $velocity_field = null
     ) {
         parent::__construct($tracker);
 
         $this->semantic_done      = $semantic_done;
         $this->velocity_field     = $velocity_field;
-        $this->semantic_formatter = $semantic_formatter;
     }
 
     public function getShortName()
@@ -94,7 +88,7 @@ class SemanticVelocity extends Tracker_Semantic
             Tracker_HierarchyFactory::instance(),
             new SemanticDoneFactory(new SemanticDoneDao(), new SemanticDoneValueChecker()),
             \AgileDashboard_Semantic_InitialEffortFactory::instance(),
-            new SemanticVelocityFactory(new BacklogRequiredTrackerCollectionFormatter()),
+            new SemanticVelocityFactory(),
             new BacklogRequiredTrackerCollectionFormatter()
         );
     }
@@ -201,9 +195,10 @@ class SemanticVelocity extends Tracker_Semantic
         if (in_array($status_field->getId(), $xmlMapping) && $this->getFieldId() > 0) {
             $child = $root->addChild('semantic');
             $child->addAttribute('type', $this->getShortName());
-            $child->addChild('shortname', $this->getShortName());
-            $child->addChild('label', $this->getLabel());
-            $child->addChild('description', $this->getDescription());
+            $cdata = new \XML_SimpleXMLCDATAFactory();
+            $cdata->insert($child, 'shortname', $this->getShortName());
+            $cdata->insert($child, 'label', $this->getLabel());
+            $cdata->insert($child, 'description', $this->getDescription());
             $child->addChild('field')->addAttribute('REF', array_search($this->getFieldId(), $xmlMapping));
         }
     }
@@ -242,7 +237,7 @@ class SemanticVelocity extends Tracker_Semantic
         if (! isset(self::$instances[$tracker->getId()])) {
             $semantic_dao   = new SemanticVelocityDao();
             $field_velocity = $semantic_dao->searchUsedVelocityField($tracker->getId());
-            $field_id = isset($field_velocity['field_id'])? $field_velocity['field_id'] : 0;
+            $field_id = isset($field_velocity['field_id']) ? $field_velocity['field_id'] : 0;
 
             $factory = Tracker_FormElementFactory::instance();
             $field   = $factory->getFieldById($field_id);
@@ -256,8 +251,7 @@ class SemanticVelocity extends Tracker_Semantic
     private static function forceLoad(Tracker $tracker, ?Tracker_FormElement_Field $field = null)
     {
         $semantic_done                      = SemanticDone::load($tracker);
-        $semantic_formatter                 = new BacklogRequiredTrackerCollectionFormatter();
-        self::$instances[$tracker->getId()] = new SemanticVelocity($tracker, $semantic_done, $semantic_formatter, $field);
+        self::$instances[$tracker->getId()] = new SemanticVelocity($tracker, $semantic_done, $field);
 
         return self::$instances[$tracker->getId()];
     }

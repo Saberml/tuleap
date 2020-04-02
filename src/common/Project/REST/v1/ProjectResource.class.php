@@ -31,7 +31,6 @@ use ProjectCreator;
 use ProjectManager;
 use ProjectUGroup;
 use ProjectXMLImporter;
-use ProjectXMLImporterLogger;
 use ServiceManager;
 use Tuleap\Label\Label;
 use Tuleap\Label\PaginatedCollectionsOfLabelsBuilder;
@@ -68,12 +67,9 @@ use Tuleap\REST\Header;
 use Tuleap\REST\I18NRestException;
 use Tuleap\REST\JsonDecoder;
 use Tuleap\REST\ProjectAuthorization;
-use Tuleap\REST\ProjectStatusVerificator;
 use Tuleap\REST\ResourcesInjector;
 use Tuleap\REST\v1\GitRepositoryListRepresentation;
 use Tuleap\REST\v1\GitRepositoryRepresentationBase;
-use Tuleap\REST\v1\MilestoneRepresentationBase;
-use Tuleap\REST\v1\OrderRepresentationBase;
 use Tuleap\REST\v1\PhpWikiPageRepresentation;
 use Tuleap\User\ForgeUserGroupPermission\RestProjectManagementPermission;
 use Tuleap\Widget\Event\GetProjectsWithCriteria;
@@ -244,6 +240,7 @@ class ProjectResource extends AuthenticatedResource
      *
      * @url    GET
      * @access hybrid
+     * @oauth2-scope read:project
      *
      * @param int    $limit  Number of elements displayed per page
      * @param int    $offset Position of the first element to display
@@ -313,7 +310,6 @@ class ProjectResource extends AuthenticatedResource
 
     /**
      * @param string $query
-     * @param PFUser $user
      * @param int    $offset
      * @param int    $limit
      *
@@ -375,6 +371,7 @@ class ProjectResource extends AuthenticatedResource
      *
      * @url    GET {id}
      * @access hybrid
+     * @oauth2-scope read:project
      *
      * @param int $id Id of the project
      *
@@ -449,21 +446,8 @@ class ProjectResource extends AuthenticatedResource
     }
 
     /**
-     * Used when the resource manages its own special access permissions
-     * e.g. trackers
-     *
-     * @return Project
-     */
-    private function getProjectWithoutAuthorisation($id)
-    {
-        return $this->project_manager->getProject($id);
-    }
-
-    /**
      * Get a ProjectRepresentation
      *
-     * @param Project $project
-     * @param PFUser  $current_user
      *
      * @return ProjectRepresentation
      */
@@ -501,43 +485,6 @@ class ProjectResource extends AuthenticatedResource
         );
 
         return $project_representation;
-    }
-
-    /**
-     * Get plannings
-     *
-     * Get the plannings of a given project
-     *
-     * @url    GET {id}/plannings
-     * @access hybrid
-     *
-     * @param int $id     Id of the project
-     * @param int $limit  Number of elements displayed per page {@from path}
-     * @param int $offset Position of the first element to display {@from path}
-     *
-     * @return array {@type Tuleap\REST\v1\PlanningRepresentationBase}
-     */
-    public function getPlannings($id, $limit = 10, $offset = 0)
-    {
-        $this->checkAccess();
-
-        $this->checkAgileEndpointsAvailable();
-
-        $plannings = $this->plannings($id, $limit, $offset, Event::REST_GET_PROJECT_PLANNINGS);
-        $this->sendAllowHeadersForPlanning();
-
-        return $plannings;
-    }
-
-    /**
-     * @url OPTIONS {id}/plannings
-     *
-     * @param int $id Id of the project
-     */
-    public function optionsPlannings($id)
-    {
-        $this->checkAgileEndpointsAvailable();
-        $this->sendAllowHeadersForPlanning();
     }
 
     /**
@@ -588,6 +535,7 @@ class ProjectResource extends AuthenticatedResource
      *
      * @url    GET {id}/labels
      * @access hybrid
+     * @oauth2-scope read:project
      *
      * @param int    $id     Id of the project
      * @param string $query  Search particular label, if not used, returns all project labels
@@ -633,361 +581,6 @@ class ProjectResource extends AuthenticatedResource
     public function optionsLabels($id)
     {
         $this->sendAllowHeadersForLabels();
-    }
-
-    private function plannings($id, $limit, $offset, $event)
-    {
-        $project = $this->getProjectForUser($id);
-        $result  = [];
-
-        $this->event_manager->processEvent(
-            $event,
-            [
-                'version' => 'v1',
-                'project' => $project,
-                'limit'   => $limit,
-                'offset'  => $offset,
-                'result'  => &$result,
-            ]
-        );
-
-        return $result;
-    }
-
-    /**
-     * Get milestones
-     *
-     * Get the top milestones of a given project
-     *
-     * <p>
-     * $query parameter is optional, by default we return all milestones. If
-     * query={"status":"open"} then only open milestones are returned, if
-     * query={"status":"closed"} then only closed milestones are returned, if
-     * query={"period":"future"} then only milestones planned are returned and if
-     * query={"period":"current"} then only current milestones are returned.
-     * </p>
-     *
-     * @url    GET {id}/milestones
-     * @access hybrid
-     *
-     * @param int    $id     Id of the project
-     * @param string $fields Set of fields to return in the result {@choice all,slim}
-     * @param string $query  JSON object of search criteria properties {@from path}
-     * @param int    $limit  Number of elements displayed per page {@from path}
-     * @param int    $offset Position of the first element to display {@from path}
-     * @param string $order  In which order milestones are fetched. Default is asc {@from path}{@choice asc,desc}
-     *
-     * @return array {@type Tuleap\REST\v1\MilestoneRepresentationBase}
-     */
-    public function getMilestones(
-        $id,
-        $fields = MilestoneRepresentationBase::ALL_FIELDS,
-        $query = '',
-        $limit = 10,
-        $offset = 0,
-        $order = 'asc'
-    ) {
-        $this->checkAccess();
-
-        $this->checkAgileEndpointsAvailable();
-
-        try {
-            $milestones = $this->milestones(
-                $id,
-                $fields,
-                $query,
-                $limit,
-                $offset,
-                $order,
-                Event::REST_GET_PROJECT_MILESTONES
-            );
-        } catch (\Planning_NoPlanningsException $e) {
-            $milestones = [];
-        }
-
-        $this->sendAllowHeadersForMilestones();
-
-        return $milestones;
-    }
-
-    /**
-     * @url OPTIONS {id}/milestones
-     *
-     * @param int $id The id of the project
-     */
-    public function optionsMilestones($id)
-    {
-        $this->checkAgileEndpointsAvailable();
-        $this->sendAllowHeadersForMilestones();
-    }
-
-    private function milestones($id, $representation_type, $query, $limit, $offset, $order, $event)
-    {
-        $project = $this->getProjectForUser($id);
-        $result  = [];
-
-        $this->event_manager->processEvent(
-            $event,
-            [
-                'version'             => 'v1',
-                'project'             => $project,
-                'representation_type' => $representation_type,
-                'query'               => $query,
-                'limit'               => $limit,
-                'offset'              => $offset,
-                'order'               => $order,
-                'result'              => &$result,
-            ]
-        );
-
-        return $result;
-    }
-
-    /**
-     * Get trackers
-     *
-     * Get the trackers of a given project.
-     *
-     * Fetching reference representations can be helpful if you encounter performance issues with complex trackers.
-     *
-     * <br/>
-     * query is optional. When filled, it is a json object with a property "is_tracker_admin" or "with_time_tracking" to filter trackers.
-     * <br/>
-     * <br/>
-     * Example: <pre>{"is_tracker_admin": true}</pre>
-     *          <pre>{"with_time_tracking": true}</pre>
-     * <br/>
-     * <p>
-     *   <strong>/!\</strong> Please note that {"is_tracker_admin": false} is not supported and will result
-     *   in a 400 Bad Request error.
-     * </p>
-     *
-     * @url    GET {id}/trackers
-     * @access hybrid
-     *
-     * @param int    $id             Id of the project
-     * @param string $representation Whether you want to fetch full or reference only representations {@from path}{@choice full,minimal}
-     * @param int    $limit          Number of elements displayed per page {@from path}
-     * @param int    $offset         Position of the first element to display {@from path}
-     * @param string $query          JSON object of search criteria properties {@from path}
-     *
-     * @return array {@type Tuleap\Tracker\REST\TrackerRepresentation}
-     *
-     * @throws RestException 400
-     * @throws RestException 403
-     * @throws RestException 404
-     */
-    public function getTrackers($id, $representation = 'full', $limit = 10, $offset = 0, $query = '')
-    {
-        $this->checkAccess();
-
-        $trackers = $this->getRepresentationsForTrackers(
-            $id,
-            $representation,
-            $limit,
-            $offset,
-            $query
-        );
-
-        $this->sendAllowHeadersForTracker();
-
-        return $trackers;
-    }
-
-    /**
-     * @url OPTIONS {id}/trackers
-     *
-     * @param int $id Id of the project
-     */
-    public function optionsTrackers($id)
-    {
-        $this->sendAllowHeadersForTracker();
-    }
-
-    /**
-     * @throws RestException
-     * @throws \Tuleap\REST\Exceptions\InvalidJsonException
-     */
-    private function getRepresentationsForTrackers($id, $representation, $limit, $offset, $query)
-    {
-        $project = $this->getProjectWithoutAuthorisation($id);
-        $result  = [];
-
-        $this->event_manager->processEvent(
-            Event::REST_GET_PROJECT_TRACKERS,
-            [
-                'version'        => 'v1',
-                'project'        => $project,
-                'representation' => $representation,
-                'limit'          => $limit,
-                'query'          => $query,
-                'offset'         => $offset,
-                'result'         => &$result,
-            ]
-        );
-
-        return $result;
-    }
-
-    /**
-     * Get backlog
-     *
-     * Get the backlog items that can be planned in a top-milestone
-     *
-     * @url    GET {id}/backlog
-     * @access hybrid
-     *
-     * @param int $id     Id of the project
-     * @param int $limit  Number of elements displayed per page {@from path}
-     * @param int $offset Position of the first element to display {@from path}
-     *
-     * @return array {@type Tuleap\REST\v1\BacklogItemRepresentationBase}
-     *
-     * @throws RestException 406
-     */
-    public function getBacklog($id, $limit = 10, $offset = 0)
-    {
-        $this->checkAccess();
-
-        $this->checkAgileEndpointsAvailable();
-
-        try {
-            $backlog_items = $this->backlogItems($id, $limit, $offset, Event::REST_GET_PROJECT_BACKLOG);
-        } catch (\Planning_NoPlanningsException $e) {
-            $backlog_items = [];
-        }
-
-        $this->sendAllowHeadersForBacklog();
-        return $backlog_items;
-    }
-
-    /**
-     * @url OPTIONS {id}/backlog
-     *
-     * @param int $id Id of the project
-     */
-    public function optionsBacklog($id)
-    {
-        $this->checkAgileEndpointsAvailable();
-        $this->sendAllowHeadersForBacklog();
-    }
-
-    /**
-     * Set order of all backlog items
-     *
-     * Order all backlog items in top backlog
-     *
-     * @access hybrid
-     * @url    PUT {id}/backlog
-     *
-     * @param int   $id  Id of the project
-     * @param array $ids Ids of backlog items {@from body}
-     *
-     * @throws RestException 500
-     */
-    public function putBacklog($id, array $ids)
-    {
-        $this->checkAccess();
-
-        $this->checkAgileEndpointsAvailable();
-
-        $project = $this->getProjectForUser($id);
-        $result  = [];
-
-        ProjectStatusVerificator::build()->checkProjectStatusAllowsAllUsersToAccessIt($project);
-
-        $this->event_manager->processEvent(
-            Event::REST_PUT_PROJECT_BACKLOG,
-            [
-                'version' => 'v1',
-                'project' => $project,
-                'ids'     => $ids,
-                'result'  => &$result,
-            ]
-        );
-
-        $this->sendAllowHeadersForBacklog();
-    }
-
-    /**
-     * Re-order backlog items relative to others
-     *
-     * Re-order backlog items in top backlog relative to each other
-     * <br>
-     * Order example:
-     * <pre>
-     * "order": {
-     *   "ids" : [123, 789, 1001],
-     *   "direction": "before",
-     *   "compared_to": 456
-     * }
-     * </pre>
-     *
-     * <br>
-     * Resulting order will be: <pre>[…, 123, 789, 1001, 456, …]</pre>
-     *
-     * <br>
-     * Add example:
-     * <pre>
-     * "add": [
-     *   {
-     *     "id": 34
-     *     "remove_from": 56
-     *   },
-     *   ...
-     * ]
-     * </pre>
-     *
-     * <br>
-     * Remove example (only available for project using explicit backlog management):
-     * <pre>
-     * "Remove": [
-     *   {
-     *     "id": 34
-     *   },
-     *   ...
-     * ]
-     * </pre>
-     *
-     * <br>
-     * Will remove element id 34 from milestone 56 backlog
-     *
-     * @url    PATCH {id}/backlog
-     * @access hybrid
-     *
-     * @param int                                     $id    Id of the project
-     * @param \Tuleap\REST\v1\OrderRepresentationBase $order Order of the children {@from body}
-     * @param array                                   $add   Add (move) item to the backlog {@from body} {@type \Tuleap\REST\v1\BacklogAddRepresentation}
-     * @param array                                   $remove   Remove item to the backlog {@from body} {@type \Tuleap\REST\v1\BacklogRemoveRepresentation}
-     *
-     * @throws RestException 500
-     * @throws RestException 409
-     * @throws RestException 400
-     */
-    public function patchBacklog($id, ?OrderRepresentationBase $order = null, ?array $add = null, ?array $remove = null)
-    {
-        $this->checkAccess();
-
-        $this->checkAgileEndpointsAvailable();
-
-        $project = $this->getProjectForUser($id);
-        $result  = [];
-
-        ProjectStatusVerificator::build()->checkProjectStatusAllowsAllUsersToAccessIt($project);
-
-        $this->event_manager->processEvent(
-            Event::REST_PATCH_PROJECT_BACKLOG,
-            [
-                'version' => 'v1',
-                'project' => $project,
-                'order'   => $order,
-                'add'     => $add,
-                'remove'  => $remove,
-                'result'  => &$result,
-            ]
-        );
-
-        $this->sendAllowHeadersForBacklog();
     }
 
     /**
@@ -1044,25 +637,6 @@ class ProjectResource extends AuthenticatedResource
         $this->sendAllowHeadersForProject();
     }
 
-    private function backlogItems($id, $limit, $offset, $event)
-    {
-        $project = $this->getProjectForUser($id);
-        $result  = [];
-
-        $this->event_manager->processEvent(
-            $event,
-            [
-                'version' => 'v1',
-                'project' => $project,
-                'limit'   => $limit,
-                'offset'  => $offset,
-                'result'  => &$result,
-            ]
-        );
-
-        return $result;
-    }
-
     private function limitValueIsAcceptable($limit)
     {
         return $limit <= self::MAX_LIMIT;
@@ -1090,6 +664,7 @@ class ProjectResource extends AuthenticatedResource
      *
      * @url GET {id}/user_groups
      * @access hybrid
+     * @oauth2-scope read:project
      *
      * @param int    $id    Id of the project
      * @param string $query JSON object of filtering options {@from path} {@required false}
@@ -1451,9 +1026,9 @@ class ProjectResource extends AuthenticatedResource
       *
       * @url GET {id}/banner
       * @access hybrid
+      * @oauth2-scope read:project
       *
       * @param int $id id of the project
-      * @return BannerRepresentation
       * @throws RestException
       */
     public function getBanner($id): BannerRepresentation
@@ -1569,6 +1144,7 @@ class ProjectResource extends AuthenticatedResource
      *
      * @url GET {id}/project_services
      * @access hybrid
+     * @oauth2-scope read:project
      *
      * @param int $id     Id of the project
      * @param int $limit  Number of elements displayed per page {@from path} {@min 0} {@max 50}
@@ -1611,48 +1187,12 @@ class ProjectResource extends AuthenticatedResource
         }
     }
 
-    private function checkAgileEndpointsAvailable()
-    {
-        $available = false;
-
-        $this->event_manager->processEvent(
-            Event::REST_PROJECT_AGILE_ENDPOINTS,
-            [
-                'available' => &$available
-            ]
-        );
-
-        if ($available === false) {
-            throw new RestException(404, 'AgileDashboard plugin not activated');
-        }
-    }
-
     private function sendAllowHeadersForProject()
     {
         Header::allowOptionsGetPostPatch();
     }
 
-    private function sendAllowHeadersForBacklog()
-    {
-        Header::allowOptionsGetPutPatch();
-    }
-
     private function sendAllowHeadersForSvn()
-    {
-        Header::allowOptionsGet();
-    }
-
-    private function sendAllowHeadersForPlanning()
-    {
-        Header::allowOptionsGet();
-    }
-
-    private function sendAllowHeadersForMilestones()
-    {
-        Header::allowOptionsGet();
-    }
-
-    private function sendAllowHeadersForTracker()
     {
         Header::allowOptionsGet();
     }
@@ -1703,7 +1243,6 @@ class ProjectResource extends AuthenticatedResource
     }
 
     /**
-     * @param PFUser $user
      * @return bool
      */
     private function isUserARestProjectManager(PFUser $user)
@@ -1743,7 +1282,7 @@ class ProjectResource extends AuthenticatedResource
             new FieldUpdator(
                 new DescriptionFieldsFactory(new DescriptionFieldsDao()),
                 new ProjectDetailsDAO(),
-                new ProjectXMLImporterLogger()
+                ProjectXMLImporter::getLogger(),
             )
         );
     }

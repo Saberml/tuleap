@@ -28,50 +28,50 @@ class Docman_View_LoveDetails
     public $md;
     public $hp;
 
-    function __construct($md)
+    public function __construct($md)
     {
         $this->md = $md;
         $this->hp = Codendi_HTMLPurifier::instance();
     }
 
-    function getNameField($value = '')
+    public function getNameField($value = '')
     {
         $html = '';
 
         $html .=  '<tr>';
-        $html .=  '<td>'.$GLOBALS['Language']->getText('plugin_docman', 'admin_md_detail_val_create_name').'</td>';
+        $html .=  '<td>' . dgettext('tuleap-docman', 'Name:') . '</td>';
         $html .=  '<td>';
-        $html .=  '<input name="name" type="text" value="'.$this->hp->purify($value).'" class="text_field" />';
+        $html .=  '<input name="name" type="text" value="' . $this->hp->purify($value) . '" class="text_field" />';
         $html .=  '</td>';
         $html .=  '</tr>';
 
         return $html;
     }
 
-    function getDescriptionField($value = '')
+    public function getDescriptionField($value = '')
     {
         $html = '';
 
         $html .=  '<tr>';
-        $html .=  '<td>'.$GLOBALS['Language']->getText('plugin_docman', 'admin_md_detail_val_create_desc').'</td>';
+        $html .=  '<td>' . dgettext('tuleap-docman', 'Description:') . '</td>';
         $html .=  '<td>';
-        $html .=  '<textarea name="descr">'.$this->hp->purify($value).'</textarea>';
+        $html .=  '<textarea name="descr">' . $this->hp->purify($value) . '</textarea>';
         $html .=  '</td>';
         $html .=  '</tr>';
 
         return $html;
     }
 
-    function getRankField($value = 'end')
+    public function getRankField($value = 'end')
     {
         $html = '';
 
         $html .=  '<tr>';
-        $html .=  '<td>'.$GLOBALS['Language']->getText('plugin_docman', 'admin_md_detail_val_create_rank').'</td>';
+        $html .=  '<td>' . dgettext('tuleap-docman', 'Rank:') . '</td>';
 
         $vals = array('beg', 'end', '--');
-        $texts = array($GLOBALS['Language']->getText('plugin_docman', 'admin_md_detail_val_create_rank_beg'),
-                       $GLOBALS['Language']->getText('plugin_docman', 'admin_md_detail_val_create_rank_end'),
+        $texts = array(dgettext('tuleap-docman', 'At the beginning'),
+                       dgettext('tuleap-docman', 'At the end'),
                        '----');
         $i = 3;
 
@@ -82,8 +82,8 @@ class Docman_View_LoveDetails
 
             if ($e->getStatus() == 'A'
                || $e->getStatus() == 'P') {
-                $vals[$i]  = $e->getRank()+1;
-                $texts[$i] = $GLOBALS['Language']->getText('plugin_docman', 'admin_md_detail_val_create_rank_after').' '.Docman_MetadataHtmlList::_getElementName($e);
+                $vals[$i]  = $e->getRank() + 1;
+                $texts[$i] = dgettext('tuleap-docman', 'After') . ' ' . Docman_MetadataHtmlList::_getElementName($e);
                 $i++;
             }
 
@@ -97,14 +97,14 @@ class Docman_View_LoveDetails
         return $html;
     }
 
-    function getHiddenFields($loveId = null)
+    public function getHiddenFields($loveId = null)
     {
         $html = '';
 
-        $html .= '<input type="hidden" name="md" value="'.$this->md->getLabel().'" />';
+        $html .= '<input type="hidden" name="md" value="' . $this->md->getLabel() . '" />';
 
         if ($loveId !== null) {
-            $html .= '<input type="hidden" name="loveid" value="'.$loveId.'" />';
+            $html .= '<input type="hidden" name="loveid" value="' . $loveId . '" />';
         }
 
         return $html;

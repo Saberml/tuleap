@@ -22,7 +22,7 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
-require_once __DIR__.'/../../bootstrap.php';
+require_once __DIR__ . '/../../bootstrap.php';
 
 class Git_Hook_ParseLog_CountPushesTest extends \PHPUnit\Framework\TestCase
 {
@@ -38,7 +38,7 @@ class Git_Hook_ParseLog_CountPushesTest extends \PHPUnit\Framework\TestCase
 
         $this->extract_cross_ref = \Mockery::spy(\Git_Hook_ExtractCrossReferences::class);
         $this->log_pushes        = \Mockery::spy(\Git_Hook_LogPushes::class);
-        $this->logger            = \Mockery::spy(\Logger::class);
+        $this->logger            = \Mockery::spy(\Psr\Log\LoggerInterface::class);
         $this->parse_log         = new Git_Hook_ParseLog($this->log_pushes, $this->extract_cross_ref, $this->logger);
     }
 

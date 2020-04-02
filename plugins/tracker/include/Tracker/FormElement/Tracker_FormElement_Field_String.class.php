@@ -58,7 +58,6 @@ class Tracker_FormElement_Field_String extends Tracker_FormElement_Field_Text
      */
     public function getChangesetValue($changeset, $value_id, $has_changed)
     {
-
         $changeset_value = null;
         if ($row = $this->getValueDao()->searchById($value_id, $this->id)->getRow()) {
             $changeset_value = new Tracker_Artifact_ChangesetValue_String(
@@ -97,11 +96,12 @@ class Tracker_FormElement_Field_String extends Tracker_FormElement_Field_Text
         $value = $this->getValueFromSubmitOrDefault($submitted_values);
         $hp    = Codendi_HTMLPurifier::instance();
         $html .= '<input type="text" class="user-mention"
-                         name="artifact['. $this->id .']"
-                         '. ($this->isRequired() ? 'required' : '') .'
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" />';
+                         data-test="' . $this->getName() . '"
+                         name="artifact[' . $this->id . ']"
+                         ' . ($this->isRequired() ? 'required' : '') . '
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" />';
         return $html;
     }
 
@@ -117,14 +117,14 @@ class Tracker_FormElement_Field_String extends Tracker_FormElement_Field_Text
         $value = dgettext('tuleap-tracker', 'Unchanged');
 
         if ($this->isSemanticTitle()) {
-            $html .= '<input type="text" readonly="readonly" value="'.$value.'" title="'.$GLOBALS['Language']->getText('plugin_tracker_artifact_masschange', 'cannot_masschange_title').'" />';
+            $html .= '<input type="text" readonly="readonly" value="' . $value . '" title="' . $GLOBALS['Language']->getText('plugin_tracker_artifact_masschange', 'cannot_masschange_title') . '" />';
         } else {
             $hp = Codendi_HTMLPurifier::instance();
             $html .= '<input type="text" class="user-mention"
-                             name="artifact['. $this->id .']"
-                             size="'. $this->getProperty('size') .'"
-                             '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                             value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" />';
+                             name="artifact[' . $this->id . ']"
+                             size="' . $this->getProperty('size') . '"
+                             ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                             value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" />';
         }
         return $html;
     }
@@ -173,11 +173,11 @@ class Tracker_FormElement_Field_String extends Tracker_FormElement_Field_Text
         }
         $hp = Codendi_HTMLPurifier::instance();
         $html .= '<input type="text" class="user-mention"
-                         name="artifact['. $this->id .']"
-                         '. ($this->isRequired() ? 'required' : '') .'
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  .'" />';
+                         name="artifact[' . $this->id . ']"
+                         ' . ($this->isRequired() ? 'required' : '') . '
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML)  . '" />';
         return $html;
     }
 
@@ -194,39 +194,27 @@ class Tracker_FormElement_Field_String extends Tracker_FormElement_Field_Text
             $value = $this->getDefaultValue();
         }
         $html .= '<input type="text"
-                         size="'. $this->getProperty('size') .'"
-                         '. ($this->getProperty('maxchars') ? 'maxlength="'. $this->getProperty('maxchars') .'"' : '')  .'
-                         value="'.  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML) .'" autocomplete="off" />';
+                         size="' . $this->getProperty('size') . '"
+                         ' . ($this->getProperty('maxchars') ? 'maxlength="' . $this->getProperty('maxchars') . '"' : '')  . '
+                         value="' .  $hp->purify($value, CODENDI_PURIFIER_CONVERT_HTML) . '" autocomplete="off" />';
         return $html;
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'string');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'string_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-text-field.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('ic/ui-text-field--plus.png');
@@ -235,7 +223,6 @@ class Tracker_FormElement_Field_String extends Tracker_FormElement_Field_Text
     /**
      * Fetch the html code to display the field value in tooltip
      *
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue_String $value The ChangesetValue_String
      * @return string The html code to display the field value in tooltip
      */

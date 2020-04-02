@@ -230,7 +230,7 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
      *
      * @return mixed The default value for this field, or null if no default value defined
      */
-    function getDefaultValue()
+    public function getDefaultValue()
     {
         if ($this->getProperty('default_value_type')) {
             $value = $this->formatDate(parent::getDefaultValue());
@@ -269,14 +269,14 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
         if ($this->isUsed()) {
             //Only filter query if criteria is valuated
             if ($criteria_value = $this->getCriteriaValue($criteria)) {
-                $a = 'A_'. $this->id;
-                $b = 'B_'. $this->id;
+                $a = 'A_' . $this->id;
+                $b = 'B_' . $this->id;
                 $compare_date_stmt = $this->getSQLCompareDate(
                     $criteria->is_advanced,
                     $criteria_value['op'],
                     $criteria_value['from_date'],
                     $criteria_value['to_date'],
-                    $b. '.value'
+                    $b . '.value'
                 );
                 return " INNER JOIN tracker_changeset_value AS $a
                          ON ($a.changeset_id = c.id AND $a.field_id = $this->id )
@@ -286,6 +286,8 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
                          ) ";
             }
         }
+
+        return '';
     }
 
      /**
@@ -412,27 +414,27 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
 
     public function getQuerySelect()
     {
-        $R1 = 'R1_'. $this->id;
-        $R2 = 'R2_'. $this->id;
-        return "$R2.value AS `". $this->name ."`";
+        $R1 = 'R1_' . $this->id;
+        $R2 = 'R2_' . $this->id;
+        return "$R2.value AS `" . $this->name . "`";
     }
 
     public function getQueryFrom()
     {
-        $R1 = 'R1_'. $this->id;
-        $R2 = 'R2_'. $this->id;
+        $R1 = 'R1_' . $this->id;
+        $R2 = 'R2_' . $this->id;
 
         return "LEFT JOIN ( tracker_changeset_value AS $R1
                     INNER JOIN tracker_changeset_value_date AS $R2 ON ($R2.changeset_value_id = $R1.id)
-                ) ON ($R1.changeset_id = c.id AND $R1.field_id = ". $this->id ." )";
+                ) ON ($R1.changeset_id = c.id AND $R1.field_id = " . $this->id . " )";
     }
     /**
      * Get the "group by" statement to retrieve field values
      */
     public function getQueryGroupby()
     {
-        $R1 = 'R1_'. $this->id;
-        $R2 = 'R2_'. $this->id;
+        $R1 = 'R1_' . $this->id;
+        $R2 = 'R2_' . $this->id;
         return "$R2.value";
     }
 
@@ -459,10 +461,10 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
         $html .= '<div style="text-align:right">';
         $value = isset($criteria_value['from_date']) ? $this->formatDateForReport($criteria_value['from_date']) : '';
         $html .= '<label>';
-        $html .= $GLOBALS['Language']->getText('plugin_tracker_include_field', 'start').' ';
+        $html .= $GLOBALS['Language']->getText('plugin_tracker_include_field', 'start') . ' ';
         $html .= $GLOBALS['HTML']->getBootstrapDatePicker(
-            "criteria_".$this->id ."_from",
-            "criteria[". $this->id ."][from_date]",
+            "criteria_" . $this->id . "_from",
+            "criteria[" . $this->id . "][from_date]",
             $value,
             array(),
             array(),
@@ -471,10 +473,10 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
         $html .= '</label>';
         $value = isset($criteria_value['to_date']) ? $this->formatDateForReport($criteria_value['to_date']) : '';
         $html .= '<label>';
-        $html .= $GLOBALS['Language']->getText('plugin_tracker_include_field', 'end').' ';
+        $html .= $GLOBALS['Language']->getText('plugin_tracker_include_field', 'end') . ' ';
         $html .= $GLOBALS['HTML']->getBootstrapDatePicker(
-            "criteria_".$this->id ."_to",
-            "criteria[". $this->id ."][to_date]",
+            "criteria_" . $this->id . "_to",
+            "criteria[" . $this->id . "][to_date]",
             $value,
             array(),
             array(),
@@ -510,7 +512,7 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
             $html .= '<div style="white-space:nowrap;">';
 
             $criteria_selector = array(
-                "name"      => 'criteria['. $this->id .'][op]',
+                "name"      => 'criteria[' . $this->id . '][op]',
                 "criterias" => array(
                     ">" => array(
                         "html_value" => $GLOBALS['Language']->getText('plugin_tracker_include_field', 'after'),
@@ -531,8 +533,8 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
             $value = $criteria_value ? $this->formatDateForReport($criteria_value['to_date']) : '';
 
             $html .= $GLOBALS['HTML']->getBootstrapDatePicker(
-                "tracker_report_criteria_".$this->id,
-                "criteria[". $this->id ."][to_date]",
+                "tracker_report_criteria_" . $this->id,
+                "criteria[" . $this->id . "][to_date]",
                 $value,
                 $criteria_selector,
                 array(),
@@ -558,7 +560,7 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
      */
     protected function formatDateTime($date)
     {
-        return format_date(Tracker_FormElement_DateTimeFormatter::DATE_TIME_FORMAT, (float)$date, '');
+        return format_date(Tracker_FormElement_DateTimeFormatter::DATE_TIME_FORMAT, (float) $date, '');
     }
 
     /**
@@ -593,7 +595,7 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
             $fmt .= ' H:i';
         }
 
-        return format_date($fmt, (float)$date, '');
+        return format_date($fmt, (float) $date, '');
     }
 
     /**
@@ -746,7 +748,7 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
 
     /**
      * Fetch the changes that has been made to this field in a followup
-     * @param Tracker_ $artifact
+     * @param Tracker_Artifact $artifact
      * @param array $from the value(s) *before*
      * @param array $to   the value(s) *after*
      */
@@ -754,9 +756,9 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
     {
         $html = '';
         if (!$from || !($from_value = $this->getValue($from['value_id']))) {
-            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to').' ';
+            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'set_to') . ' ';
         } else {
-            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'changed_from').' '. $this->formatDate($from_value['value']) .' '.$GLOBALS['Language']->getText('plugin_tracker_artifact', 'to').' ';
+            $html .= $GLOBALS['Language']->getText('plugin_tracker_artifact', 'changed_from') . ' ' . $this->formatDate($from_value['value']) . ' ' . $GLOBALS['Language']->getText('plugin_tracker_artifact', 'to') . ' ';
         }
         $to_value = $this->getValue($to['value_id']);
         $html .= $this->formatDate($to_value['value']);
@@ -770,7 +772,7 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
     protected function fetchAdminFormElement()
     {
         return $GLOBALS['HTML']->getBootstrapDatePicker(
-            "tracker_admin_field_".$this->id,
+            "tracker_admin_field_" . $this->id,
             '',
             $this->hasDefaultValue() ? $this->getDefaultValue() : '',
             array(),
@@ -779,33 +781,21 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
         );
     }
 
-    /**
-     * @return the label of the field (mainly used in admin part)
-     */
     public static function getFactoryLabel()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'date');
     }
 
-    /**
-     * @return the description of the field (mainly used in admin part)
-     */
     public static function getFactoryDescription()
     {
         return $GLOBALS['Language']->getText('plugin_tracker_formelement_admin', 'date_description');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconUseIt()
     {
         return $GLOBALS['HTML']->getImagePath('calendar/cal.png');
     }
 
-    /**
-     * @return the path to the icon
-     */
     public static function getFactoryIconCreate()
     {
         return $GLOBALS['HTML']->getImagePath('calendar/cal--plus.png');
@@ -814,7 +804,6 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
     /**
      * Fetch the html code to display the field value in tooltip
      *
-     * @param Tracker_Artifact $artifact
      * @param Tracker_Artifact_ChangesetValue_Date $value The changeset value for this field
      * @return string
      */
@@ -1035,7 +1024,6 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
      * Convert ISO8601 into internal date needed by createNewChangeset
      *
      * @param array $value
-     * @param Tracker_Artifact $artifact
      * @return type
      */
     public function getFieldDataFromRESTValue(array $value, ?Tracker_Artifact $artifact = null)
@@ -1059,7 +1047,6 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
     /**
      * Return the field last value
      *
-     * @param Tracker_Artifact $artifact
      *
      * @return Date
      */
@@ -1135,9 +1122,8 @@ class Tracker_FormElement_Field_Date extends Tracker_FormElement_Field
         return new ArtifactTimeframeHelper(
             $semantic_timeframe_builder,
             new TimeframeBuilder(
-                $form_element_factory,
                 $semantic_timeframe_builder,
-                new \BackendLogger()
+                \BackendLogger::getDefaultLogger()
             )
         );
     }

@@ -30,6 +30,7 @@ use Mockery;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PFUser;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Tracker;
 use Tracker_Artifact;
 use Tracker_Artifact_ChangesetValue_Date;
@@ -37,7 +38,6 @@ use Tracker_Artifact_ChangesetValue_Integer;
 use Tracker_FormElement_Chart_Field_Exception;
 use Tracker_FormElement_Field_Date;
 use Tracker_FormElement_Field_Numeric;
-use Tracker_FormElementFactory;
 use Tuleap\GlobalLanguageMock;
 
 final class TimeframeBuilderTest extends TestCase
@@ -49,7 +49,6 @@ final class TimeframeBuilderTest extends TestCase
      */
     private $builder;
 
-    private $formelement_factory;
     /**
      * @var Mockery\MockInterface|Tracker
      */
@@ -59,7 +58,7 @@ final class TimeframeBuilderTest extends TestCase
 
     private $semantic_timeframe_builder;
     /**
-     * @var \BackendLogger|Mockery\MockInterface
+     * @var LoggerInterface|Mockery\MockInterface
      */
     private $logger;
 
@@ -67,12 +66,10 @@ final class TimeframeBuilderTest extends TestCase
     {
         parent::setUp();
 
-        $this->formelement_factory = Mockery::mock(Tracker_FormElementFactory::class);
         $this->semantic_timeframe_builder = Mockery::mock(SemanticTimeframeBuilder::class);
 
-        $this->logger  = Mockery::mock(\BackendLogger::class);
+        $this->logger  = Mockery::mock(LoggerInterface::class);
         $this->builder = new TimeframeBuilder(
-            $this->formelement_factory,
             $this->semantic_timeframe_builder,
             $this->logger
         );
@@ -233,7 +230,7 @@ final class TimeframeBuilderTest extends TestCase
         $end_date_field = Mockery::mock(Tracker_FormElement_Field_Date::class);
         $end_date_field->shouldReceive('userCanRead')->andReturn(false);
 
-        $this->logger->shouldReceive('warn')->once();
+        $this->logger->shouldReceive('warning')->once();
 
         $this->semantic_timeframe_builder
             ->shouldReceive('getSemantic')
@@ -263,7 +260,7 @@ final class TimeframeBuilderTest extends TestCase
         $end_date_field = Mockery::mock(Tracker_FormElement_Field_Date::class);
         $end_date_field->shouldReceive('userCanRead')->andReturn(true);
 
-        $this->logger->shouldReceive('warn')->once();
+        $this->logger->shouldReceive('warning')->once();
 
         $this->semantic_timeframe_builder
             ->shouldReceive('getSemantic')

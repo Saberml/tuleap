@@ -47,17 +47,17 @@ class WikiPlugin_SiteMap extends WikiPlugin
 {
     public $_pagename;
 
-    function getName()
+    public function getName()
     {
         return _("SiteMap");
     }
 
-    function getDescription()
+    public function getDescription()
     {
         return _("Recursively get BackLinks or links");
     }
 
-    function getVersion()
+    public function getVersion()
     {
         return preg_replace(
             "/[Revision: $]/",
@@ -66,7 +66,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
         );
     }
 
-    function getDefaultArguments()
+    public function getDefaultArguments()
     {
         return array('exclude'        => '',
                      'include_self'   => 0,
@@ -88,7 +88,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
 
     // Fixme: overcome limitation if two SiteMap plugins are in the same page!
     // static $VisitedPages still holds it
-    function recursivelyGetBackLinks(
+    public function recursivelyGetBackLinks(
         $startpage,
         $pagearr,
         $level = '*',
@@ -109,7 +109,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
         while ($link = $pagelinks->next()) {
             $linkpagename = $link->getName();
             if (($linkpagename != $startpagename)
-                and (!$this->ExcludedPages or !preg_match("/".$this->ExcludedPages."/", $linkpagename))) {
+                and (!$this->ExcludedPages or !preg_match("/" . $this->ExcludedPages . "/", $linkpagename))) {
                 $pagearr[$level . " [$linkpagename]"] = $link;
                 $pagearr = $this->recursivelyGetBackLinks(
                     $link,
@@ -122,7 +122,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
         return $pagearr;
     }
 
-    function recursivelyGetLinks(
+    public function recursivelyGetLinks(
         $startpage,
         $pagearr,
         $level = '*',
@@ -162,7 +162,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
     }
 
 
-    function run($dbi, $argstr, &$request, $basepage)
+    public function run($dbi, $argstr, &$request, $basepage)
     {
         include_once('lib/BlockParser.php');
 
@@ -196,7 +196,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
         //Fixme:  override given arg
         $description = $this->getDescription();
         if (! $noheader) {
-            $out = $this->getDescription() ." ". sprintf(
+            $out = $this->getDescription() . " " . sprintf(
                 _("(max. recursion level: %d)"),
                 $reclimit
             ) . ":\n\n";
@@ -256,7 +256,7 @@ class WikiPlugin_SiteMap extends WikiPlugin
             return $html;
         }
     }
-};
+}
 
 // $Log: SiteMap.php,v $
 // Revision 1.13  2004/12/14 21:36:06  rurban
