@@ -558,7 +558,7 @@ class SvnPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
         );
     }
 
-    public function routeSvnPlugin() : DispatchableWithRequest
+    public function routeSvnPlugin(): DispatchableWithRequest
     {
         $repository_manager  = $this->getRepositoryManager();
         $permissions_manager = $this->getPermissionsManager();
@@ -645,7 +645,7 @@ class SvnPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
         );
     }
 
-    public function redirectOldViewVcRoutes() : DispatchableWithRequest
+    public function redirectOldViewVcRoutes(): DispatchableWithRequest
     {
         return new RedirectOldViewVCUrls($this->getPluginPath());
     }
@@ -936,6 +936,9 @@ class SvnPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
         $event->setPluginActivated();
 
         $class            = "Tuleap\\SVN\\REST\\" . $event->getVersion() . "\\ProjectResource";
+        if (! class_exists($class)) {
+            throw new LogicException("$class does not exist");
+        }
         $project_resource = new $class($this->getRepositoryManager());
         $project          = $event->getProject();
 

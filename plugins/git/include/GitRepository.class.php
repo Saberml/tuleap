@@ -277,7 +277,7 @@ class GitRepository implements DVCSRepository
     /**
      * Gives the parent GitRepository object of this
      * Look into the database
-     * @return GitRepository
+     * @return GitRepository|null
      */
     public function getParent()
     {
@@ -975,7 +975,7 @@ class GitRepository implements DVCSRepository
 
     public function setIsMirrored($is_mirrored)
     {
-        $this->is_mirrored = (boolean) $is_mirrored;
+        $this->is_mirrored = (bool) $is_mirrored;
     }
 
     public function getIsMirrored()

@@ -25,16 +25,25 @@ final class LogoRetrieverTest extends \PHPUnit\Framework\TestCase
 {
     use \Tuleap\ForgeConfigSandbox;
 
-    public function testItFindsExistingLogo() : void
+    private $path;
+
+    protected function setUp(): void
     {
-        ForgeConfig::set('sys_urlroot', __DIR__ . '/../../../../src/www');
+        $this->path = \org\bovigo\vfs\vfsStream::setup('/')->url();
+        mkdir($this->path . '/images', 0750, true);
+        ForgeConfig::set('sys_data_dir', $this->path);
+    }
+
+    public function testItFindsExistingLogo(): void
+    {
+        touch($this->path . '/images/organization_logo.png');
+
         $logo_retriever = new LogoRetriever();
         $this->assertNotNull($logo_retriever->getPath());
     }
 
-    public function testItDoesNotFoundUnavailableLogo() : void
+    public function testItDoesNotFoundUnavailableLogo(): void
     {
-        ForgeConfig::set('sys_urlroot', '/wrongpath/');
         $logo_retriever = new LogoRetriever();
         $this->assertNull($logo_retriever->getPath());
     }

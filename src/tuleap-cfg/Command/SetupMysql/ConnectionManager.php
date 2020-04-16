@@ -26,10 +26,13 @@ namespace TuleapCfg\Command\SetupMysql;
 use ParagonIE\EasyDB\EasyDB;
 use ParagonIE\EasyDB\Exception\ConstructorFailed;
 use ParagonIE\EasyDB\Factory;
+use PDO;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-class ConnectionManager
+class ConnectionManager implements ConnectionManagerInterface
 {
+    public const DEFAULT_CA_FILE_PATH = '/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem';
+
     private const MAX_DB_WAIT_LOOPS = 60;
 
     private const AUTHORISED_SQL_MODES = [
@@ -37,28 +40,50 @@ class ConnectionManager
         'NO_ENGINE_SUBSTITUTION' => true,
     ];
 
-    public function getDBWithoutDBName(SymfonyStyle $io, string $host, string $user, string $password): ?EasyDB
+    /**
+     * @psalm-param value-of<ConnectionManagerInterface::ALLOWED_SSL_MODES> $ssl_mode
+     */
+    public function getDBWithoutDBName(SymfonyStyle $io, string $host, int $port, string $ssl_mode, string $ssl_ca_file, string $user, string $password): ?EasyDB
     {
         return $this->loopToConnect(
             $io,
             [
-                'mysql:host=' . $host,
+                'mysql:host=' . $host . ';port=' . $port,
                 $user,
-                $password
+                $password,
+                $this->getOptions($ssl_mode, $ssl_ca_file),
             ]
         );
     }
 
-    public function getDBWithDBName(SymfonyStyle $io, string $host, string $user, string $password, string $dbname): ?EasyDB
+    /**
+     * @psalm-param value-of<ConnectionManagerInterface::ALLOWED_SSL_MODES> $ssl_mode
+     */
+    public function getDBWithDBName(SymfonyStyle $io, string $host, int $port, string $ssl_mode, string $ssl_ca_file, string $user, string $password, string $dbname): ?EasyDB
     {
         return $this->loopToConnect(
             $io,
             [
                 'mysql:host=' . $host . ';dbname=' . $dbname,
                 $user,
-                $password
+                $password,
+                $this->getOptions($ssl_mode, $ssl_ca_file),
             ]
         );
+    }
+
+    /**
+     * @psalm-param value-of<ConnectionManagerInterface::ALLOWED_SSL_MODES> $ssl_mode
+     */
+    private function getOptions(string $ssl_mode, string $ssl_ca_file): array
+    {
+        if ($ssl_mode === self::SSL_NO_SSL) {
+            return [];
+        }
+        return [
+            PDO::MYSQL_ATTR_SSL_CA => $ssl_ca_file,
+            PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => ($ssl_mode === self::SSL_VERIFY_CA),
+        ];
     }
 
     private function loopToConnect(SymfonyStyle $io, array $easy_db): ?EasyDB
@@ -70,7 +95,12 @@ class ConnectionManager
                 $db->single('SELECT 1');
                 return $db;
             } catch (ConstructorFailed $exception) {
-                $io->getErrorStyle()->writeln($exception->getRealException()->getMessage());
+                $real_exception = $exception->getRealException();
+                if ($real_exception !== null) {
+                    $io->getErrorStyle()->writeln($real_exception->getMessage());
+                } else {
+                    $io->getErrorStyle()->writeln('Could not contact the DB');
+                }
                 $result = 0;
                 $i++;
                 sleep(1);
@@ -79,7 +109,7 @@ class ConnectionManager
         return null;
     }
 
-    public function checkSQLModes(EasyDB $db)
+    public function checkSQLModes(EasyDB $db): void
     {
         $row = $db->row('SHOW VARIABLES LIKE \'sql_mode\'');
         $errors = [];

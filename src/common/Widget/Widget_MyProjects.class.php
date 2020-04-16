@@ -45,8 +45,7 @@ class Widget_MyProjects extends Widget
     public function getContent()
     {
         $hp = Codendi_HTMLPurifier::instance();
-        $assets_path    = ForgeConfig::get('tuleap_dir') . '/src/www/assets';
-        $include_assets = new IncludeAssets($assets_path, '/assets');
+        $include_assets = new IncludeAssets(__DIR__ . '/../../www/assets/core', '/assets/core');
         $GLOBALS['HTML']->includeFooterJavascriptFile($include_assets->getFileURL('ckeditor.js'));
         $GLOBALS['HTML']->includeFooterJavascriptFile('/scripts/tuleap/tuleap-ckeditor-toolbar.js');
         $GLOBALS['HTML']->includeFooterJavascriptFile('/scripts/widgets/contact-modal.js');
@@ -94,14 +93,16 @@ class Widget_MyProjects extends Widget
             $prevIsPublic = false;
             $disable_contact = (bool) ForgeConfig::get(self::CONFIG_DISABLE_CONTACT);
             while ($row = db_fetch_array($result)) {
-                if ($row['access'] === Project::ACCESS_PRIVATE_WO_RESTRICTED &&
+                if (
+                    $row['access'] === Project::ACCESS_PRIVATE_WO_RESTRICTED &&
                     ForgeConfig::areRestrictedUsersAllowed() &&
                     $user->isRestricted()
                 ) {
                     continue;
                 }
                 $tdClass = '';
-                if ($display_privacy
+                if (
+                    $display_privacy
                     && $prevIsPublic
                     && ! in_array($row['access'], [Project::ACCESS_PRIVATE, Project::ACCESS_PRIVATE_WO_RESTRICTED], true)
                 ) {

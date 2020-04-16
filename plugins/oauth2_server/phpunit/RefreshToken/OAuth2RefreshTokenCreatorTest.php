@@ -62,7 +62,7 @@ final class OAuth2RefreshTokenCreatorTest extends TestCase
 
         $formatter = new class implements SplitTokenFormatter
         {
-            public function getIdentifier(SplitToken $token) : ConcealedString
+            public function getIdentifier(SplitToken $token): ConcealedString
             {
                 return $token->getVerificationString()->getString();
             }
@@ -148,6 +148,7 @@ final class OAuth2RefreshTokenCreatorTest extends TestCase
         return OAuth2AuthorizationCode::approveForSetOfScopes(
             new SplitToken(1, SplitTokenVerificationString::generateNewSplitTokenVerificationString()),
             UserTestBuilder::aUser()->build(),
+            null,
             null,
             $scopes
         );

@@ -111,7 +111,7 @@ class Tracker implements Tracker_Dispatchable_Interface
     public const ASSIGNED_TO_FIELD_NAME      = "assigned_to";
     public const IMPEDIMENT_FIELD_NAME       = "impediment";
     public const TYPE_FIELD_NAME             = "type";
-    public const NO_PARENT                   = -1;
+    public const NO_PARENT                   = null;
 
     // The limit to 25 char is due to cross references
     // extraction fails if length is more than 25
@@ -919,7 +919,7 @@ class Tracker implements Tracker_Dispatchable_Interface
                 }
                 break;
         }
-        return false;
+        return;
     }
 
     /**
@@ -935,7 +935,7 @@ class Tracker implements Tracker_Dispatchable_Interface
         return $this->is_project_allowed_to_use_nature;
     }
 
-    private function getHierarchyController(Codendi_Request $request) : HierarchyController
+    private function getHierarchyController(Codendi_Request $request): HierarchyController
     {
         $dao                  = new HierarchyDAO();
         $tracker_factory      = $this->getTrackerFactory();
@@ -1827,7 +1827,7 @@ class Tracker implements Tracker_Dispatchable_Interface
     {
         $user_to_notify_dao             = new UsersToNotifyDao();
         $ugroup_to_notify_dao           = new UgroupsToNotifyDao();
-        $unsubscribers_notification_dao = new UnsubscribersNotificationDAO;
+        $unsubscribers_notification_dao = new UnsubscribersNotificationDAO();
         $user_manager                   = UserManager::instance();
         $notification_list_builder      = new NotificationListBuilder(
             new UGroupDao(),
@@ -1843,7 +1843,7 @@ class Tracker implements Tracker_Dispatchable_Interface
             $notification_list_builder,
             $user_to_notify_dao,
             $ugroup_to_notify_dao,
-            new UserNotificationSettingsDAO,
+            new UserNotificationSettingsDAO(),
             new GlobalNotificationsAddressesBuilder(),
             $user_manager,
             new UGroupManager(),
@@ -2392,6 +2392,9 @@ class Tracker implements Tracker_Dispatchable_Interface
     protected function sendXML(SimpleXMLElement $xmlElem)
     {
         $dom = dom_import_simplexml($xmlElem)->ownerDocument;
+        if ($dom === null) {
+            return;
+        }
         $dom->formatOutput = true;
 
         $output_filename = 'Tracker_' . $this->item_name . '.xml';
@@ -2648,7 +2651,8 @@ class Tracker implements Tracker_Dispatchable_Interface
     {
         $artifactbyemail_status = $this->getArtifactByMailStatus();
 
-        if (! $artifactbyemail_status->isRequiredFieldsConfigured($this)
+        if (
+            ! $artifactbyemail_status->isRequiredFieldsConfigured($this)
             || ! $artifactbyemail_status->isSemanticConfigured($this)
         ) {
             $GLOBALS['Response']->addFeedback(
@@ -3291,7 +3295,7 @@ class Tracker implements Tracker_Dispatchable_Interface
     /**
      * Return parent tracker of current tracker (if any)
      *
-     * @return Tracker
+     * @return Tracker|null
      */
     public function getParent()
     {

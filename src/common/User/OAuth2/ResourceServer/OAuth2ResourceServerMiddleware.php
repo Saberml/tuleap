@@ -86,7 +86,7 @@ final class OAuth2ResourceServerMiddleware implements MiddlewareInterface
         $this->login_manager                        = $login_manager;
     }
 
-    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler) : ResponseInterface
+    public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $authorization_header = $request->getHeaderLine('Authorization');
 
@@ -102,7 +102,7 @@ final class OAuth2ResourceServerMiddleware implements MiddlewareInterface
                 $this->access_token_identifier_unserializer->getSplitToken($serialized_access_token_identifier),
                 $this->required_scope
             );
-            $user = $this->event_dispatcher->dispatch($event)->getUser();
+            $granted_authorization = $this->event_dispatcher->dispatch($event)->getGrantedAuthorization();
         } catch (SplitTokenException $exception) {
             return $this->response_factory->createResponse(401)
                 ->withHeader(
@@ -131,7 +131,7 @@ final class OAuth2ResourceServerMiddleware implements MiddlewareInterface
         }
 
         try {
-            $this->login_manager->validateAndSetCurrentUser($user);
+            $this->login_manager->validateAndSetCurrentUser($granted_authorization->getUser());
         } catch (User_LoginException $exception) {
             return $this->response_factory->createResponse(401)
                 ->withHeader(
@@ -140,6 +140,6 @@ final class OAuth2ResourceServerMiddleware implements MiddlewareInterface
                 );
         }
 
-        return $handler->handle($request);
+        return $handler->handle($request->withAttribute(self::class, $granted_authorization));
     }
 }

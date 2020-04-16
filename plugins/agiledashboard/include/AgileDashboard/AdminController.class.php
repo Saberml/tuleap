@@ -313,7 +313,7 @@ class AdminController extends BaseController
             return;
         }
 
-        if (! $tracker_id) {
+        if (! $tracker_id || $tracker === null) {
             $GLOBALS['Response']->addFeedback(
                 Feedback::ERROR,
                 $GLOBALS['Language']->getText('plugin_agiledashboard', 'no_tracker_selected')
@@ -359,7 +359,7 @@ class AdminController extends BaseController
         );
     }
 
-    private function getAdminChartsPresenter(Project $project) : AdminChartsPresenter
+    private function getAdminChartsPresenter(Project $project): AdminChartsPresenter
     {
         $token = new CSRFSynchronizerToken('/plugins/agiledashboard/?action=admin');
 

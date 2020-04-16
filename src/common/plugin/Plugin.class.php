@@ -20,12 +20,11 @@
  */
 
 use Psr\Log\LoggerInterface;
-use Tuleap\Layout\IncludeAssets;
 
 /**
  * Plugin
  */
-class Plugin implements PFO_Plugin
+class Plugin implements PFO_Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
     /** @var LoggerInterface */
     private $backend_logger;
@@ -107,7 +106,7 @@ class Plugin implements PFO_Plugin
      * You just need to add $this->addHook(Event::SERVICES_ALLOWED_FOR_PROJECT)
      * to your plugin to automatically manage presence of service in projects
      */
-    public function services_allowed_for_project(array $params)
+    public function services_allowed_for_project(array $params) //phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $this->addServiceForProject($params['project'], $params['services']);
     }
@@ -403,15 +402,6 @@ class Plugin implements PFO_Plugin
         return $this->backend_logger;
     }
 
-    protected function getMinifiedAssetHTML()
-    {
-        $include_assets = new IncludeAssets(
-            $this->getFilesystemPath() . '/www/assets',
-            $this->getPluginPath() . '/assets'
-        );
-        return $include_assets->getHTMLSnippet($this->getName() . '.js');
-    }
-
     public function currentRequestIsForPlugin()
     {
         return strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0;
@@ -429,7 +419,7 @@ class Plugin implements PFO_Plugin
         $dao->removeOrphanWidgetsByNames($names);
     }
 
-    protected function getRouteHandler(string $handler) : array
+    protected function getRouteHandler(string $handler): array
     {
         return [
             'plugin'  => $this->getName(),

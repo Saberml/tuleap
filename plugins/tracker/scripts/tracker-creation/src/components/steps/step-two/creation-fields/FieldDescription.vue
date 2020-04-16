@@ -37,7 +37,7 @@ import { Component } from "vue-property-decorator";
 import { TrackerToBeCreatedMandatoryData } from "../../../../store/type";
 
 @Component
-export default class StepTwo extends Vue {
+export default class FieldDescription extends Vue {
     @State
     readonly tracker_to_be_created!: TrackerToBeCreatedMandatoryData;
 

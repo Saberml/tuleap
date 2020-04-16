@@ -20,7 +20,10 @@
 
 final class Tracker_Action_CopyArtifactTest extends \PHPUnit\Framework\TestCase //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 {
-    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration, \Tuleap\GlobalLanguageMock, \Tuleap\GlobalResponseMock;
+    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use \Tuleap\GlobalLanguageMock;
+    use \Tuleap\GlobalResponseMock;
+
     /**
      * @var SimpleXMLElement
      */
@@ -467,7 +470,8 @@ XML;
                         return is_a($element, Tuleap\Project\XML\Import\ImportConfig::class);
                     }
                 ),
-                Mockery::type(\Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping::class)
+                Mockery::type(\Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping::class),
+                Mockery::type(\Tuleap\Tracker\XML\Importer\ImportedChangesetMapping::class)
             )->once();
         $this->xml_importer->shouldReceive('importChangesets')
             ->with(
@@ -483,7 +487,8 @@ XML;
                         return is_a($element, Tuleap\Project\XML\Import\ImportConfig::class);
                     }
                 ),
-                Mockery::type(\Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping::class)
+                Mockery::type(\Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping::class),
+                Mockery::type(\Tuleap\Tracker\XML\Importer\ImportedChangesetMapping::class)
             )->once();
         $this->xml_importer->shouldReceive('importChangesets')
             ->with(
@@ -499,7 +504,8 @@ XML;
                         return is_a($element, Tuleap\Project\XML\Import\ImportConfig::class);
                     }
                 ),
-                Mockery::type(\Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping::class)
+                Mockery::type(\Tuleap\Tracker\FormElement\Field\File\CreatedFileURLMapping::class),
+                Mockery::type(\Tuleap\Tracker\XML\Importer\ImportedChangesetMapping::class)
             )->once();
 
         $this->action->process($this->layout, $this->request, $this->user);

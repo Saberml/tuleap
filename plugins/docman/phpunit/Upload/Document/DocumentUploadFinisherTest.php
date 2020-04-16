@@ -52,7 +52,7 @@ final class DocumentUploadFinisherTest extends TestCase
     private $file_storage;
     private $user_manager;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         $this->logger                      = \Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->item_factory                = \Mockery::mock(Docman_ItemFactory::class);
@@ -66,7 +66,7 @@ final class DocumentUploadFinisherTest extends TestCase
         $this->project_manager             = \Mockery::mock(\ProjectManager::instance());
     }
 
-    public function testDocumentIsAddedToTheDocumentManagerWhenTheUploadIsComplete() : void
+    public function testDocumentIsAddedToTheDocumentManagerWhenTheUploadIsComplete(): void
     {
         $root = vfsStream::setup();
 
@@ -127,6 +127,6 @@ final class DocumentUploadFinisherTest extends TestCase
 
         $upload_finisher->finishUpload($file_information);
 
-        $this->assertFileNotExists($path_item_being_uploaded);
+        $this->assertFileDoesNotExist($path_item_being_uploaded);
     }
 }

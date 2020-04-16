@@ -21,6 +21,7 @@
 declare(strict_types=1);
 
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Tuleap\Authentication\Scope\AggregateAuthenticationScopeBuilder;
 use Tuleap\Authentication\Scope\AuthenticationScopeBuilder;
 use Tuleap\Authentication\Scope\AuthenticationScopeBuilderFromClassNames;
@@ -30,6 +31,7 @@ use Tuleap\Cryptography\KeyFactory;
 use Tuleap\DB\DBFactory;
 use Tuleap\DB\DBTransactionExecutorWithConnection;
 use Tuleap\Http\HTTPFactoryBuilder;
+use Tuleap\Http\Response\JSONResponseBuilder;
 use Tuleap\Http\Server\Authentication\BasicAuthLoginExtractor;
 use Tuleap\Http\Server\DisableCacheMiddleware;
 use Tuleap\Http\Server\RejectNonHTTPSRequestMiddleware;
@@ -44,8 +46,9 @@ use Tuleap\OAuth2Server\App\LastCreatedOAuth2AppStore;
 use Tuleap\OAuth2Server\App\OAuth2AppCredentialVerifier;
 use Tuleap\OAuth2Server\App\OAuth2AppRemover;
 use Tuleap\OAuth2Server\App\PrefixOAuth2ClientSecret;
-use Tuleap\OAuth2Server\AuthorizationServer\AuthorizationEndpointGetController;
+use Tuleap\OAuth2Server\AuthorizationServer\AuthorizationEndpointController;
 use Tuleap\OAuth2Server\AuthorizationServer\PKCE\PKCEInformationExtractor;
+use Tuleap\OAuth2Server\AuthorizationServer\PromptParameterValuesExtractor;
 use Tuleap\OAuth2Server\AuthorizationServer\RedirectURIBuilder;
 use Tuleap\OAuth2Server\Grant\AccessTokenGrantController;
 use Tuleap\OAuth2Server\Grant\AccessTokenGrantErrorResponseBuilder;
@@ -60,7 +63,14 @@ use Tuleap\OAuth2Server\Grant\AuthorizationCode\PrefixOAuth2AuthCode;
 use Tuleap\OAuth2Server\Grant\AuthorizationCode\Scope\OAuth2AuthorizationCodeScopeDAO;
 use Tuleap\OAuth2Server\Grant\OAuth2ClientAuthenticationMiddleware;
 use Tuleap\OAuth2Server\Grant\RefreshToken\OAuth2GrantAccessTokenFromRefreshToken;
+use Tuleap\OAuth2Server\OpenIDConnect\IDToken\JWTBuilderFactory;
+use Tuleap\OAuth2Server\OpenIDConnect\IDToken\OpenIDConnectIDTokenCreator;
+use Tuleap\OAuth2Server\OpenIDConnect\IDToken\OpenIDConnectSigningKeyDAO;
+use Tuleap\OAuth2Server\OpenIDConnect\IDToken\OpenIDConnectSigningKeyFactory;
+use Tuleap\OAuth2Server\OpenIDConnect\JWK\JWKSDocumentEndpointController;
 use Tuleap\OAuth2Server\OpenIDConnect\Scope\OAuth2SignInScope;
+use Tuleap\OAuth2Server\OpenIDConnect\Scope\OpenIDConnectEmailScope;
+use Tuleap\OAuth2Server\OpenIDConnect\Scope\OpenIDConnectProfileScope;
 use Tuleap\OAuth2Server\ProjectAdmin\ListAppsController;
 use Tuleap\OAuth2Server\RefreshToken\OAuth2OfflineAccessScope;
 use Tuleap\OAuth2Server\RefreshToken\OAuth2RefreshTokenCreator;
@@ -82,6 +92,7 @@ use Tuleap\Request\ProjectRetriever;
 use Tuleap\User\Account\AccountTabPresenterCollection;
 use Tuleap\User\OAuth2\AccessToken\PrefixOAuth2AccessToken;
 use Tuleap\User\OAuth2\AccessToken\VerifyOAuth2AccessTokenEvent;
+use Tuleap\User\OAuth2\BearerTokenHeaderParser;
 use Tuleap\User\OAuth2\Scope\CoreOAuth2ScopeBuilderFactory;
 use Tuleap\User\OAuth2\Scope\OAuth2ScopeBuilderCollector;
 
@@ -168,18 +179,22 @@ final class oauth2_serverPlugin extends Plugin
         $route_collector->addGroup(
             '/oauth2',
             function (FastRoute\RouteCollector $r): void {
-                $r->get(
+                $r->addRoute(
+                    ['GET', 'POST'],
                     '/authorize',
-                    $this->getRouteHandler('routeAuthorizationEndpointGet')
+                    $this->getRouteHandler('routeAuthorizationEndpoint')
                 );
                 $r->post(
-                    '/authorize',
-                    $this->getRouteHandler('routeAuthorizationEndpointPost')
+                    '/authorize-process-consent',
+                    $this->getRouteHandler('routeAuthorizationProcessConsentEndpoint')
                 );
                 $r->post('/token', $this->getRouteHandler('routeAccessTokenCreation'));
                 $r->post('/token/revoke', $this->getRouteHandler('routeTokenRevocation'));
+                $r->addRoute(['GET', 'POST'], '/userinfo', $this->getRouteHandler('routeUserInfoEndpoint'));
+                $r->get('/jwks', $this->getRouteHandler('routeJWKSDocument'));
             }
         );
+        $route_collector->addRoute('GET', '/.well-known/openid-configuration', $this->getRouteHandler('routeDiscovery'));
     }
 
     public function routeGetProjectAdmin(): DispatchableWithRequest
@@ -239,13 +254,13 @@ final class oauth2_serverPlugin extends Plugin
         );
     }
 
-    public function routeAuthorizationEndpointGet(): DispatchableWithRequest
+    public function routeAuthorizationEndpoint(): DispatchableWithRequest
     {
         $response_factory = HTTPFactoryBuilder::responseFactory();
         $stream_factory = HTTPFactoryBuilder::streamFactory();
         $redirect_uri_builder = new RedirectURIBuilder(HTTPFactoryBuilder::URIFactory());
         $scope_builder = $this->buildScopeBuilder();
-        return new AuthorizationEndpointGetController(
+        return new AuthorizationEndpointController(
             new \Tuleap\OAuth2Server\AuthorizationServer\AuthorizationFormRenderer(
                 $response_factory,
                 $stream_factory,
@@ -259,7 +274,8 @@ final class oauth2_serverPlugin extends Plugin
                 $response_factory,
                 $this->buildOAuth2AuthorizationCodeCreator(),
                 $redirect_uri_builder,
-                new \URLRedirect(\EventManager::instance())
+                new \URLRedirect(\EventManager::instance()),
+                HTTPFactoryBuilder::URIFactory()
             ),
             new \Tuleap\OAuth2Server\User\AuthorizationComparator(
                 new \Tuleap\OAuth2Server\User\AuthorizedScopeFactory(
@@ -269,6 +285,8 @@ final class oauth2_serverPlugin extends Plugin
                 )
             ),
             new PKCEInformationExtractor(),
+            new PromptParameterValuesExtractor(),
+            OAuth2OfflineAccessScope::fromItself(),
             new SapiEmitter(),
             new ServiceInstrumentationMiddleware(self::SERVICE_NAME_INSTRUMENTATION),
             new RejectNonHTTPSRequestMiddleware($response_factory, $stream_factory),
@@ -276,10 +294,10 @@ final class oauth2_serverPlugin extends Plugin
         );
     }
 
-    public function routeAuthorizationEndpointPost(): DispatchableWithRequest
+    public function routeAuthorizationProcessConsentEndpoint(): DispatchableWithRequest
     {
         $response_factory = HTTPFactoryBuilder::responseFactory();
-        return new \Tuleap\OAuth2Server\AuthorizationServer\AuthorizationEndpointPostController(
+        return new \Tuleap\OAuth2Server\AuthorizationServer\AuthorizationEndpointProcessConsentController(
             \UserManager::instance(),
             new AppFactory(new AppDao(), ProjectManager::instance()),
             $this->buildScopeBuilder(),
@@ -292,9 +310,10 @@ final class oauth2_serverPlugin extends Plugin
                 $response_factory,
                 $this->buildOAuth2AuthorizationCodeCreator(),
                 new RedirectURIBuilder(HTTPFactoryBuilder::URIFactory()),
-                new \URLRedirect(\EventManager::instance())
+                new \URLRedirect(\EventManager::instance()),
+                HTTPFactoryBuilder::URIFactory()
             ),
-            new \CSRFSynchronizerToken(AuthorizationEndpointGetController::CSRF_TOKEN),
+            new \CSRFSynchronizerToken(AuthorizationEndpointController::CSRF_TOKEN),
             new SapiEmitter(),
             new ServiceInstrumentationMiddleware(self::SERVICE_NAME_INSTRUMENTATION),
             new RejectNonHTTPSRequestMiddleware($response_factory, HTTPFactoryBuilder::streamFactory()),
@@ -328,6 +347,14 @@ final class oauth2_serverPlugin extends Plugin
                 new OAuth2ScopeSaver(new OAuth2RefreshTokenScopeDAO()),
                 new DateInterval('PT6H'),
                 new DBTransactionExecutorWithConnection(DBFactory::getMainTuleapDBConnection())
+            ),
+            new OpenIDConnectIDTokenCreator(
+                OAuth2SignInScope::fromItself(),
+                new JWTBuilderFactory(),
+                new DateInterval('PT2M'),
+                new OpenIDConnectSigningKeyFactory(new KeyFactory(), new OpenIDConnectSigningKeyDAO()),
+                new Sha256(),
+                UserManager::instance()
             )
         );
         return new AccessTokenGrantController(
@@ -462,6 +489,63 @@ final class oauth2_serverPlugin extends Plugin
         );
     }
 
+    public function routeUserInfoEndpoint(): DispatchableWithRequest
+    {
+        $response_factory = HTTPFactoryBuilder::responseFactory();
+        $stream_factory   = HTTPFactoryBuilder::streamFactory();
+        $password_handler = \PasswordHandlerFactory::getPasswordHandler();
+        $event_manager    = EventManager::instance();
+        return new Tuleap\OAuth2Server\User\UserInfoController(
+            new JSONResponseBuilder($response_factory, $stream_factory),
+            new SapiEmitter(),
+            new ServiceInstrumentationMiddleware(self::SERVICE_NAME_INSTRUMENTATION),
+            new RejectNonHTTPSRequestMiddleware($response_factory, $stream_factory),
+            new \Tuleap\User\OAuth2\ResourceServer\OAuth2ResourceServerMiddleware(
+                $response_factory,
+                new BearerTokenHeaderParser(),
+                new PrefixedSplitTokenSerializer(new PrefixOAuth2AccessToken()),
+                $event_manager,
+                OAuth2SignInScope::fromItself(),
+                new User_LoginManager(
+                    $event_manager,
+                    UserManager::instance(),
+                    new \Tuleap\User\PasswordVerifier($password_handler),
+                    new User_PasswordExpirationChecker(),
+                    $password_handler
+                )
+            )
+        );
+    }
+
+    public function routeJWKSDocument(): DispatchableWithRequest
+    {
+        $response_factory = HTTPFactoryBuilder::responseFactory();
+        $stream_factory   = HTTPFactoryBuilder::streamFactory();
+        return new JWKSDocumentEndpointController(
+            new OpenIDConnectSigningKeyFactory(new KeyFactory(), new OpenIDConnectSigningKeyDAO()),
+            new JSONResponseBuilder($response_factory, $stream_factory),
+            new SapiEmitter(),
+            new ServiceInstrumentationMiddleware(self::SERVICE_NAME_INSTRUMENTATION),
+            new RejectNonHTTPSRequestMiddleware($response_factory, $stream_factory),
+        );
+    }
+
+    public function routeDiscovery(): DispatchableWithRequest
+    {
+        $response_factory = HTTPFactoryBuilder::responseFactory();
+        $stream_factory   = HTTPFactoryBuilder::streamFactory();
+        return new \Tuleap\OAuth2Server\OpenIDConnect\Discovery\DiscoveryController(
+            new \Tuleap\OAuth2Server\OpenIDConnect\Discovery\ConfigurationResponseRepresentationBuilder(
+                new \BaseLanguageFactory(),
+                $this->buildScopeBuilder()
+            ),
+            new JSONResponseBuilder($response_factory, $stream_factory),
+            new SapiEmitter(),
+            new ServiceInstrumentationMiddleware(self::SERVICE_NAME_INSTRUMENTATION),
+            new RejectNonHTTPSRequestMiddleware($response_factory, $stream_factory)
+        );
+    }
+
     public function accountTabPresenterCollection(AccountTabPresenterCollection $collection): void
     {
         (new \Tuleap\OAuth2Server\User\Account\AppsTabAdder())->addTabs($collection);
@@ -479,8 +563,11 @@ final class oauth2_serverPlugin extends Plugin
             new SplitTokenVerificationStringHasher()
         );
 
-        $user = $verifier->getUser($event->getAccessToken(), $event->getRequiredScope());
-        $event->setVerifiedUser($user);
+        $granted_authorization = $verifier->getGrantedAuthorization(
+            $event->getAccessToken(),
+            $event->getRequiredScope()
+        );
+        $event->setGrantedAuthorization($granted_authorization);
     }
 
     public function collectOAuth2ScopeBuilder(OAuth2ScopeBuilderCollector $collector): void
@@ -489,6 +576,8 @@ final class oauth2_serverPlugin extends Plugin
             new AuthenticationScopeBuilderFromClassNames(
                 OAuth2OfflineAccessScope::class,
                 OAuth2SignInScope::class,
+                OpenIDConnectEmailScope::class,
+                OpenIDConnectProfileScope::class
             )
         );
     }

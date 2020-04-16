@@ -189,6 +189,9 @@ class Tracker_RulesManager
     public function validate($tracker_id, $value_field_list)
     {
         $tracker =  $this->tracker_factory->getTrackerByid($tracker_id);
+        if ($tracker === null) {
+            return false;
+        }
 
         $valid_list_rules = $this->tracker_rules_list_validator
             ->validateListRules($tracker, $value_field_list, $this->getAllListRulesByTrackerWithOrder($tracker_id));
@@ -356,7 +359,8 @@ class Tracker_RulesManager
                 $target_field = $request->get('target_field');
                 $tracker_id = $this->tracker->id;
 
-                if ($this->isCyclic($tracker_id, $source_field, $target_field) ||
+                if (
+                    $this->isCyclic($tracker_id, $source_field, $target_field) ||
                     $this->fieldIsAForbiddenSource($tracker_id, $source_field, $target_field) ||
                     $this->fieldIsAForbiddenTarget($tracker_id, $target_field, $source_field)
                 ) {

@@ -23,6 +23,7 @@
  * along with Tuleap. If not, see <http://www.gnu.org/licenses/>.
  */
 
+use Tuleap\Project\Admin\DescriptionFields\DescriptionFieldLabelBuilder;
 use Tuleap\Project\DescriptionFieldsFactory;
 use Tuleap\Project\DescriptionFieldsDao;
 
@@ -170,9 +171,9 @@ class Project extends Group implements PFO_Project  // phpcs:ignore PSR1.Classes
      *
      * @param string $short_name the short name of the service
      *
-     * @return string
+     * @psalm-return class-string
      */
-    public function getServiceClassName($short_name)
+    public function getServiceClassName($short_name): string
     {
         if (! $short_name) {
             return \Tuleap\Project\Service\ProjectDefinedService::class;
@@ -503,12 +504,7 @@ class Project extends Group implements PFO_Project  // phpcs:ignore PSR1.Classes
                 }
             }
 
-            $descname = $displayfieldname[$i];
-            if (preg_match('/(.*):(.*)/', $descname, $matches)) {
-                if ($GLOBALS['Language']->hasText($matches[1], $matches[2])) {
-                    $descname = $GLOBALS['Language']->getText($matches[1], $matches[2]);
-                }
-            }
+            $descname = DescriptionFieldLabelBuilder::getFieldTranslatedName($displayfieldname[$i]);
 
             echo "<h3>" . $hp->purify($descname, CODENDI_PURIFIER_LIGHT, $this->getGroupId()) . "</h3>";
             echo "<p>";

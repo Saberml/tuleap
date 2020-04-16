@@ -38,7 +38,7 @@ help:
 
 .PHONY: composer
 composer:  ## Install PHP dependencies with Composer
-	@find . plugins/ src/www/themes/ tools/ tests/ -mindepth 2 -maxdepth 2 -type f -name 'composer.json' -print0 | \
+	@find . plugins/ src/themes/ src/www/themes/ tools/ tests/ -mindepth 2 -maxdepth 2 -type f -name 'composer.json' -print0 | \
 	    xargs -0 -P"`node ./tools/utils/scripts/max-usable-processors.js`" -L1 -I{} bash -c 'echo "Processing {}" && cd "`dirname "{}"`" && $(COMPOSER_INSTALL)'
 
 ## RNG generation
@@ -55,7 +55,10 @@ rnc2rng: src/common/xml/resources/project/project.rng \
 	 plugins/tracker/resources/trackers.rng \
 	 plugins/tracker/resources/artifacts.rng \
 	 plugins/agiledashboard/resources/xml_project_agiledashboard.rng \
-	 plugins/cardwall/resources/xml_project_cardwall.rng
+	 plugins/cardwall/resources/xml_project_cardwall.rng \
+	 plugins/testmanagement/resources/testmanagement.rng \
+	 plugins/testmanagement/resources/testmanagement_external_changeset.rng \
+	 plugins/testmanagement/resources/testmanagement_external_fields.rng
 
 src/common/xml/resources/project/project.rng: src/common/xml/resources/project/project.rnc plugins/tracker/resources/tracker-definition.rnc plugins/docman/resources/docman-definition.rnc src/common/xml/resources/ugroups-definition.rnc plugins/svn/resources/svn-definition.rnc src/common/xml/resources/frs-definition.rnc src/common/xml/resources/mediawiki-definition.rnc src/common/xml/resources/project-definition.rnc
 
@@ -84,29 +87,30 @@ clean-rng:
 generate-templates-docker: ## Generate XML templates
 	@$(DOCKER) run --rm -u "`id -u`":"`id -g`" -v "$(CURDIR):/wrk" enalean/xsltproc make generate-templates
 
-generate-templates:
-	xsltproc tools/utils/setup_templates/generate-templates/generate-scrum_dashboard.xml \
-		-o plugins/agiledashboard/resources/templates/scrum_dashboard_template.xml
+generate-templates: generate-templates-plugins
 	xsltproc tools/utils/setup_templates/generate-templates/generate-agile_alm.xml \
 		-o tools/utils/setup_templates/agile_alm/agile_alm_template.xml
-	cp -f tools/utils/setup_templates/generate-templates/trackers/bug.xml \
-		plugins/tracker/resources/templates/Tracker_Bugs.xml
-	cp -f tools/utils/setup_templates/generate-templates/trackers/task.xml \
-		plugins/agiledashboard/resources/templates/Tracker_Tasks.xml
-	cp -f tools/utils/setup_templates/generate-templates/trackers/story.xml \
-		plugins/agiledashboard/resources/templates/Tracker_UserStories.xml
-	cp -f tools/utils/setup_templates/generate-templates/trackers/activity.xml \
-		plugins/agiledashboard/resources/templates/Tracker_activity.xml
-	cp -f tools/utils/setup_templates/generate-templates/trackers/rel.xml \
-		plugins/agiledashboard/resources/templates/Tracker_release.xml
-	cp -f tools/utils/setup_templates/generate-templates/trackers/sprint.xml \
-		plugins/agiledashboard/resources/templates/Tracker_sprint.xml
+	xsltproc tools/utils/setup_templates/generate-templates/generate-kanban.xml \
+		-o tools/utils/setup_templates/kanban/kanban_template.xml
+
+generate-templates-plugins:
+	@find . plugins/ -mindepth 2 -maxdepth 2 -type f -name 'Makefile' | while read file; do \
+	    basedir=`dirname $$file`; \
+	    make -C $$basedir -sq generate-templates 2>/dev/null; \
+		if [ $$? -eq 1 ]; then \
+			$(MAKE) -C $$basedir generate-templates; \
+		fi \
+	done
 
 #
 # Tests and all
 #
 
-post-checkout: composer generate-mo dev-clear-cache dev-forgeupgrade generate-templates-docker npm-build restart-services ## Clear caches, run forgeupgrade, build assets and generate language files
+post-checkout-build: composer generate-mo generate-templates-docker npm-build ## Rebuild the application, can be run without stack up
+
+post-checkout-reload-env: dev-clear-cache dev-forgeupgrade restart-services ## Clear caches, forgeupgrade and restart services
+
+post-checkout: post-checkout-build post-checkout-reload-env ## Clear caches, run forgeupgrade, build assets and generate language files
 
 npm-build:
 	npm install
@@ -139,7 +143,7 @@ tests-rest: ## Run all REST tests. SETUP_ONLY=1 to disable auto run. PHP_VERSION
 	SETUP_ONLY="$(SETUP_ONLY)" tests/rest/bin/run-compose.sh "$(PHP_VERSION)" "$(DB)"
 
 tests_soap_73:
-	$(MAKE) tests-rest DB=mysql57
+	$(MAKE) tests-soap DB=mysql57
 
 tests-soap: ## Run all SOAP tests. PHP_VERSION to select the version of PHP to use (73, 74). DB to select the database to use (mysql57, mariadb103)
 	$(eval PHP_VERSION ?= 73)
@@ -164,11 +168,15 @@ tests_cypress_dev: ## Start cypress container to launch tests manually
 tests_cypress_distlp: ## Run Cypress distlp tests
 	@tests/e2e/distlp/wrap.sh
 
+ifeq ($(COVERAGE_ENABLED),1)
+COVERAGE_PARAMS_PHPUNIT=--coverage-html=/tmp/results/coverage/
+endif
 phpunit-ci-run:
-	$(PHP) -d pcov.directory=. src/vendor/bin/phpunit \
+	$(PHP) -d pcov.directory=. -d pcov.exclude='~(vendor|node_modules|tests/(?!(?:lib|phpcs))|plugins/\w+/(?!include))~' \
+		src/vendor/bin/phpunit \
 		-c tests/phpunit/phpunit.xml \
 		--log-junit /tmp/results/phpunit_tests_results.xml \
-		--coverage-html=/tmp/results/coverage/ \
+		$(COVERAGE_PARAMS_PHPUNIT) \
 		--random-order \
 		--do-not-cache-result
 
@@ -180,15 +188,17 @@ run-as-owner:
 	su -c "$(MAKE) -C $(CURDIR) $(TARGET) PHP=$(PHP)" -l runner
 
 phpunit-ci-73:
+	$(eval COVERAGE_ENABLED ?= 1)
 	mkdir -p $(WORKSPACE)/results/ut-phpunit/php-73
-	@docker run --rm -v $(CURDIR):/tuleap:ro -v $(WORKSPACE)/results/ut-phpunit/php-73:/tmp/results --network none enalean/tuleap-test-phpunit:c7-php73 make -C /tuleap TARGET=phpunit-ci-run PHP=/opt/remi/php73/root/usr/bin/php run-as-owner
+	@docker run --rm -v $(CURDIR):/tuleap:ro -v $(WORKSPACE)/results/ut-phpunit/php-73:/tmp/results --network none enalean/tuleap-test-phpunit:c7-php73 make -C /tuleap TARGET="phpunit-ci-run COVERAGE_ENABLED=$(COVERAGE_ENABLED)" PHP=/opt/remi/php73/root/usr/bin/php run-as-owner
 
 phpunit-docker-73: ## Run PHPUnit tests in Docker container with PHP 7.3. Use FILES parameter to run specific tests.
 	@docker run --rm -v $(CURDIR):/tuleap:ro --network none enalean/tuleap-test-phpunit:c7-php73 scl enable php73 "make -C /tuleap phpunit FILES=$(FILES)"
 
 phpunit-ci-74:
+	$(eval COVERAGE_ENABLED ?= 1)
 	mkdir -p $(WORKSPACE)/results/ut-phpunit/php-74
-	@docker run --rm -v $(CURDIR):/tuleap:ro --network none -v $(WORKSPACE)/results/ut-phpunit/php-74:/tmp/results enalean/tuleap-test-phpunit:c7-php74 make -C /tuleap TARGET=phpunit-ci-run PHP=/opt/remi/php74/root/usr/bin/php run-as-owner
+	@docker run --rm -v $(CURDIR):/tuleap:ro --network none -v $(WORKSPACE)/results/ut-phpunit/php-74:/tmp/results enalean/tuleap-test-phpunit:c7-php74 make -C /tuleap TARGET="phpunit-ci-run COVERAGE_ENABLED=$(COVERAGE_ENABLED)" PHP=/opt/remi/php74/root/usr/bin/php run-as-owner
 
 phpunit-docker-74: ## Run PHPUnit tests in Docker container with PHP 7.4. Use FILES parameter to run specific tests.
 	@docker run --rm -v $(CURDIR):/tuleap:ro --network none enalean/tuleap-test-phpunit:c7-php74 scl enable php74 "make -C /tuleap phpunit FILES=$(FILES)"
@@ -259,11 +269,11 @@ psalm-baseline-create-from-scratch: ## Recreate the Psalm baseline from scratch,
 
 phpcs: ## Execute PHPCS with the "strict" ruleset. Use FILES parameter to execute on specific file or directory.
 	$(eval FILES ?= .)
-	@$(PHP) -d memory_limit=512M ./src/vendor/bin/phpcs --extensions=php --encoding=utf-8 --standard=tests/phpcs/tuleap-ruleset-minimal.xml -s -p $(FILES)
+	@$(PHP) -d memory_limit=512M ./src/vendor/bin/phpcs --extensions=php,phpstub --encoding=utf-8 --standard=tests/phpcs/tuleap-ruleset-minimal.xml -s -p $(FILES)
 
 phpcbf: ## Execute PHPCBF with the "strict" ruleset enforced on all the codebase. Use FILES parameter to execute on specific file or directory.
 	$(eval FILES ?= .)
-	@$(PHP) -d memory_limit=512M ./src/vendor/bin/phpcbf --extensions=php --encoding=utf-8 --standard=tests/phpcs/tuleap-ruleset-minimal.xml -p $(FILES)
+	@$(PHP) -d memory_limit=512M ./src/vendor/bin/phpcbf --extensions=php,phpstub --encoding=utf-8 --standard=tests/phpcs/tuleap-ruleset-minimal.xml -p $(FILES)
 
 deptrac: ## Execute deptrac. Use CONFIG to choose the configuration file to evaluate (default to tests/deptrac/core_on_plugins.yml).
 	$(eval CONFIG ?= tests/deptrac/core_on_plugins.yml)

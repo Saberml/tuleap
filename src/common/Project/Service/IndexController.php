@@ -72,7 +72,7 @@ class IndexController implements DispatchableWithRequest, DispatchableWithBurnin
             AdministrationLayoutHelper::buildSelf(),
             new ServicesPresenterBuilder(ServiceManager::instance(), EventManager::instance()),
             TemplateRendererFactory::build()->getRenderer(__DIR__ . '/../../../templates/project/admin/services/'),
-            new IncludeAssets(__DIR__ . '/../../../www/assets', '/assets')
+            new IncludeAssets(__DIR__ . '/../../../www/assets/core', '/assets/core')
         );
     }
 
@@ -108,7 +108,7 @@ class IndexController implements DispatchableWithRequest, DispatchableWithBurnin
         return new CSRFSynchronizerToken(self::CSRF_TOKEN);
     }
 
-    public static function getUrl(Project $project) : string
+    public static function getUrl(Project $project): string
     {
         return sprintf('/project/%s/admin/services', urlencode((string) $project->getID()));
     }

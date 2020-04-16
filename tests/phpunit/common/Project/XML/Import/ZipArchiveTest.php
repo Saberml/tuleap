@@ -26,7 +26,8 @@ use Tuleap\TemporaryTestDirectory;
 
 final class ZipArchiveTest extends \PHPUnit\Framework\TestCase
 {
-    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration, TemporaryTestDirectory;
+    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use TemporaryTestDirectory;
 
     private const FIXTURES_DIR = __DIR__ . '/_fixtures';
 
@@ -36,7 +37,7 @@ final class ZipArchiveTest extends \PHPUnit\Framework\TestCase
     /** @var ZipArchive */
     private $archive;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         $this->tmp_dir = $this->getTmpDir();
 
@@ -46,25 +47,25 @@ final class ZipArchiveTest extends \PHPUnit\Framework\TestCase
         );
     }
 
-    protected function tearDown() : void
+    protected function tearDown(): void
     {
         $this->archive->cleanUp();
         parent::tearDown();
     }
 
-    public function testItGivesTheXMLFile() : void
+    public function testItGivesTheXMLFile(): void
     {
         $expected = file_get_contents(self::FIXTURES_DIR . '/project.xml');
         $this->assertEquals($expected, $this->archive->getProjectXML());
     }
 
-    public function testItExtractAttachmentsIntoARandomTemporaryDirectory() : void
+    public function testItExtractAttachmentsIntoARandomTemporaryDirectory(): void
     {
         $extraction_path = $this->archive->getExtractionPath();
         $this->assertDirectoryExists($extraction_path);
 
         $expected_prefix = $this->tmp_dir . '/import_project_';
-        $this->assertRegExp('%' . $expected_prefix . '\w+%', $extraction_path);
+        $this->assertMatchesRegularExpression('%' . $expected_prefix . '\w+%', $extraction_path);
 
         $this->archive->extractFiles();
 
@@ -74,18 +75,18 @@ final class ZipArchiveTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expected, $extracted);
     }
 
-    public function testItEnsuresThatTemporaryDirectoryIsNotReadableByEveryone() : void
+    public function testItEnsuresThatTemporaryDirectoryIsNotReadableByEveryone(): void
     {
         $extraction_path = $this->archive->getExtractionPath();
         $perms = fileperms($extraction_path) & 0777;
         $this->assertEquals(0700, $perms);
     }
 
-    public function testItCleansUp() : void
+    public function testItCleansUp(): void
     {
         $extraction_path = $this->archive->getExtractionPath();
         $this->archive->extractFiles();
         $this->archive->cleanUp();
-        $this->assertFileNotExists($extraction_path);
+        $this->assertFileDoesNotExist($extraction_path);
     }
 }

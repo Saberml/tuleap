@@ -43,7 +43,7 @@ class ConfigPermissionsSerializerMirrorsTest extends TestCase
     private $permissions_manager;
     private $project;
 
-    public function setUp() : void
+    public function setUp(): void
     {
         parent::setUp();
         $this->mirror_mapper = Mockery::spy(\Git_Mirror_MirrorDataMapper::class);
@@ -76,7 +76,7 @@ class ConfigPermissionsSerializerMirrorsTest extends TestCase
         PermissionsManager::setInstance($this->permissions_manager);
     }
 
-    public function tearDown() : void
+    public function tearDown(): void
     {
         PermissionsManager::clearInstance();
         parent::tearDown();
@@ -94,7 +94,7 @@ class ConfigPermissionsSerializerMirrorsTest extends TestCase
             ->andReturn(array(ProjectUGroup::REGISTERED));
 
         $result = $this->serializer->getForRepository($this->repository);
-        $this->assertRegExp('/^ R   = git_mirror_1$/m', $result);
+        $this->assertMatchesRegularExpression('/^ R   = git_mirror_1$/m', $result);
     }
 
     public function testItGrantsReadPermissionToTwoMirrors()
@@ -110,7 +110,7 @@ class ConfigPermissionsSerializerMirrorsTest extends TestCase
             ->andReturn(array(ProjectUGroup::REGISTERED));
 
         $result = $this->serializer->getForRepository($this->repository);
-        $this->assertRegExp('/^ R   = git_mirror_1 git_mirror_2$/m', $result);
+        $this->assertMatchesRegularExpression('/^ R   = git_mirror_1 git_mirror_2$/m', $result);
     }
 
     public function testItHasNoMirrors()

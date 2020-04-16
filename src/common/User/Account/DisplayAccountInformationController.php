@@ -85,12 +85,12 @@ final class DisplayAccountInformationController implements DispatchableWithReque
         assert($account_information_collection instanceof AccountInformationCollection);
 
         $account_asset = new IncludeAssets(
-            __DIR__ . '/../../../www/assets/account/scripts',
-            '/assets/account/scripts'
+            __DIR__ . '/../../../www/assets/core',
+            '/assets/core'
         );
 
-        $layout->addJavascriptAsset(new JavascriptAsset($account_asset, 'avatar.js'));
-        $layout->addJavascriptAsset(new JavascriptAsset($account_asset, 'timezone.js'));
+        $layout->addJavascriptAsset(new JavascriptAsset($account_asset, 'account/avatar.js'));
+        $layout->addJavascriptAsset(new JavascriptAsset($account_asset, 'account/timezone.js'));
 
         (new UserPreferencesHeader())->display(_('Account'), $layout);
         $this->renderer->renderToPage(

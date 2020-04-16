@@ -304,8 +304,10 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
             return false;
         }
 
-        if (isset($value[self::FIELD_VALUE_MANUAL]) && isset($value[self::FIELD_VALUE_IS_AUTOCOMPUTED]) &&
-                $value[self::FIELD_VALUE_IS_AUTOCOMPUTED]) {
+        if (
+            isset($value[self::FIELD_VALUE_MANUAL]) && isset($value[self::FIELD_VALUE_IS_AUTOCOMPUTED]) &&
+                $value[self::FIELD_VALUE_IS_AUTOCOMPUTED]
+        ) {
             return $value[self::FIELD_VALUE_MANUAL] === '';
         }
 
@@ -354,7 +356,8 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
         if ($is_disabled) {
             $disabled = 'disabled="disabled"';
         }
-        $html  = '<a class="btn auto-compute" ' . $disabled . '><i class="fa fa-repeat fa-flip-horizontal"></i>';
+        $html  = '<a class="btn auto-compute" ' . $disabled . ' data-test="switch-to-autocompute">
+                    <i class="fa fa-repeat fa-flip-horizontal"></i>';
         $html .= $GLOBALS['Language']->getText('plugin_tracker_deprecation_field', 'title_autocompute');
         $html .= '</a>';
 
@@ -395,9 +398,10 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
     {
         $purifier = Codendi_HTMLPurifier::instance();
         $html     = '<input type="text" class="field-computed"
+            data-test="' . $this->getName() . '"
             name="artifact[' . $purifier->purify($this->getId()) . '][' . self::FIELD_VALUE_MANUAL . ']"
             value="' . $purifier->purify($displayed_value) . '" />';
-        $html    .= '<input type="hidden"
+        $html     .= '<input type="hidden"
             name="artifact[' . $purifier->purify($this->getId()) . '][' . self::FIELD_VALUE_IS_AUTOCOMPUTED . ']"
             value="' . $purifier->purify((int) $is_autocomputed) . '" />';
 
@@ -444,7 +448,7 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
             $value = $value . '<span class="artifact-timeframe-helper"> (' . $time_frame_helper->getEndDateArtifactHelperForReadOnlyView($user, $artifact) . ')</span>';
         }
 
-        $html = '<div class="auto-computed-label">' . $value . '</div>' .
+        $html = '<div class="auto-computed-label" data-test="computed-value">' . $value . '</div>' .
             '<div class="back-to-autocompute">' . $html_computed_complete_value . '</div>';
 
         return $html;
@@ -496,7 +500,7 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
 
         $changeset = $this->getTrackerChangesetFactory()->getChangeset($artifact, $changeset_id);
 
-        return $this->getComputedValue($current_user, $changeset->getArtifact(), $changeset->getSubmittedOn());
+        return (string) $this->getComputedValue($current_user, $changeset->getArtifact(), $changeset->getSubmittedOn());
     }
 
     public function getRESTValue(PFUser $user, Tracker_Artifact_Changeset $changeset)
@@ -993,7 +997,8 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
      */
     public function hasChanges(Tracker_Artifact $artifact, Tracker_Artifact_ChangesetValue $previous_changeset_value, $value)
     {
-        if (! $previous_changeset_value->isManualValue() &&
+        if (
+            ! $previous_changeset_value->isManualValue() &&
             isset($value[self::FIELD_VALUE_IS_AUTOCOMPUTED]) &&
             $value[self::FIELD_VALUE_IS_AUTOCOMPUTED]
         ) {
@@ -1076,12 +1081,14 @@ class Tracker_FormElement_Field_Computed extends Tracker_FormElement_Field_Float
             $GLOBALS['Response']->addFeedback('error', $GLOBALS['Language']->getText('plugin_tracker_common_artifact', 'err_required', $this->getLabel() . ' (' . $this->getName() . ')'));
             return false;
         } elseif ($hasPermission) {
-            if (! isset($submitted_value[self::FIELD_VALUE_IS_AUTOCOMPUTED])
+            if (
+                ! isset($submitted_value[self::FIELD_VALUE_IS_AUTOCOMPUTED])
                 && ! isset($submitted_value[self::FIELD_VALUE_MANUAL])
             ) {
                 return true;
             }
-            if (! isset($submitted_value[self::FIELD_VALUE_IS_AUTOCOMPUTED])
+            if (
+                ! isset($submitted_value[self::FIELD_VALUE_IS_AUTOCOMPUTED])
                 || ! (
                     isset($submitted_value[self::FIELD_VALUE_IS_AUTOCOMPUTED])
                     && $submitted_value[self::FIELD_VALUE_IS_AUTOCOMPUTED]

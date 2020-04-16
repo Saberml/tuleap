@@ -74,7 +74,6 @@ class AccessKeyPresenterBuilder
     }
 
     /**
-     * @return static
      * @throws \Tuleap\Cryptography\Exception\CannotPerformIOOperationException
      */
     public static function build(): self
@@ -93,7 +92,7 @@ class AccessKeyPresenterBuilder
                 )
             ),
             new PrefixedSplitTokenSerializer(new PrefixAccessKey()),
-            (new KeyFactory)->getEncryptionKey(),
+            (new KeyFactory())->getEncryptionKey(),
         );
     }
 

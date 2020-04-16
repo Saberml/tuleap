@@ -97,14 +97,16 @@ final class OAuth2AccessTokenDAOTest extends TestCase
             102,
             'hashed_verification_string',
             20,
-            'pkce_code_chall'
+            'pkce_code_chall',
+            'oidc_nonce'
         );
         self::$deleted_project_auth_code_id = $auth_code_dao->create(
             self::$deleted_project_id,
             102,
             'hashed_verification_string',
             20,
-            'pkce_code_chall'
+            'pkce_code_chall',
+            'oidc_nonce'
         );
     }
 
@@ -116,10 +118,10 @@ final class OAuth2AccessTokenDAOTest extends TestCase
     protected function tearDown(): void
     {
         $db = DBFactory::getMainTuleapDBConnection()->getDB();
-        $db->delete('plugin_oauth2_access_token', []);
+        $db->run('DELETE FROM plugin_oauth2_access_token');
     }
 
-    public static function tearDownAfterClass() : void
+    public static function tearDownAfterClass(): void
     {
         $db = DBFactory::getMainTuleapDBConnection()->getDB();
         $db->delete('groups', ['group_id' => self::$active_project_id]);

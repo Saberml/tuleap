@@ -112,9 +112,7 @@ use Tuleap\Tracker\Artifact\RecentlyVisited\HistoryQuickLinkCollection;
 use Tuleap\Tracker\Artifact\RecentlyVisited\RecentlyVisitedDao;
 use Tuleap\Tracker\Artifact\RecentlyVisited\VisitRecorder;
 use Tuleap\Tracker\CreateTrackerFromXMLEvent;
-use Tuleap\Tracker\Creation\DefaultTemplate;
-use Tuleap\Tracker\Creation\DefaultTemplatesCollection;
-use Tuleap\Tracker\Creation\TrackerTemplatesRepresentation;
+use Tuleap\Tracker\Creation\DefaultTemplatesXMLFileCollection;
 use Tuleap\Tracker\Events\MoveArtifactGetExternalSemanticCheckers;
 use Tuleap\Tracker\Events\MoveArtifactParseFieldChangeNodes;
 use Tuleap\Tracker\FormElement\Event\MessageFetcherAdditionalWarnings;
@@ -265,7 +263,7 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
             $this->addHook(GetExternalPostActionPluginsEvent::NAME);
             $this->addHook(CheckPostActionsForTracker::NAME);
             $this->addHook(GetWorkflowExternalPostActionsValuesForUpdate::NAME);
-            $this->addHook(DefaultTemplatesCollection::NAME);
+            $this->addHook(DefaultTemplatesXMLFileCollection::NAME);
         }
 
         if (defined('CARDWALL_BASE_URL')) {
@@ -1154,7 +1152,8 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
 
     public function burning_parrot_compatible_page(BurningParrotCompatiblePageEvent $event) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if (KanbanURL::isKanbanURL(HTTPRequest::instance()) ||
+        if (
+            KanbanURL::isKanbanURL(HTTPRequest::instance()) ||
             $this->isInOverviewTab() ||
             $this->isPlanningV2URL() ||
             $this->isScrumAdminURL()
@@ -1679,10 +1678,11 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
 
     public function moveArtifactParseFieldChangeNodes(MoveArtifactParseFieldChangeNodes $event)
     {
-        if (! $this->getMoveSemanticInitialEffortChecker()->areSemanticsAligned(
-            $event->getSourceTracker(),
-            $event->getTargetTracker()
-        )
+        if (
+            ! $this->getMoveSemanticInitialEffortChecker()->areSemanticsAligned(
+                $event->getSourceTracker(),
+                $event->getTargetTracker()
+            )
         ) {
             return;
         }
@@ -1693,13 +1693,15 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
             new FieldValueMatcher(new XMLImportHelper(UserManager::instance()))
         );
 
-        if ($updater->parseFieldChangeNodesAtGivenIndex(
-            $event->getSourceTracker(),
-            $event->getTargetTracker(),
-            $event->getChangesetXml(),
-            $event->getIndex(),
-            $event->getFeedbackFieldCollector()
-        )) {
+        if (
+            $updater->parseFieldChangeNodesAtGivenIndex(
+                $event->getSourceTracker(),
+                $event->getTargetTracker(),
+                $event->getChangesetXml(),
+                $event->getIndex(),
+                $event->getFeedbackFieldCollector()
+            )
+        ) {
             $event->setModifiedByPlugin();
         }
     }
@@ -1729,7 +1731,7 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
         });
     }
 
-    public function routeLegacyController() : \Tuleap\AgileDashboard\AgileDashboardLegacyController
+    public function routeLegacyController(): \Tuleap\AgileDashboard\AgileDashboardLegacyController
     {
         return new \Tuleap\AgileDashboard\AgileDashboardLegacyController(
             new AgileDashboardRouterBuilder(
@@ -1947,7 +1949,7 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
         }
     }
 
-    public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event) : void
+    public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event): void
     {
         $event->addServiceIfPluginIsNotRestricted($this, $this->getServiceShortname());
     }
@@ -2125,7 +2127,8 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
         $tracker = $event->getTracker();
         $external_post_actions = $event->getPostActions()->getExternalPostActionsValue();
         foreach ($external_post_actions as $post_action) {
-            if ($post_action instanceof AddToTopBacklogValue &&
+            if (
+                $post_action instanceof AddToTopBacklogValue &&
                 ! $planning_tracker_backlog_checker->isTrackerBacklogOfProjectRootPlanning(
                     $tracker,
                     $this->getCurrentUser(),
@@ -2158,52 +2161,13 @@ class AgileDashboardPlugin extends Plugin  // phpcs:ignore PSR1.Classes.ClassDec
         }
     }
 
-    public function defaultTemplatesCollection(DefaultTemplatesCollection $collection): void
+    public function defaultTemplatesXMLFileCollection(DefaultTemplatesXMLFileCollection $collection): void
     {
         $this->addKanbanTemplates($collection);
-        $this->addScrumTemplates($collection);
     }
 
-    private function addKanbanTemplates(DefaultTemplatesCollection $collection): void
+    private function addKanbanTemplates(DefaultTemplatesXMLFileCollection $collection): void
     {
-        $collection->add(
-            'default-activity',
-            new DefaultTemplate(
-                new TrackerTemplatesRepresentation('default-activity', 'Activities', 'clockwork-orange'),
-                __DIR__ . '/../resources/templates/Tracker_activity.xml'
-            )
-        );
-    }
-
-    private function addScrumTemplates(DefaultTemplatesCollection $collection): void
-    {
-        $collection->add(
-            'default-release',
-            new DefaultTemplate(
-                new TrackerTemplatesRepresentation('default-release', 'Releases', 'clockwork-orange'),
-                __DIR__ . '/../resources/templates/Tracker_release.xml'
-            )
-        );
-        $collection->add(
-            'default-sprint',
-            new DefaultTemplate(
-                new TrackerTemplatesRepresentation('default-sprint', 'Sprints', 'acid-green'),
-                __DIR__ . '/../resources/templates/Tracker_sprint.xml'
-            )
-        );
-        $collection->add(
-            'default-story',
-            new DefaultTemplate(
-                new TrackerTemplatesRepresentation('default-story', 'User Stories', 'lake-placid-blue'),
-                __DIR__ . '/../resources/templates/Tracker_UserStories.xml'
-            )
-        );
-        $collection->add(
-            'default-task',
-            new DefaultTemplate(
-                new TrackerTemplatesRepresentation('default-task', 'Tasks', 'daphne-blue'),
-                __DIR__ . '/../resources/templates/Tracker_Tasks.xml'
-            )
-        );
+        $collection->add(__DIR__ . '/../resources/templates/Tracker_activity.xml');
     }
 }

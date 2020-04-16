@@ -31,7 +31,7 @@ class UserTestBuilder
      */
     private $language;
 
-    public static function aUser() : self
+    public static function aUser(): self
     {
         return new self();
     }
@@ -92,6 +92,21 @@ class UserTestBuilder
     public function withTimezone(string $timezone): self
     {
         $this->params['timezone'] = $timezone;
+        return $this;
+    }
+
+    /**
+     * @psalm-param \PFUser::STATUS_*
+     */
+    public function withStatus(string $status): self
+    {
+        $this->params['status'] = $status;
+        return $this;
+    }
+
+    public function withLocale(string $language_tag): self
+    {
+        $this->params['language_id'] = $language_tag;
         return $this;
     }
 

@@ -205,7 +205,7 @@ class ProjectMilestonesPresenterBuilder
                 Tracker_ArtifactFactory::instance(),
                 $milestone_factory,
                 $planning_factory,
-                new AgileDashboard_Milestone_Backlog_BacklogItemBuilder,
+                new AgileDashboard_Milestone_Backlog_BacklogItemBuilder(),
                 new RemainingEffortValueRetriever(Tracker_FormElementFactory::instance()),
                 new ArtifactsInExplicitBacklogDao(),
                 new Tracker_Artifact_PriorityDao()
@@ -263,7 +263,8 @@ class ProjectMilestonesPresenterBuilder
             $this->getLabelStartDateField(),
             $this->getLabelTimeframeField(),
             $this->userCanViewSubMilestonesPlanning(),
-            $this->getBurnupMode()
+            $this->getBurnupMode(),
+            $this->activateTTM()
         );
     }
 
@@ -300,6 +301,9 @@ class ProjectMilestonesPresenterBuilder
 
         foreach ($trackers_id_agile_dashboard as $tracker_id) {
             $tracker                 = $this->tracker_factory->getTrackerById($tracker_id);
+            if ($tracker === null) {
+                continue;
+            }
             $tracker_agile_dashboard = [
                 'id' => (int) $tracker_id,
                 'color_name' => $tracker->getColor()->getName(),
@@ -384,5 +388,14 @@ class ProjectMilestonesPresenterBuilder
             $this->semantic_timeframe = $this->semantic_timeframe_builder->getSemantic($this->root_planning->getPlanningTracker());
         }
         return $this->semantic_timeframe;
+    }
+
+    private function activateTTM(): bool
+    {
+        if (! \ForgeConfig::get('project_milestones_activate_ttm')) {
+            return false;
+        }
+
+        return true;
     }
 }

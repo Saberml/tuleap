@@ -216,38 +216,52 @@ class ArtifactField
     {
         global $Language;
 
-        if (($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER)
-        && ($this->display_type == "SB")) {
+        if (
+            ($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER)
+            && ($this->display_type == "SB")
+        ) {
             return $Language->getText('tracker_include_type', 'sb');
         }
 
-        if (($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER)
-        && ($this->display_type == "MB")) {
+        if (
+            ($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER)
+            && ($this->display_type == "MB")
+        ) {
             return $Language->getText('tracker_include_type', 'mb');
         }
 
-        if (($this->data_type == $this->DATATYPE_TEXT)
-        && ($this->display_type == "TF")) {
+        if (
+            ($this->data_type == $this->DATATYPE_TEXT)
+            && ($this->display_type == "TF")
+        ) {
             return $Language->getText('tracker_include_type', 'tf');
         }
 
-        if (($this->data_type == $this->DATATYPE_TEXT)
-        && ($this->display_type == "TA")) {
+        if (
+            ($this->data_type == $this->DATATYPE_TEXT)
+            && ($this->display_type == "TA")
+        ) {
             return $Language->getText('tracker_include_type', 'ta');
         }
 
-        if (($this->data_type == $this->DATATYPE_DATE)
-        && ($this->display_type == "DF")) {
+        if (
+            ($this->data_type == $this->DATATYPE_DATE)
+            && ($this->display_type == "DF")
+        ) {
             return $Language->getText('tracker_include_type', 'df');
         }
 
-        if (($this->data_type == $this->DATATYPE_FLOAT)
-        && ($this->display_type == "TF")) {
+        if (
+            ($this->data_type == $this->DATATYPE_FLOAT)
+            && ($this->display_type == "TF")
+        ) {
             return $Language->getText('tracker_include_type', 'ff');
         }
 
-        if (($this->data_type == $this->DATATYPE_INT)
-        && ($this->display_type == "TF")) {
+        if (
+            ($this->data_type == $this->DATATYPE_INT)
+            && ($this->display_type == "TF")
+        ) {
             return $Language->getText('tracker_include_type', 'if');
         }
 
@@ -383,8 +397,10 @@ class ArtifactField
         }
 
         $def_val = $this->default_value;
-        if (($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER)
-        && ($this->display_type == "MB")) {
+        if (
+            ($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER)
+            && ($this->display_type == "MB")
+        ) {
             $res = explode(",", $def_val);
             return $res;
         }
@@ -636,7 +652,7 @@ class ArtifactField
       // to make a test for the type of value function it is
       // if ($value_func == '...')
             if (is_numeric($value_id)) {
-                return $uh->getDisplayNameFromUserId($value_id);
+                return $uh->getDisplayNameFromUserId($value_id) ?? '';
             } else {
                 return $Language->getText('tracker_common_field', 'not_found');
             }
@@ -788,7 +804,7 @@ class ArtifactField
      * @param group_artifact_id: the group artifact id
      * @param status: the status
      *
-     * @return array
+     * @return array|false
      */
     public function getFieldValues($group_artifact_id, $status)
     {
@@ -816,7 +832,7 @@ class ArtifactField
      * @param group_artifact_id: the group artifact id
      * @param value_id: the value id
      *
-     * @return array
+     * @return array|null
      */
     public function getFieldValue($group_artifact_id, $value_id)
     {
@@ -1429,8 +1445,10 @@ class ArtifactField
                 // value 0 match with empty date
                 list($value,$ok) = util_date_to_unixtime($default_value);
             }
-        } elseif (($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER) &&
-        is_array($default_value)) {
+        } elseif (
+            ($this->data_type == $this->DATATYPE_INT || $this->data_type == $this->DATATYPE_USER) &&
+            is_array($default_value)
+        ) {
             $value = implode(",", $default_value);
         } else {
             $value = $default_value;

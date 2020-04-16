@@ -54,7 +54,7 @@ class VersionUploadFinisherTest extends TestCase
     private $approval_table_update_checker;
     private $lock_factory;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         $this->logger                        = Mockery::mock(\Psr\Log\LoggerInterface::class);
         $this->item_factory                  = Mockery::mock(Docman_ItemFactory::class);
@@ -71,7 +71,7 @@ class VersionUploadFinisherTest extends TestCase
         $this->lock_factory                  = Mockery::mock(\Docman_LockFactory::class);
     }
 
-    public function testDocumentIsAddedToTheDocumentManagerWhenTheUploadIsComplete() : void
+    public function testDocumentIsAddedToTheDocumentManagerWhenTheUploadIsComplete(): void
     {
         $root = vfsStream::setup();
 
@@ -173,10 +173,10 @@ class VersionUploadFinisherTest extends TestCase
 
         $upload_finisher->finishUpload($file_information);
 
-        $this->assertFileNotExists($path_item_being_uploaded);
+        $this->assertFileDoesNotExist($path_item_being_uploaded);
     }
 
-    public function testDocumentWithoutApprovalTableIsAddedToTheDocumentManagerWhenTheUploadIsComplete() : void
+    public function testDocumentWithoutApprovalTableIsAddedToTheDocumentManagerWhenTheUploadIsComplete(): void
     {
         $root = vfsStream::setup();
 
@@ -278,10 +278,10 @@ class VersionUploadFinisherTest extends TestCase
 
         $upload_finisher->finishUpload($file_information);
 
-        $this->assertFileNotExists($path_item_being_uploaded);
+        $this->assertFileDoesNotExist($path_item_being_uploaded);
     }
 
-    public function testDocumentWithApprovalTableAndBadActionApprovalIsAddedToTheDocumentManagerWhenTheUploadIsComplete() : void
+    public function testDocumentWithApprovalTableAndBadActionApprovalIsAddedToTheDocumentManagerWhenTheUploadIsComplete(): void
     {
         $root = vfsStream::setup();
 
@@ -383,6 +383,6 @@ class VersionUploadFinisherTest extends TestCase
 
         $upload_finisher->finishUpload($file_information);
 
-        $this->assertFileNotExists($path_item_being_uploaded);
+        $this->assertFileDoesNotExist($path_item_being_uploaded);
     }
 }

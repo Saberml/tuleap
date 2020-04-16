@@ -18,7 +18,7 @@
  */
 
 import { shallowMount, Wrapper } from "@vue/test-utils";
-import { createStoreMock } from "../../../../../../../../../src/www/scripts/vue-components/store-wrapper-jest";
+import { createStoreMock } from "../../../../../../../../../src/scripts/vue-components/store-wrapper-jest";
 import { CreationOptions, State } from "../../../../store/type";
 import TrackerBaseCard from "./TrackerBaseCard.vue";
 
@@ -43,7 +43,7 @@ describe("TrackerBaseCard", () => {
 
         const wrapper: Wrapper<TrackerBaseCard> = getWrapper(state);
 
-        wrapper.get("[data-test=selected-option]").trigger("click");
+        wrapper.find("[data-test=selected-option-tracker_template]").trigger("click");
 
         expect(wrapper.vm.$store.commit).toHaveBeenCalledWith(
             "setActiveOption",

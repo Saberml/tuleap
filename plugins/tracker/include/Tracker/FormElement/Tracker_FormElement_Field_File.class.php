@@ -138,6 +138,7 @@ class Tracker_FormElement_Field_File extends Tracker_FormElement_Field
             if (isset($v['value_id'])) {
                 $v = array($v);
             }
+            /** @psalm-var array{value_id:int} $val */
             foreach ($v as $val) {
                 if ($val['value_id'] != 100) {
                     if ($row = $this->getValueDao()->searchById($val['value_id'], $this->id)->getRow()) {
@@ -773,10 +774,12 @@ class Tracker_FormElement_Field_File extends Tracker_FormElement_Field
     {
         $this->has_errors = false;
 
-        if (is_array($value) &&
+        if (
+            is_array($value) &&
             $this->isRequired() &&
             ! $this->checkThatAtLeastOneFileIsUploaded($value) &&
-            $this->isPreviousChangesetEmpty($artifact, $value)) {
+            $this->isPreviousChangesetEmpty($artifact, $value)
+        ) {
             $this->addRequiredError();
         }
 
@@ -841,7 +844,7 @@ class Tracker_FormElement_Field_File extends Tracker_FormElement_Field
     /**
      * Get the array wich contains files submitted by the user
      *
-     * @return array or null if not found
+     * @return null|array null if not found
      */
     protected function getSubmittedInfoFromFILES()
     {
@@ -1068,7 +1071,8 @@ class Tracker_FormElement_Field_File extends Tracker_FormElement_Field
     {
         $last_changeset = $artifact->getLastChangeset();
 
-        if ($last_changeset &&
+        if (
+            $last_changeset &&
             ! is_a($last_changeset, Tracker_Artifact_Changeset_Null::class) &&
             count($last_changeset->getValue($this)->getFiles()) > 0
         ) {

@@ -67,7 +67,7 @@ final class BannerAdministrationController implements DispatchableWithRequest, D
         return new self(
             AdministrationLayoutHelper::buildSelf(),
             TemplateRendererFactory::build()->getRenderer(__DIR__ . '/../../../templates/project/admin/banner/'),
-            new IncludeAssets(__DIR__ . '/../../../www/assets/', '/assets'),
+            new IncludeAssets(__DIR__ . '/../../../www/assets/core', '/assets/core'),
             new BannerRetriever(new BannerDao())
         );
     }
@@ -75,7 +75,7 @@ final class BannerAdministrationController implements DispatchableWithRequest, D
     public function process(HTTPRequest $request, BaseLayout $layout, array $variables)
     {
         $layout->includeFooterJavascriptFile($this->banner_assets->getFileURL('ckeditor.js'));
-        $layout->includeFooterJavascriptFile($this->banner_assets->getFileURL('project-admin-banner.js'));
+        $layout->includeFooterJavascriptFile($this->banner_assets->getFileURL('project/project-admin-banner.js'));
 
         $callback = function (\Project $project, \PFUser $current_user) use ($layout): void {
             $banner = $this->banner_retriever->getBannerForProject($project);

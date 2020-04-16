@@ -131,7 +131,8 @@ abstract class Kanban extends Widget
         $kanban_name     = $this->kanban_title ? : 'Kanban';
         $selected_report = $this->getSelectedReport();
 
-        if ($this->tracker_report_id
+        if (
+            $this->tracker_report_id
             && $selected_report
             && $this->isCurrentReportSelectable($selected_report)
         ) {
@@ -181,6 +182,9 @@ abstract class Kanban extends Widget
         try {
             $kanban     = $this->kanban_factory->getKanban($this->getCurrentUser(), $this->kanban_id);
             $tracker    = $this->tracker_factory->getTrackerByid($kanban->getTrackerId());
+            if ($tracker === null) {
+                throw new \RuntimeException('Tracker does not exist');
+            }
             $project_id = $tracker->getProject()->getID();
             $is_empty   = ! $kanban;
 
@@ -364,10 +368,12 @@ abstract class Kanban extends Widget
         );
     }
 
-    private function getKanbanTrackerShortname(AgileDashboard_Kanban $kanban) : string
+    private function getKanbanTrackerShortname(AgileDashboard_Kanban $kanban): string
     {
-        return $this->tracker_factory->getTrackerById(
-            $kanban->getTrackerId()
-        )->getItemName();
+        $tracker = $this->tracker_factory->getTrackerById($kanban->getTrackerId());
+        if ($tracker === null) {
+            throw new \RuntimeException('Tracker does not exist');
+        }
+        return $tracker->getItemName();
     }
 }

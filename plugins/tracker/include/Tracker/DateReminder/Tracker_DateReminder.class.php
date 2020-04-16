@@ -92,9 +92,8 @@ class Tracker_DateReminder
     /**
      * Get tracker id of the reminder
      *
-     * @return int
      */
-    public function getTrackerId()
+    public function getTrackerId(): int
     {
         return $this->trackerId;
     }
@@ -125,7 +124,7 @@ class Tracker_DateReminder
     /**
      * Return the tracker of this reminder
      *
-     * @return Tracker
+     * @return Tracker|null
      */
     public function getTracker()
     {
@@ -272,7 +271,11 @@ class Tracker_DateReminder
         $ugroups       = $this->getUgroups(true);
         foreach ($ugroups as $ugroupId) {
             if ($ugroupId < 100) {
-                $members = $uGroupManager->getDynamicUGroupsMembers($ugroupId, $this->getTracker()->getGroupId());
+                $tracker = $this->getTracker();
+                if ($tracker === null) {
+                    throw new RuntimeException('Tracker does not exist');
+                }
+                $members = $uGroupManager->getDynamicUGroupsMembers($ugroupId, $tracker->getGroupId());
             } else {
                 $uGroup  = $uGroupManager->getById($ugroupId);
                 $members = $uGroup->getMembers();

@@ -66,7 +66,7 @@ final class GitoliteDriverTest extends GitoliteTestCase
 
     private $backup_codendi_cache_dir;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -142,7 +142,7 @@ final class GitoliteDriverTest extends GitoliteTestCase
         );
     }
 
-    protected function tearDown() : void
+    protected function tearDown(): void
     {
         \ForgeConfig::set('codendi_cache_dir', $this->backup_codendi_cache_dir);
 
@@ -151,7 +151,7 @@ final class GitoliteDriverTest extends GitoliteTestCase
         unset($GLOBALS['sys_data_dir']);
     }
 
-    public function testGitoliteConfUpdate() : void
+    public function testGitoliteConfUpdate(): void
     {
         $this->gitoliterc_reader->shouldReceive('getHostname')->andReturns(null);
 
@@ -161,7 +161,7 @@ final class GitoliteDriverTest extends GitoliteTestCase
 
         $gitoliteConf = $this->getGitoliteConf();
 
-        $this->assertRegExp('#^include "projects/project1.conf"$#m', $gitoliteConf);
+        $this->assertMatchesRegularExpression('#^include "projects/project1.conf"$#m', $gitoliteConf);
     }
 
     protected function getGitoliteConf()
@@ -174,7 +174,7 @@ final class GitoliteDriverTest extends GitoliteTestCase
         return file_get_contents($this->gitolite_admin_dir . '/conf/' . $filename . '.conf');
     }
 
-    public function testItCanRenameProject() : void
+    public function testItCanRenameProject(): void
     {
         $new_name = 'newone';
         $this->project_manager->shouldReceive('getProjectByUnixName')->with($new_name)->andReturns(Mockery::mock(Project::class)->shouldReceive('getUnixName')->andReturn($new_name)->getMock());
@@ -192,12 +192,12 @@ final class GitoliteDriverTest extends GitoliteTestCase
             $this->fixtures_dir . '/perms/newone.conf',
             $this->gitolite_admin_dir . '/conf/projects/newone.conf'
         );
-        $this->assertNotRegExp('`\ninclude "projects/legacy.conf"\n`', $this->getGitoliteConf());
-        $this->assertRegExp('`\ninclude "projects/newone.conf"\n`', $this->getGitoliteConf());
+        $this->assertDoesNotMatchRegularExpression('`\ninclude "projects/legacy.conf"\n`', $this->getGitoliteConf());
+        $this->assertMatchesRegularExpression('`\ninclude "projects/newone.conf"\n`', $this->getGitoliteConf());
         $this->assertEmptyGitStatus();
     }
 
-    public function testItLogsEverytimeItPushes() : void
+    public function testItLogsEverytimeItPushes(): void
     {
         $this->git_exec->shouldReceive('push')->andReturn(true);
         $this->logger->shouldReceive('debug')->times(2);
@@ -205,7 +205,7 @@ final class GitoliteDriverTest extends GitoliteTestCase
         $this->driver->push();
     }
 
-    public function testItOnlyIncludeHOSTNAMERelatedConfFileIfHOSTNAMEVariableIsSetInGitoliteRcFile() : void
+    public function testItOnlyIncludeHOSTNAMERelatedConfFileIfHOSTNAMEVariableIsSetInGitoliteRcFile(): void
     {
         $this->gitoliterc_reader->shouldReceive('getHostname')->andReturns("master");
 
@@ -215,11 +215,11 @@ final class GitoliteDriverTest extends GitoliteTestCase
 
         $gitoliteConf = $this->getGitoliteConf();
 
-        $this->assertRegExp('#^include "%HOSTNAME.conf"$#m', $gitoliteConf);
-        $this->assertNotRegExp('#^include "projects/project1.conf"$#m', $gitoliteConf);
+        $this->assertMatchesRegularExpression('#^include "%HOSTNAME.conf"$#m', $gitoliteConf);
+        $this->assertDoesNotMatchRegularExpression('#^include "projects/project1.conf"$#m', $gitoliteConf);
     }
 
-    public function testItWritesTheGitoliteConfFileInTheHOSTNAMEDotConfFileIfHostnameVariableIsSet() : void
+    public function testItWritesTheGitoliteConfFileInTheHOSTNAMEDotConfFileIfHostnameVariableIsSet(): void
     {
         $hostname = "master";
         $this->gitoliterc_reader->shouldReceive('getHostname')->andReturns($hostname);
@@ -229,10 +229,10 @@ final class GitoliteDriverTest extends GitoliteTestCase
         $this->another_gitolite_driver->updateMainConfIncludes();
 
         $gitoliteConf = $this->getFileConf($hostname);
-        $this->assertRegExp('#^include "projects/project1.conf"$#m', $gitoliteConf);
+        $this->assertMatchesRegularExpression('#^include "projects/project1.conf"$#m', $gitoliteConf);
     }
 
-    public function testItAddsAllTheRequiredFilesForPush() : void
+    public function testItAddsAllTheRequiredFilesForPush(): void
     {
         $hostname = "master";
 
@@ -246,12 +246,12 @@ final class GitoliteDriverTest extends GitoliteTestCase
         $this->another_gitolite_driver->updateMainConfIncludes();
     }
 
-    public function testItIsInitializedEvenIfThereIsNoMaster() : void
+    public function testItIsInitializedEvenIfThereIsNoMaster(): void
     {
         $this->assertTrue($this->driver->isInitialized($this->fixtures_dir . '/headless.git'));
     }
 
-    public function testItIsNotInitializedIfThereIsNoValidDirectory() : void
+    public function testItIsNotInitializedIfThereIsNoValidDirectory(): void
     {
         $this->assertFalse($this->driver->isInitialized($this->fixtures_dir));
     }

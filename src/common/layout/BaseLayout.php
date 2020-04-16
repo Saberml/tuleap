@@ -104,7 +104,7 @@ abstract class BaseLayout extends Response
         $this->breadcrumbs = new BreadCrumbCollection();
         $this->toolbar     = array();
 
-        $this->include_asset = new IncludeAssets(ForgeConfig::get('codendi_dir') . '/src/www/assets', '/assets');
+        $this->include_asset = new IncludeAssets(__DIR__ . '/../../www/assets/core', '/assets/core');
         $this->uri_sanitizer = new URISanitizer(new Valid_LocalURI(), new Valid_FTPURI());
         $this->css_assets    = new CssAssetCollection([]);
     }
@@ -613,7 +613,7 @@ abstract class BaseLayout extends Response
         }
     }
 
-    final protected function getProjectBanner(Project $project, PFUser $current_user, string $script_name) : ?BannerDisplay
+    final protected function getProjectBanner(Project $project, PFUser $current_user, string $script_name): ?BannerDisplay
     {
         $project_banner = (new BannerRetriever(new BannerDao()))->getBannerForDisplayPurpose($project, $current_user);
         if ($project_banner === null) {

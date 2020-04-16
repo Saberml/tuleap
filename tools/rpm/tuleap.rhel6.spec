@@ -465,6 +465,13 @@ Requires: %{name} = @@VERSION@@-@@RELEASE@@%{?dist}, tuleap-plugin-agiledashboar
 %description plugin-taskboard
 %{summary}.
 
+%package plugin-testmanagement
+Summary: Test Management plugin for Tuleap
+Group: Development/Tools
+Requires: %{name} = @@VERSION@@-@@RELEASE@@%{?dist}, tuleap-plugin-tracker, tuleap-plugin-agiledashboard
+%description plugin-testmanagement
+%{summary}.
+
 %package plugin-textualreport
 Summary: Textual Report
 Group: Development/Tools
@@ -566,12 +573,14 @@ done
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/plugins/prometheus_metrics
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/plugins/project_ownership
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/plugins/taskboard
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/plugins/testmanagement
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/projectmilestones
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/label
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/crosstracker
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/document
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/project_ownership
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/taskboard
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/testmanagement
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/timetracking
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/velocity
 %endif
@@ -580,8 +589,22 @@ done
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/plugins/oauth2_server
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/assets/oauth2_server
 %endif
-%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/composer.json
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/*.js
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/*.json
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/composer.lock
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/scripts/
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/BurningParrot/composer.json
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/BurningParrot/css
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/BurningParrot/images
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/BurningParrot/node_modules
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/BurningParrot/package-lock.json
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/BurningParrot/package.json
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/FlamingParrot/composer.json
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/FlamingParrot/css
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/FlamingParrot/images
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/common
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/themes/tlp
+%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/tlp-doc
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/tools/utils/gerrit_setup
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/tools/utils/githooks
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/tools/utils/version_numbers
@@ -591,14 +614,6 @@ done
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/tools/utils/run_dev/
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/tools/utils/scripts/
 %{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/tools/utils/php73/run.sh
-%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/themes/FlamingParrot/composer.json
-%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/themes/BurningParrot/composer.json
-%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/themes/common/package.json
-%{__rm} -rf $RPM_BUILD_ROOT/%{APP_DIR}/src/www/themes/common/webpack.*.js
-
-# Link to local config for logo and themes images
-# Needed for nginx try_files
-%{__ln_s} /etc/%{APP_NAME}/themes/common/images $RPM_BUILD_ROOT/%{APP_DIR}/src/www/themes/local
 
 # Data dir
 %{__install} -m 755 -d $RPM_BUILD_ROOT/%{APP_DATA_DIR}
@@ -1064,15 +1079,10 @@ fi
 %{APP_DIR}/src/www/api/index.php
 %{APP_DIR}/src/www/api/reference
 %dir %{APP_DIR}/src/www/assets
-%{APP_DIR}/src/www/assets/*.js
-%{APP_DIR}/src/www/assets/manifest.json
-%{APP_DIR}/src/www/assets/account
+%{APP_DIR}/src/www/assets/core
 %{APP_DIR}/src/www/assets/admindelegation
-%{APP_DIR}/src/www/assets/ckeditor-*
-%{APP_DIR}/src/www/assets/dashboards
 %{APP_DIR}/src/www/assets/docman
 %{APP_DIR}/src/www/assets/pluginsadministration
-%{APP_DIR}/src/www/assets/project-registration
 %{APP_DIR}/src/www/assets/projectlinks
 %{APP_DIR}/src/www/assets/statistics
 %{APP_DIR}/src/www/assets/userlog
@@ -1095,14 +1105,7 @@ fi
 %{APP_DIR}/src/www/svn
 # Only "common" theme is embedded into the package
 %dir %{APP_DIR}/src/www/themes
-%dir %{APP_DIR}/src/www/themes/common
-%{APP_DIR}/src/www/themes/common/assets
-%{APP_DIR}/src/www/themes/common/css
-%{APP_DIR}/src/www/themes/common/font
-%{APP_DIR}/src/www/themes/common/images
-%dir %{APP_DIR}/src/www/themes/common/tlp
-%{APP_DIR}/src/www/themes/common/tlp/dist
-%{APP_DIR}/src/www/themes/local
+%{APP_DIR}/src/www/themes/common
 %{APP_DIR}/src/www/tos
 %{APP_DIR}/src/www/tour
 %{APP_DIR}/src/www/tracker
@@ -1447,6 +1450,11 @@ fi
 %{APP_DIR}/plugins/taskboard
 %{APP_DIR}/src/www/assets/taskboard
 
+%files plugin-testmanagement
+%defattr(-,root,root,-)
+%{APP_DIR}/plugins/testmanagement
+%{APP_DIR}/src/www/assets/testmanagement
+
 %files plugin-textualreport
 %defattr(-,root,root,-)
 %{APP_DIR}/plugins/textualreport
@@ -1478,10 +1486,12 @@ fi
 
 %files theme-flamingparrot
 %defattr(-,%{APP_USER},%{APP_USER},-)
+%{APP_DIR}/src/themes/FlamingParrot
 %{APP_DIR}/src/www/themes/FlamingParrot
 
 %files theme-burningparrot
 %defattr(-,%{APP_USER},%{APP_USER},-)
+%{APP_DIR}/src/themes/BurningParrot
 %{APP_DIR}/src/www/themes/BurningParrot
 
 #%doc

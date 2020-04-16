@@ -93,7 +93,7 @@ const webpack_config_for_charts = {
     },
     resolve: {
         alias: {
-            "charts-builders": path.resolve(__dirname, "../../src/www/scripts/charts-builders/"),
+            "charts-builders": path.resolve(__dirname, "../../src/scripts/charts-builders/"),
             "d3-array$": path.resolve(__dirname, "node_modules/d3-array"),
             "d3-scale$": path.resolve(__dirname, "node_modules/d3-scale"),
             "d3-axis$": path.resolve(__dirname, "node_modules/d3-axis"),
@@ -150,7 +150,7 @@ const webpack_config_for_kanban = {
     },
     resolve: {
         alias: webpack_configurator.extendAliases(webpack_configurator.tlp_fetch_alias, {
-            "angular-tlp": path.resolve(__dirname, "../../src/www/themes/common/tlp/angular-tlp"),
+            "angular-tlp": path.resolve(__dirname, "../../src/themes/tlp/angular-tlp"),
             // cumulative-flow-chart
             d3$: path.resolve(__dirname, "node_modules/d3"),
             lodash$: path.resolve(__dirname, "./scripts/kanban/node_modules/lodash"),

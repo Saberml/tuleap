@@ -96,14 +96,16 @@ final class OAuth2RefreshTokenDAOTest extends TestCase
             102,
             'hashed_verification_string',
             20,
-            'pkce_code_chall'
+            'pkce_code_chall',
+            'oidc_nonce'
         );
         self::$deleted_project_auth_code_id = $auth_code_dao->create(
             self::$deleted_project_id,
             102,
             'hashed_verification_string',
             20,
-            'pkce_code_chall'
+            'pkce_code_chall',
+            'oidc_nonce'
         );
     }
 
@@ -115,7 +117,7 @@ final class OAuth2RefreshTokenDAOTest extends TestCase
     protected function tearDown(): void
     {
         $db = DBFactory::getMainTuleapDBConnection()->getDB();
-        $db->delete('plugin_oauth2_refresh_token', []);
+        $db->run('DELETE FROM plugin_oauth2_refresh_token');
     }
 
     public static function tearDownAfterClass(): void

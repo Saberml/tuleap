@@ -1,7 +1,8 @@
 {
     "packages": [
-        "src/www/themes/**/",
-        "src/www/scripts/",
+        "src/themes/tlp/",
+        "src/",
+        "src/themes/BurningParrot/",
         "plugins/**/"
     ],
     "version": "independent"

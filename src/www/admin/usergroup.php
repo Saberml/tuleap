@@ -43,8 +43,7 @@ require_once __DIR__ . '/../include/account.php';
 $request = HTTPRequest::instance();
 $request->checkUserIsSuperUser();
 
-$assets_path    = ForgeConfig::get('tuleap_dir') . '/src/www/assets';
-$include_assets = new IncludeAssets($assets_path, '/assets');
+$include_assets = new IncludeAssets(__DIR__ . '/../assets/core', '/assets/core');
 
 $GLOBALS['HTML']->includeFooterJavascriptFile(
     $include_assets->getFileURL('site-admin-user-details.js')
@@ -138,9 +137,11 @@ if ($request->isPost()) {
             $accountActivationEvent = null;
             $vStatus = new Valid_WhiteList('form_status', $user->getAllWorkingStatus());
             $vStatus->required();
-            if ($request->valid($vStatus)
+            if (
+                $request->valid($vStatus)
                 && in_array($user->getStatus(), $user->getAllWorkingStatus())
-                && $user->getStatus() != $request->get('form_status')) {
+                && $user->getStatus() != $request->get('form_status')
+            ) {
                 switch ($request->get('form_status')) {
                     case PFUser::STATUS_ACTIVE:
                         $user->setStatus($request->get('form_status'));
@@ -160,9 +161,11 @@ if ($request->isPost()) {
                         } elseif (ForgeConfig::areRestrictedUsersAllowed()) {
                             $user->setStatus($request->get('form_status'));
                             // If the user had a shell, set it to restricted shell
-                            if ($user->getShell()
+                            if (
+                                $user->getShell()
                                 && ($user->getShell() != "/bin/false")
-                                && ($user->getShell() != "/sbin/nologin")) {
+                                && ($user->getShell() != "/sbin/nologin")
+                            ) {
                                 $user->setShell($GLOBALS['codendi_bin_prefix'] . '/cvssh-restricted');
                             }
                             $accountActivationEvent = 'project_admin_activate_user';

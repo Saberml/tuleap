@@ -24,15 +24,15 @@ use PHPUnit\Framework\TestCase;
 
 final class JSONHeaderTest extends TestCase
 {
-    public function testStartsWithHeaderInfo() : void
+    public function testStartsWithHeaderInfo(): void
     {
-        $this->assertRegExp('/^X-JSON:.*/', JSONHeader::getHeaderForPrototypeJS('something'));
+        $this->assertMatchesRegularExpression('/^X-JSON:.*/', JSONHeader::getHeaderForPrototypeJS('something'));
     }
 
     /**
      * @dataProvider contentProvider
      */
-    public function testJsonFormat($entry, string $expected) : void
+    public function testJsonFormat($entry, string $expected): void
     {
         $this->assertSame(
             'X-JSON: {"whatever":false,"msg":' . $expected . '}',
@@ -40,7 +40,7 @@ final class JSONHeaderTest extends TestCase
         );
     }
 
-    public function contentProvider() : array
+    public function contentProvider(): array
     {
         return [
             ['toto', '"toto"'],

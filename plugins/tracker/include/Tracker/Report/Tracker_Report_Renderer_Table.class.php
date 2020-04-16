@@ -1129,7 +1129,7 @@ class Tracker_Report_Renderer_Table extends Tracker_Report_Renderer implements T
                         $row = array_merge($row, $result->getRow());
                         //row == id, f1, f2, f3, f4...
                     }
-                    $html .= '<tr class="' . $additional_classname . '">';
+                    $html .= '<tr class="' . $additional_classname . '" data-test="tracker-report-table-results-artifact">';
                     $current_user = UserManager::instance()->getCurrentUser();
                     if ($extracolumn) {
                         $display_extracolumn = true;
@@ -1170,6 +1170,7 @@ class Tracker_Report_Renderer_Table extends Tracker_Report_Renderer implements T
                         $html .= '<td>';
                         $html .= '<a
                             class="direct-link-to-artifact"
+                            data-test="direct-link-to-artifact"
                             href="' . $url . '"
                             title="' . $GLOBALS['Language']->getText('plugin_tracker_include_report', 'show') . ' artifact #' . $row['id'] . '">';
                         $html .= '<i class="fa fa-edit"></i>';
@@ -1240,7 +1241,7 @@ class Tracker_Report_Renderer_Table extends Tracker_Report_Renderer implements T
                 }
             }
         } else {
-            $html .= '<tr class="tracker_report_table_no_result"><td colspan="' . (count($this->getColumns()) + 2) . '" align="center">' . 'No results' . '</td></tr>';
+            $html .= '<tr class="tracker_report_table_no_result" data-test="tracker-report-table-empty-state"><td colspan="' . (count($this->getColumns()) + 2) . '" align="center">' . 'No results' . '</td></tr>';
         }
         if (!$only_rows) {
             $html .= '</tbody>';
@@ -2109,7 +2110,8 @@ class Tracker_Report_Renderer_Table extends Tracker_Report_Renderer implements T
         $value  = isset($row[$column['field']->getName()]) ? $row[$column['field']->getName()] : null;
         $line[] = $column['field']->fetchCSVChangesetValue($row['id'], $row['changeset_id'], $value, $this->report);
 
-        if ($this->report->getTracker()->isProjectAllowedToUseNature() &&
+        if (
+            $this->report->getTracker()->isProjectAllowedToUseNature() &&
             $this->getFieldFactory()->getType($column['field']) === Tracker_FormElement_Field_ArtifactLink::TYPE
         ) {
             foreach ($this->getNaturePresenterFactory()->getAllUsedNaturesByProject($this->report->getTracker()->getProject()) as $nature) {

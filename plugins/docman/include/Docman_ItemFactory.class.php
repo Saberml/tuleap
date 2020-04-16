@@ -501,8 +501,10 @@ class Docman_ItemFactory
                     $row = $dar->current();
                     $itemRows[$row['item_id']] = $row;
                     $itemIds[] = $row['item_id'];
-                    if ($row['item_type'] == PLUGIN_DOCMAN_ITEM_TYPE_FOLDER
-                        && ($expandAll || isset($expandedFolders[$row['item_id']]))) {
+                    if (
+                        $row['item_type'] == PLUGIN_DOCMAN_ITEM_TYPE_FOLDER
+                        && ($expandAll || isset($expandedFolders[$row['item_id']]))
+                    ) {
                         $parentIds[$row['item_id']] = $row['item_id'];
                     }
                     $dar->next();
@@ -1123,7 +1125,7 @@ class Docman_ItemFactory
      * @param $orphan      Hashmap of item ids. Items (in ItemList) without
      *                     parent node
      * @param $wantedItems Items needed to continue to build the tree.
-     * @return int Id of root item if found, false otherwise.
+     * @return int|false Id of root item if found, false otherwise.
      */
     public function connectOrphansToParents(&$itemList, &$orphans, &$wantedItems)
     {

@@ -79,9 +79,11 @@ class Docman_ApprovalTableReviewerFactory
     {
         $res = false;
 
-        if ($this->table !== null
-           && $this->table->isEnabled()
-           && $this->table->getNotification() != PLUGIN_DOCMAN_APPROVAL_NOTIF_DISABLED) {
+        if (
+            $this->table !== null
+            && $this->table->isEnabled()
+            && $this->table->getNotification() != PLUGIN_DOCMAN_APPROVAL_NOTIF_DISABLED
+        ) {
             $atsm = $this->_getApprovalTableNotificationCycle();
             switch ($this->table->getNotification()) {
                 case PLUGIN_DOCMAN_APPROVAL_NOTIF_ALLATONCE:
@@ -137,7 +139,7 @@ class Docman_ApprovalTableReviewerFactory
      * Create reviewer from database.
      * This method update 'isReviewer' cache (see corresponding method)
      *
-     * @return Docman_ApprovalReviewer
+     * @return Docman_ApprovalReviewer|null
      */
     public function getReviewer($userId)
     {

@@ -31,8 +31,7 @@ require_once __DIR__ . '/admin_utils.php';
 $request = HTTPRequest::instance();
 $request->checkUserIsSuperUser();
 
-$assets_path    = ForgeConfig::get('tuleap_dir') . '/src/www/assets';
-$include_assets = new IncludeAssets($assets_path, '/assets');
+$include_assets = new IncludeAssets(__DIR__ . '/../assets/core', '/assets/core');
 
 $GLOBALS['HTML']->includeFooterJavascriptFile($include_assets->getFileURL('site-admin-pending-users.js'));
 
@@ -183,8 +182,10 @@ if ($request->exist('form_expiry') && $request->get('form_expiry') != '' && ! pr
             if ($user === null) {
                 continue;
             }
-            if ($user->getStatus() !== PFUser::STATUS_PENDING && $user->getStatus() !== PFUser::STATUS_VALIDATED &&
-                $user->getStatus() !== PFUser::STATUS_VALIDATED_RESTRICTED) {
+            if (
+                $user->getStatus() !== PFUser::STATUS_PENDING && $user->getStatus() !== PFUser::STATUS_VALIDATED &&
+                $user->getStatus() !== PFUser::STATUS_VALIDATED_RESTRICTED
+            ) {
                 continue;
             }
 

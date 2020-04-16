@@ -28,7 +28,7 @@ use Tuleap\Instrument\Prometheus\Prometheus;
 
 class BytesAmountHandledLFSObjectInstrumentationFilterTest extends TestCase
 {
-    public function testReceivedBytesAreCounted() : void
+    public function testReceivedBytesAreCounted(): void
     {
         $input_source = fopen('php://memory', 'rb+');
 
@@ -45,10 +45,10 @@ class BytesAmountHandledLFSObjectInstrumentationFilterTest extends TestCase
         fclose($input_source);
         fclose($destination_resource);
 
-        $this->assertRegExp("/(.*)gitlfs_object_receive_bytes(.*)$size/", $prometheus->renderText());
+        $this->assertMatchesRegularExpression("/(.*)gitlfs_object_receive_bytes(.*)$size/", $prometheus->renderText());
     }
 
-    public function testTransmittedBytesAreCounted() : void
+    public function testTransmittedBytesAreCounted(): void
     {
         $input_source = fopen('php://memory', 'rb+');
 
@@ -66,6 +66,6 @@ class BytesAmountHandledLFSObjectInstrumentationFilterTest extends TestCase
         fclose($input_source);
         fclose($destination_resource);
 
-        $this->assertRegExp("/(.*)gitlfs_object_transmit_bytes(.*)$transfer_type(.*)$size/", $prometheus->renderText());
+        $this->assertMatchesRegularExpression("/(.*)gitlfs_object_transmit_bytes(.*)$transfer_type(.*)$size/", $prometheus->renderText());
     }
 }

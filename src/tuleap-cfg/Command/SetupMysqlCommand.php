@@ -31,13 +31,28 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TuleapCfg\Command\SetupMysql\ConnectionManager;
+use TuleapCfg\Command\SetupMysql\InvalidSSLConfigurationException;
+use TuleapCfg\Command\SetupMysql\MysqlCommandHelper;
 use TuleapCfg\Command\SetupMysql\StatementLoader;
 
 final class SetupMysqlCommand extends Command
 {
-    protected function configure()
+    /**
+     * @var MysqlCommandHelper
+     */
+    private $command_helper;
+
+    public function __construct()
     {
-        $this->setName('setup:mysql')
+        $this->command_helper = new MysqlCommandHelper('/');
+        parent::__construct('setup:mysql');
+    }
+
+    protected function configure(): void
+    {
+        $this->command_helper->addOptions($this);
+        $this
+            ->setDescription('Feed the database with core structure and values')
             ->addOption('host', '', InputOption::VALUE_REQUIRED, 'MySQL server host', 'localhost')
             ->addOption('user', '', InputOption::VALUE_REQUIRED, 'MySQL user for setup', 'tuleapadm')
             ->addOption('dbname', '', InputOption::VALUE_REQUIRED, 'Database name', 'tuleap')
@@ -46,24 +61,38 @@ final class SetupMysqlCommand extends Command
             ->addArgument('domain_name', InputArgument::REQUIRED, 'Tuleap server public url');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $host = (string) $input->getOption('host');
-        $user = (string) $input->getOption('user');
-        $dbname = (string) $input->getOption('dbname');
+        try {
+            $host        = $this->command_helper->getHost($input);
+            $port        = $this->command_helper->getPort($input);
+            $ssl_mode    = $this->command_helper->getSSLMode($input);
+            $ssl_ca_file = $this->command_helper->getSSLCAFile($input, $ssl_mode);
+        } catch (InvalidSSLConfigurationException $exception) {
+            $io->getErrorStyle()->writeln(sprintf('<error>%s</error>', $exception->getMessage()));
+            return 1;
+        }
+
+        $user = $input->getOption('user');
+        assert(is_string($user));
+        $dbname = $input->getOption('dbname');
+        assert(is_string($dbname));
         $password = $input->getOption('password');
-        $admin_password = (string) $input->getArgument('admin_password');
-        $domain_name    = (string) $input->getArgument('domain_name');
+        $admin_password = $input->getArgument('admin_password');
+        assert(is_string($admin_password));
+        $domain_name    = $input->getArgument('domain_name');
+        assert(is_string($domain_name));
 
         if (! $password) {
             $io->getErrorStyle()->writeln(sprintf('<error>Missing mysql password for application user %s</error>', $user));
             return 1;
         }
+        assert(is_string($password));
 
         $connexion_manager = new ConnectionManager();
-        $db = $connexion_manager->getDBWithDBName($io, $host, $user, $password, $dbname);
+        $db = $connexion_manager->getDBWithDBName($io, $host, $port, $ssl_mode, $ssl_ca_file, $user, $password, $dbname);
         if ($db === null) {
             $io->getErrorStyle()->writeln('<error>Unable to connect to mysql server</error>');
             return 1;

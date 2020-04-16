@@ -20,11 +20,11 @@
 const path = require("path");
 
 const base_config = require("./jest.base.config.js");
-const tuleap_core_config = require("../../src/www/scripts/jest.config.js");
+const tuleap_core_config = require("../../src/jest.config.js");
 
 module.exports = {
     rootDir: path.resolve(__dirname, "../../"),
-    projects: ["<rootDir>/plugins/**/jest.config.js", "<rootDir>/src/**/jest.config.js"],
+    projects: ["<rootDir>/plugins/**/jest.config.js", "<rootDir>/src/jest.config.js"],
     collectCoverageFrom: [
         ...base_config.collectCoverageFrom,
         ...tuleap_core_config.collectCoverageFrom,

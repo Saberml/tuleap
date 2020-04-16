@@ -156,8 +156,10 @@ class Artifact
             //echo $field->getName()."-".$field->getID()."<br>";
             // Skip! Standard field values fectched in previous query
             // and comment_type_id is not stored in artifact_field_value table
-            if ($field->isStandardField() ||
-                 $field->getName() == "comment_type_id") {
+            if (
+                $field->isStandardField() ||
+                 $field->getName() == "comment_type_id"
+            ) {
                 continue;
             }
             $this->data_array[$field->getName()] = $data_fields[$field->getID()][$field->getValueFieldName()];
@@ -466,9 +468,11 @@ class Artifact
             }
         }
 
-        if ($import &&
+        if (
+            $import &&
             $vfl['submitted_by'] &&
-            $vfl['submitted_by'] != "") {
+            $vfl['submitted_by'] != ""
+        ) {
             $user = $vfl['submitted_by'];
         }
 
@@ -968,13 +972,13 @@ class Artifact
                         $update_value = '';
                         if ($is_text) {
                             if ($field->isStandardField()) {
-                                $upd_list .= "$field_name='" . db_es(htmlspecialchars($value)) . "',";
+                                $upd_list .= "$field_name='" . db_es(htmlspecialchars((string) $value)) . "',";
                             } else {
-                                $update_value = htmlspecialchars($value);
+                                $update_value = htmlspecialchars((string) $value);
                             }
 
                             $this->addHistory($field, $old_value, $value);
-                            $value = stripslashes($value);
+                            $value = stripslashes((string) $value);
                         } else {
                             if ($field->isStandardField()) {
                                 $upd_list .= "$field_name='" . db_es($value) . "',";
@@ -1006,7 +1010,11 @@ class Artifact
         } // while
 
         for ($i = 0; $i < sizeof($text_value_list); $i++) {
-            $reference_manager->extractCrossRef($text_value_list[$i], $this->getID(), ReferenceManager::REFERENCE_NATURE_ARTIFACT, $this->ArtifactType->getGroupID());
+            $html = '';
+            if (! is_array($text_value_list[$i])) {
+                $html = (string) $text_value_list[$i];
+            }
+            $reference_manager->extractCrossRef($html, $this->getID(), ReferenceManager::REFERENCE_NATURE_ARTIFACT, $this->ArtifactType->getGroupID());
         }
 
         $request = HTTPRequest::instance();
@@ -1898,11 +1906,12 @@ class Artifact
                         foreach ($field_value as $user_id) {
                             if (($user_id) && ($user_id != 100)) {
                                 $curr_assignee = UserManager::instance()->getUserById($user_id);
-                                if ((!array_key_exists($user_id, $user_ids) || !$user_ids[$user_id]) &&
-                                $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
-                                $this->userCanView($user_id) &&
+                                if (
+                                    (!array_key_exists($user_id, $user_ids) || !$user_ids[$user_id]) &&
+                                    $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
+                                    $this->userCanView($user_id) &&
                                          $curr_assignee->isActive() || $curr_assignee->isRestricted()
-                                         ) {
+                                ) {
                                 //echo "DBG - ASSIGNEE - user=$user_id<br>";
                                     $user_ids[$user_id] = true;
                                 }
@@ -1917,10 +1926,11 @@ class Artifact
                                         $user_id = db_result($res_u, 0, 'user_id');
                             if (($user_id) && ($user_id != 100)) {
                                 $curr_assignee = UserManager::instance()->getUserById($user_id);
-                                if (!$user_ids[$user_id] &&
-                                $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
-                                $this->userCanView($user_id) &&
-                                $curr_assignee->isActive() || $curr_assignee->isRestricted()
+                                if (
+                                    !$user_ids[$user_id] &&
+                                    $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
+                                    $this->userCanView($user_id) &&
+                                    $curr_assignee->isActive() || $curr_assignee->isRestricted()
                                 ) {
                //echo "DBG - ASSIGNEE - user=$user_id<br>";
                                     $user_ids[$user_id] = true;
@@ -1943,10 +1953,12 @@ class Artifact
                 }
                 if (($user_id) && ($user_id != 100)) {
                         $curr_assignee = UserManager::instance()->getUserById($user_id);
-                    if ((!array_key_exists($user_id, $user_ids) || !$user_ids[$user_id]) &&
-                    $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
-                    $this->userCanView($user_id) &&
-                          $curr_assignee->isActive() || $curr_assignee->isRestricted()) {
+                    if (
+                        (!array_key_exists($user_id, $user_ids) || !$user_ids[$user_id]) &&
+                        $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
+                        $this->userCanView($user_id) &&
+                          $curr_assignee->isActive() || $curr_assignee->isRestricted()
+                    ) {
                     //echo "DBG - ASSIGNEE - user=$user_id<br>";
                                $user_ids[$user_id] = true;
                     }
@@ -1969,12 +1981,14 @@ class Artifact
                     $res_oa = user_get_result_set_from_unix($uname);
                     $user_id = db_result($res_oa, 0, 'user_id');
                    $curr_assignee = UserManager::instance()->getUserById($user_id);
-                if ($user_id != 100 &&
-                !isset($user_ids[$user_id]) &&
-                $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
-                $this->userCanView($user_id) &&
-                   $curr_assignee && (
-                   $curr_assignee->isActive() || $curr_assignee->isRestricted())) {
+                if (
+                    $user_id != 100 &&
+                    !isset($user_ids[$user_id]) &&
+                    $this->ArtifactType->checkNotification($user_id, 'ASSIGNEE', $changes) &&
+                    $this->userCanView($user_id) &&
+                    $curr_assignee && (
+                    $curr_assignee->isActive() || $curr_assignee->isRestricted())
+                ) {
                     //echo "DBG - ASSIGNEE OLD - user=$user_id<br>";
                        $user_ids[$user_id] = true;
                 }
@@ -2947,9 +2961,11 @@ class Artifact
         reset($changes);
         $fmt = "%20s | %-25s | %s" . $GLOBALS['sys_lf'];
 
-        if ($this->hasFieldPermission($field_perm, 'assigned_to') ||
+        if (
+            $this->hasFieldPermission($field_perm, 'assigned_to') ||
             $this->hasFieldPermission($field_perm, 'multi_assigned_to') ||
-            (!isset($field_perm['assigned_to']) && !isset($field_perm['multi_assigned_to']))) {
+            (!isset($field_perm['assigned_to']) && !isset($field_perm['multi_assigned_to']))
+        ) {
             $user = UserManager::instance()->getCurrentUser();
             if ($user->isLoggedIn()) {
                    $out_hdr = $Language->getText('tracker_include_artifact', 'changes_by') . ' ' . $user->getRealName() . ' <' . $user->getEmail() . ">" . $GLOBALS['sys_lf'] . "";
@@ -2986,8 +3002,10 @@ class Artifact
         // All the rest of the fields now
         foreach ($changes as $field_name => $h) {
             // If both removed and added items are empty skip - Sanity check
-            if (((isset($h['del']) && $h['del']) || (isset($h['add']) && $h['add']))
-                && $this->hasFieldPermission($field_perm, $field_name)) {
+            if (
+                ((isset($h['del']) && $h['del']) || (isset($h['add']) && $h['add']))
+                && $this->hasFieldPermission($field_perm, $field_name)
+            ) {
                 $visible_change = true;
                 $label = $field_name;
                 $field = $art_field_fact->getFieldFromName($field_name);
@@ -3044,9 +3062,11 @@ class Artifact
 
         $user = UserManager::instance()->getCurrentUser();
 
-        if ($this->hasFieldPermission($field_perm, 'assigned_to') ||
+        if (
+            $this->hasFieldPermission($field_perm, 'assigned_to') ||
             $this->hasFieldPermission($field_perm, 'multi_assigned_to') ||
-            (!isset($field_perm['assigned_to']) && !isset($field_perm['multi_assigned_to']))) {
+            (!isset($field_perm['assigned_to']) && !isset($field_perm['multi_assigned_to']))
+        ) {
             if ($user->isLoggedIn()) {
                 $out .= '<a href="mailto:' . $hp->purify($user->getEmail()) . '">' . $hp->purify($user->getRealName()) . ' (' . $hp->purify($user->getUserName()) . ')</a>';
             } else {
@@ -3337,7 +3357,7 @@ class Artifact
                 if (db_result($orig_subm, 0, 'mod_by') == 100) {
                     $user_quoted = db_result($orig_subm, 0, 'email');
                 } else {
-                    $user_quoted = $uh->getDisplayNameFromUserId(db_result($orig_subm, 0, 'mod_by'));
+                    $user_quoted = $uh->getDisplayNameFromUserId(db_result($orig_subm, 0, 'mod_by')) ?? '';
                 }
                 $user_quoted = addslashes(addslashes($user_quoted));
                 if ($pv == 0) {
@@ -3463,10 +3483,12 @@ class Artifact
                 // (b) the CC name is the current user
                 // (c) the CC email address matches the one of the current user
                 // (d) the current user is the person who added a gieven name in CC list
-                if (user_ismember($this->ArtifactType->getGroupID()) ||
+                if (
+                    user_ismember($this->ArtifactType->getGroupID()) ||
                     (user_getname($user_id) == $email) ||
                     (user_getemail($user_id) == $email) ||
-                    (user_getname($user_id) == db_result($result, $i, 'user_name') )) {
+                    (user_getname($user_id) == db_result($result, $i, 'user_name') )
+                ) {
                             $html_delete = '<a href="?func=delete_cc&group_id=' . (int) $group_id . '&aid=' . (int) $this->getID() . '&atid=' . (int) $group_artifact_id . '&artifact_cc_id=' . (int) $artifact_cc_id . '" ' .
                             ' onClick="return confirm(\'' . $Language->getText('tracker_include_artifact', 'delete_cc') . '\')">' .
                             '<IMG SRC="' . util_get_image_theme("ic/trash.png") . '" HEIGHT="16" WIDTH="16" BORDER="0" ALT="' . $Language->getText('global', 'btn_delete') . '"></A>';
@@ -3667,8 +3689,10 @@ class Artifact
                 // show CC delete icon if one of the condition is met:
                 // (a) current user is group member
                 // (b) the current user is the person who added a gieven name in CC list
-                if (user_ismember($this->ArtifactType->getGroupID()) ||
-                    (user_getname(UserManager::instance()->getCurrentUser()->getId()) == db_result($result, $i, 'user_name') )) {
+                if (
+                    user_ismember($this->ArtifactType->getGroupID()) ||
+                    (user_getname(UserManager::instance()->getCurrentUser()->getId()) == db_result($result, $i, 'user_name') )
+                ) {
                                         $html_delete = '<a href="?func=delete_file&group_id=' . (int) $group_id . "&atid=" . (int) $group_artifact_id . "&aid=" . (int) $this->getID() . "&id=" . (int) db_result($result, $i, 'id') . '" ' .
                                             ' onClick="return confirm(\'' . $Language->getText('tracker_include_artifact', 'delete_attachment') . '\')">' .
                                             '<IMG SRC="' . util_get_image_theme("ic/trash.png") . '" HEIGHT="16" WIDTH="16" BORDER="0" ALT="' . $Language->getText('global', 'btn_delete') . '"></A>';

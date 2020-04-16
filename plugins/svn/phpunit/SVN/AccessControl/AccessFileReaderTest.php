@@ -34,7 +34,7 @@ class AccessFileReaderTest extends TestCase
     /** @var AccessFileReader */
     private $reader;
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
         $fixtures_dir = __DIR__ . '/_fixtures';
@@ -45,25 +45,25 @@ class AccessFileReaderTest extends TestCase
         $this->reader = new AccessFileReader();
     }
 
-    public function testItReadsTheDefaultBlock() : void
+    public function testItReadsTheDefaultBlock(): void
     {
-        $this->assertRegExp(
+        $this->assertMatchesRegularExpression(
             '/le default/',
             $this->reader->readDefaultBlock($this->repository)
         );
     }
 
-    public function testItReadsTheContentBlock() : void
+    public function testItReadsTheContentBlock(): void
     {
-        $this->assertRegExp(
+        $this->assertMatchesRegularExpression(
             '/le content/',
             $this->reader->readContentBlock($this->repository)
         );
     }
 
-    public function testItDoesNotContainDelimiters() : void
+    public function testItDoesNotContainDelimiters(): void
     {
-        $this->assertNotRegExp(
+        $this->assertDoesNotMatchRegularExpression(
             '/# BEGIN CODENDI DEFAULT SETTINGS/',
             $this->reader->readDefaultBlock($this->repository)
         );

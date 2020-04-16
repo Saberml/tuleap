@@ -106,7 +106,7 @@ class Tracker_ArtifactLinkInfo
     /**
      * Returns the tracker this artifact belongs to
      *
-     * @return Tracker The tracker this artifact belongs to
+     * @return Tracker|null The tracker this artifact belongs to
      */
     public function getTracker()
     {
@@ -174,7 +174,7 @@ class Tracker_ArtifactLinkInfo
         return $artifact !== null && $artifact->userCanView($user);
     }
 
-    public function getArtifact() : ?Tracker_Artifact
+    public function getArtifact(): ?Tracker_Artifact
     {
         if (! $this->artifact) {
             $this->artifact = Tracker_ArtifactFactory::instance()->getArtifactById($this->artifact_id);

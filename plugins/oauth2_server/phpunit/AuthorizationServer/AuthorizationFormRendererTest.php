@@ -37,7 +37,8 @@ use Tuleap\User\OAuth2\Scope\OAuth2ScopeIdentifier;
 
 final class AuthorizationFormRendererTest extends TestCase
 {
-    use MockeryPHPUnitIntegration, TemporaryTestDirectory;
+    use MockeryPHPUnitIntegration;
+    use TemporaryTestDirectory;
 
     /** @var AuthorizationFormRenderer */
     private $form_renderer;
@@ -96,6 +97,7 @@ final class AuthorizationFormRendererTest extends TestCase
             $redirect_uri,
             'xyz',
             'pkce_chall',
+            'oidc_nonce',
             $foobar_scope,
             $typevalue_scope
         );

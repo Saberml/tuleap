@@ -19,6 +19,7 @@
 
 import { CreationOptions, ProjectTemplate, State, Tracker } from "./type";
 import { TRACKER_SHORTNAME_FORMAT } from "../constants";
+import { isDefaultTemplateSelected } from "./is-default-template-selected";
 
 export const is_ready_for_step_2 = (state: State): boolean => {
     if (state.active_option === CreationOptions.NONE_YET) {
@@ -29,7 +30,9 @@ export const is_ready_for_step_2 = (state: State): boolean => {
         isDuplicationReady(state) ||
         isXmlImportReady(state) ||
         isEmptyReady(state) ||
-        isDuplicationFromAnotherProjectReady(state)
+        isDuplicationFromAnotherProjectReady(state) ||
+        isDefaultTemplateSelected(state) ||
+        isJiraImportReady(state)
     );
 };
 
@@ -59,6 +62,19 @@ function isXmlImportReady(state: State): boolean {
         state.is_parsing_a_xml_file === false
     );
 }
+
+function isJiraImportReady(state: State): boolean {
+    return (
+        state.active_option === CreationOptions.FROM_JIRA &&
+        state.from_jira_data.project !== null &&
+        state.from_jira_data.tracker !== null
+    );
+}
+
+export const is_created_from_default_template = (state: State): boolean => {
+    return isDefaultTemplateSelected(state);
+};
+
 export const is_created_from_empty = (state: State): boolean => {
     return state.active_option === CreationOptions.TRACKER_EMPTY;
 };
@@ -73,6 +89,10 @@ export const is_a_duplication_of_a_tracker_from_another_project = (state: State)
 
 export const is_a_xml_import = (state: State): boolean => {
     return state.active_option === CreationOptions.TRACKER_XML_FILE;
+};
+
+export const is_created_from_jira = (state: State): boolean => {
+    return state.active_option === CreationOptions.FROM_JIRA;
 };
 
 export const can_display_slugify_mode = (state: State): boolean => {

@@ -65,8 +65,10 @@ class Docman_MetadataHtmlFactory
                             'theme_path' => $themePath);
 
         foreach ($mdIter as $md) {
-            if (($whitelist && isset($mdla[$md->getLabel()]))
-               || (!$whitelist && !isset($mdla[$md->getLabel()]))) {
+            if (
+                ($whitelist && isset($mdla[$md->getLabel()]))
+                || (!$whitelist && !isset($mdla[$md->getLabel()]))
+            ) {
                 $fields[$md->getLabel()] = $this->getFromMetadata($md, $formParams);
             }
         }
@@ -245,7 +247,7 @@ class Docman_MetadataHtml
     /**
      * Return field input validator.
      *
-     * @return string
+     * @return Docman_Validator|null
      */
     public function &getValidator()
     {

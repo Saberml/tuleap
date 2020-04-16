@@ -21,7 +21,7 @@ export interface State {
     csrf_token: CSRFToken;
     default_templates: Tracker[];
     project_templates: ProjectTemplate[];
-    active_option: CreationOptions;
+    active_option: CreationOptions | string;
     selected_tracker_template: Tracker | null;
     selected_project_tracker_template: Tracker | null;
     selected_project: ProjectWithTrackers | null;
@@ -38,6 +38,9 @@ export interface State {
     color_picker_data: DataForColorPicker[];
     default_tracker_color: string;
     company_name: string;
+    from_jira_data: JiraImportData;
+    display_jira_importer: boolean;
+    project_unix_name: string;
 }
 
 export interface CSRFToken {
@@ -53,6 +56,7 @@ export interface ProjectTemplate {
 export interface Tracker {
     readonly id: string;
     readonly name: string;
+    readonly description: string;
     readonly tlp_color: string;
 }
 
@@ -78,10 +82,45 @@ export interface DataForColorPicker {
     text: string;
 }
 
+export interface JiraImportData {
+    credentials: Credentials | null;
+    project: ProjectList | null;
+    tracker: TrackerList | null;
+    project_list: ProjectList[] | null;
+    tracker_list: TrackerList[] | null;
+}
+
+export interface Credentials {
+    server_url: string;
+    user_email: string;
+    token: string;
+}
+
+export interface ProjectList {
+    id: string;
+    label: string;
+}
+
+export interface TrackerList {
+    id: string;
+    name: string;
+}
+
+export interface ProjectTrackerPayload {
+    credentials: Credentials;
+    project_key: string;
+}
+
 export enum CreationOptions {
     NONE_YET = "none_yet",
     TRACKER_TEMPLATE = "tracker_template",
     TRACKER_XML_FILE = "tracker_xml_file",
     TRACKER_EMPTY = "tracker_empty",
     TRACKER_ANOTHER_PROJECT = "tracker_another_project",
+    FROM_JIRA = "from_jira",
+}
+
+export interface Context {
+    state: State;
+    commit: Function;
 }

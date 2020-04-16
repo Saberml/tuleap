@@ -98,10 +98,10 @@ final class DisplaySecurityController implements DispatchableWithRequest, Dispat
         $layout->addJavascriptAsset(
             new JavascriptAsset(
                 new IncludeAssets(
-                    __DIR__ . '/../../../www/assets/account/scripts',
-                    '/assets/account/scripts'
+                    __DIR__ . '/../../../www/assets/core',
+                    '/assets/core'
                 ),
-                'security.js'
+                'account/security.js'
             )
         );
         $layout->includeFooterJavascriptFile('/scripts/check_pw.js');

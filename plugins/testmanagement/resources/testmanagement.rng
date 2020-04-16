@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <start>
+    <element name="testmanagement">
+      <element name="configuration">
+        <optional>
+          <element name="issues">
+            <data type="string"/>
+          </element>
+        </optional>
+        <element name="campaigns">
+          <data type="string"/>
+        </element>
+        <element name="definitions">
+          <data type="string"/>
+        </element>
+        <element name="executions">
+          <data type="string"/>
+        </element>
+      </element>
+      <optional>
+        <element name="executions">
+          <zeroOrMore>
+            <element name="execution">
+              <attribute name="execution_artifact_id">
+                <data type="int"/>
+              </attribute>
+              <attribute name="definition_changeset_id">
+                <data type="string"/>
+              </attribute>
+            </element>
+          </zeroOrMore>
+        </element>
+      </optional>
+    </element>
+  </start>
+</grammar>

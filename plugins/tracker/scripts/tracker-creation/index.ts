@@ -23,7 +23,7 @@ import App from "./src/components/App.vue";
 import {
     initVueGettext,
     getPOFileFromLocale,
-} from "../../../../src/www/scripts/tuleap/gettext/vue-gettext-init";
+} from "../../../../src/scripts/tuleap/gettext/vue-gettext-init";
 import { createStore } from "./src/store/index";
 import {
     CreationOptions,
@@ -105,6 +105,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         (color_name: string) => ({ id: color_name, text: "" })
     );
 
+    const display_jira_importer = vue_mount_point.dataset.displayJiraImporter;
+
     const initial_state: State = {
         csrf_token,
         default_templates,
@@ -130,6 +132,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         is_in_slugify_mode: true,
         project_id: parseInt(project_id, 10),
         company_name,
+        from_jira_data: {
+            credentials: null,
+            project: null,
+            tracker: null,
+            project_list: null,
+            tracker_list: null,
+        },
+        display_jira_importer: Boolean(display_jira_importer),
+        project_unix_name,
     };
 
     new AppComponent({

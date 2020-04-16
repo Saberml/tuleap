@@ -22,6 +22,7 @@ use Tuleap\Admin\AdminPageRenderer;
 use Tuleap\Authentication\Scope\AuthenticationScopeBuilderFromClassNames;
 use Tuleap\BurningParrotCompatiblePageEvent;
 use Tuleap\CLI\CLICommandsCollector;
+use Tuleap\CLI\Events\GetWhitelistedKeys;
 use Tuleap\Dashboard\User\AtUserCreationDefaultWidgetsCreator;
 use Tuleap\DB\DBFactory;
 use Tuleap\DB\DBTransactionExecutorWithConnection;
@@ -80,10 +81,14 @@ use Tuleap\Tracker\Artifact\MailGateway\MailGatewayConfigDao;
 use Tuleap\Tracker\Artifact\RecentlyVisited\RecentlyVisitedDao;
 use Tuleap\Tracker\Config\ConfigController;
 use Tuleap\Tracker\Creation\DefaultTemplatesCollectionBuilder;
+use Tuleap\Tracker\Creation\JiraImporter\ClientWrapperBuilder;
+use Tuleap\Tracker\Creation\JiraImporter\JiraProjectListController;
+use Tuleap\Tracker\Creation\JiraImporter\JiraTrackersListController;
 use Tuleap\Tracker\Creation\TrackerCreationBreadCrumbsBuilder;
 use Tuleap\Tracker\Creation\TrackerCreationController;
 use Tuleap\Tracker\Creation\TrackerCreationDataChecker;
 use Tuleap\Tracker\Creation\TrackerCreationPermissionChecker;
+use Tuleap\Tracker\Creation\TrackerCreationPresenter;
 use Tuleap\Tracker\Creation\TrackerCreationPresenterBuilder;
 use Tuleap\Tracker\Creation\TrackerCreationProcessorController;
 use Tuleap\Tracker\Creation\TrackerCreator;
@@ -284,6 +289,8 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
             $this->addHook(Statistics_Event::FREQUENCE_STAT_SAMPLE);
         }
 
+        $this->addHook(GetWhitelistedKeys::NAME);
+
         $this->addHook(Event::LIST_DELETED_TRACKERS);
         $this->addHook(TemplatePresenter::EVENT_ADDITIONAL_ADMIN_BUTTONS);
 
@@ -364,13 +371,16 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     {
         $params['plugins'][] = array(
             'label' => $GLOBALS['Language']->getText('plugin_tracker', 'descriptor_name'),
-            'href'  => $this->getPluginPath() . '/config.php'
+            'href'  => $this->getPluginPath() . '/config.php',
+            'has_shortname' => true,
+            'shortname' => 'admin-tracker'
         );
     }
 
     public function burningParrotCompatiblePage(BurningParrotCompatiblePageEvent $event)
     {
-        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath() . '/config.php') === 0 ||
+        if (
+            strpos($_SERVER['REQUEST_URI'], $this->getPluginPath() . '/config.php') === 0 ||
             $this->isInDashboard()
         ) {
             $event->setIsInBurningParrotCompatiblePage();
@@ -383,7 +393,8 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         EventManager::instance()->processEvent(TRACKER_EVENT_INCLUDE_CSS_FILE, array('include_tracker_css_file' => &$include_tracker_css_file));
         // Only show the stylesheet if we're actually in the tracker pages.
         // This stops styles inadvertently clashing with the main site.
-        if ($include_tracker_css_file ||
+        if (
+            $include_tracker_css_file ||
             strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0 ||
             strpos($_SERVER['REQUEST_URI'], '/my/') === 0 ||
             strpos($_SERVER['REQUEST_URI'], '/projects/') === 0 ||
@@ -412,9 +423,6 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
 
     public function javascript_file($params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
-        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath() . '/config.php') === 0) {
-            echo $this->getAssets()->getHTMLSnippet('admin-nature.js');
-        }
         if ($this->currentRequestIsForPlugin()) {
             echo $this->getAssets()->getHTMLSnippet('tracker.js');
         }
@@ -423,7 +431,6 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     public function burning_parrot_get_javascript_files(array $params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath() . '/config.php') === 0) {
-            $params['javascript_files'][] = $this->getAssets()->getFileURL('admin-nature.js');
             $params['javascript_files'][] = '/scripts/tuleap/manage-allowed-projects-on-resource.js';
         }
     }
@@ -528,9 +535,10 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
             $project         = $project_manager->getProject($params['group_id']);
             $legacy_services = $params['legacy_service_usage'];
 
-            if (! $this->isRestricted() &&
-                ! $this->isLegacyTrackerV3StillUsed($legacy_services)
-                && TrackerV3::instance()->available()
+            if (
+                ! $this->isRestricted() &&
+                ! $this->isLegacyTrackerV3StillUsed($legacy_services) &&
+                TrackerV3::instance()->available()
             ) {
                 $inheritor = new Inheritor(
                     new ArtifactTypeFactory($template),
@@ -776,7 +784,8 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     public function url_verification_instance($params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $request_uri = $_SERVER['REQUEST_URI'];
-        if (strpos($request_uri, $this->getPluginPath()) === 0 &&
+        if (
+            strpos($request_uri, $this->getPluginPath()) === 0 &&
             strpos($request_uri, $this->getPluginPath() . '/notifications/') !== 0 &&
             strpos($request_uri, $this->getPluginPath() . '/webhooks/') !== 0 &&
             strpos($request_uri, $this->getPluginPath() . '/workflow/') !== 0 &&
@@ -1002,8 +1011,9 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
      */
     private function getTrackerXmlExport(UserXMLExporter $user_xml_exporter, $can_bypass_threshold)
     {
-        $rng_validator           = new XML_RNGValidator();
-        $artifact_link_usage_dao = new ArtifactLinksUsageDao();
+        $rng_validator            = new XML_RNGValidator();
+        $artifact_link_usage_dao  = new ArtifactLinksUsageDao();
+        $external_field_extractor = new ExternalFieldsExtractor(EventManager::instance());
 
         return new TrackerXmlExport(
             $this->getTrackerFactory(),
@@ -1013,13 +1023,14 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
                 $rng_validator,
                 $this->getArtifactFactory(),
                 $can_bypass_threshold,
-                $user_xml_exporter
+                $user_xml_exporter,
+                $external_field_extractor
             ),
             $user_xml_exporter,
             EventManager::instance(),
             new NaturePresenterFactory(new NatureDao(), $artifact_link_usage_dao),
             $artifact_link_usage_dao,
-            new ExternalFieldsExtractor(EventManager::instance())
+            $external_field_extractor
         );
     }
 
@@ -1157,7 +1168,10 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     private function buildRightVersionOfMilestonesBurndownResource($version)
     {
         $class_with_right_namespace = '\\Tuleap\\Tracker\\REST\\' . $version . '\\MilestonesBurndownResource';
-        return new $class_with_right_namespace;
+        if (! class_exists($class_with_right_namespace)) {
+            throw new LogicException($class_with_right_namespace . ' does not exist');
+        }
+        return new $class_with_right_namespace();
     }
 
     private function getTrackerSystemEventManager()
@@ -1481,7 +1495,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         $user_manager                   = UserManager::instance();
         $user_to_notify_dao             = $this->getUserToNotifyDao();
         $ugroup_to_notify_dao           = $this->getUgroupToNotifyDao();
-        $unsubscribers_notification_dao = new UnsubscribersNotificationDAO;
+        $unsubscribers_notification_dao = new UnsubscribersNotificationDAO();
         $notification_list_builder      = new NotificationListBuilder(
             new UGroupDao(),
             new CollectionOfUserInvolvedInNotificationPresenterBuilder(
@@ -1497,7 +1511,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
             $notification_list_builder,
             $user_to_notify_dao,
             $ugroup_to_notify_dao,
-            new UserNotificationSettingsDAO,
+            new UserNotificationSettingsDAO(),
             new GlobalNotificationsAddressesBuilder(),
             $user_manager,
             new UGroupManager(),
@@ -1641,7 +1655,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         foreach ($autocompleted_user_list as $autocompleted_user) {
             $autocompleted_user_id_list[] = $autocompleted_user['user_id'];
         }
-        $global_notification_subscribers_filter = new GlobalNotificationSubscribersFilter(new UnsubscribersNotificationDAO);
+        $global_notification_subscribers_filter = new GlobalNotificationSubscribersFilter(new UnsubscribersNotificationDAO());
         $autocompleted_user_id_list_filtered    = $global_notification_subscribers_filter->filterInvalidUserIDs(
             $tracker,
             $autocompleted_user_id_list
@@ -1659,14 +1673,14 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
 
     public function routeLegacyController(): \Tuleap\Tracker\TrackerPluginDefaultController
     {
-        return new \Tuleap\Tracker\TrackerPluginDefaultController(new TrackerManager);
+        return new \Tuleap\Tracker\TrackerPluginDefaultController(new TrackerManager());
     }
 
     public function routeGetNotifications(): NotificationsAdminSettingsDisplayController
     {
         return new NotificationsAdminSettingsDisplayController(
             $this->getTrackerFactory(),
-            new TrackerManager,
+            new TrackerManager(),
             $this->getUserManager()
         );
     }
@@ -1684,11 +1698,11 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         return new NotificationsUserSettingsDisplayController(
             TemplateRendererFactory::build()->getRenderer(TRACKER_TEMPLATE_DIR . '/notifications/'),
             $this->getTrackerFactory(),
-            new TrackerManager,
+            new TrackerManager(),
             new UserNotificationSettingsRetriever(
-                new Tracker_GlobalNotificationDao,
-                new UnsubscribersNotificationDAO,
-                new UserNotificationOnlyStatusChangeDAO,
+                new Tracker_GlobalNotificationDao(),
+                new UnsubscribersNotificationDAO(),
+                new UserNotificationOnlyStatusChangeDAO(),
                 new InvolvedNotificationDao()
             )
         );
@@ -1698,8 +1712,8 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     {
         return new NotificationsUserSettingsUpdateController(
             $this->getTrackerFactory(),
-            new UserNotificationSettingsDAO,
-            new ProjectHistoryDao
+            new UserNotificationSettingsDAO(),
+            new ProjectHistoryDao()
         );
     }
 
@@ -1735,7 +1749,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     {
         return new WorkflowTransitionController(
             $this->getTrackerFactory(),
-            new TrackerManager,
+            new TrackerManager(),
             new WorkflowMenuTabPresenterBuilder(),
             EventManager::instance()
         );
@@ -1808,12 +1822,12 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         );
     }
 
-    public function routeGetFieldsPermissionsByField() : DispatchableWithRequest
+    public function routeGetFieldsPermissionsByField(): DispatchableWithRequest
     {
         return new ByFieldController(TrackerFactory::instance(), TemplateRendererFactory::build()->getRenderer(__DIR__ . '/../templates/permission'));
     }
 
-    public function routeGetFieldsPermissionsByGroup() : DispatchableWithRequest
+    public function routeGetFieldsPermissionsByGroup(): DispatchableWithRequest
     {
         return new ByGroupController(TrackerFactory::instance(), TemplateRendererFactory::build()->getRenderer(__DIR__ . '/../templates/permission'));
     }
@@ -1821,6 +1835,26 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     public function routePostFieldsPermissions(): DispatchableWithRequest
     {
         return new PermissionsOnFieldsUpdateController(TrackerFactory::instance());
+    }
+
+    public function routeJiraProjectListController(): DispatchableWithRequest
+    {
+        return new JiraProjectListController(
+            $this->getProjectManager(),
+            $this->getTrackerCreationPermissionChecker(),
+            new \Tuleap\Tracker\Creation\JiraImporter\JiraProjectBuilder(),
+            new ClientWrapperBuilder()
+        );
+    }
+
+    public function routeJiraTrackerListController(): DispatchableWithRequest
+    {
+        return new JiraTrackersListController(
+            $this->getProjectManager(),
+            $this->getTrackerCreationPermissionChecker(),
+            new \Tuleap\Tracker\Creation\JiraImporter\JiraTrackerBuilder(),
+            new ClientWrapperBuilder()
+        );
     }
 
     public function collectRoutesEvent(\Tuleap\Request\CollectRoutesEvent $event)
@@ -1853,6 +1887,8 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
 
             $r->addRoute(['GET', 'POST'], GlobalAdminController::URL . '/{id:\d+}', $this->getRouteHandler('routeGlobalAdmin'));
 
+            $r->post('/{project_name:[A-z0-9-]+}/jira/project_list', $this->getRouteHandler('routeJiraProjectListController'));
+            $r->post('/{project_name:[A-z0-9-]+}/jira/{jira_project_key:[A-z]+}/tracker_list', $this->getRouteHandler('routeJiraTrackerListController'));
             $r->get('/{project_name:[A-z0-9-]+}/new', $this->getRouteHandler('routeCreateNewTracker'));
             $r->get('/{project_name:[A-z0-9-]+}/new-information', $this->getRouteHandler('routeCreateNewTracker'));
             $r->post('/{project_name:[A-z0-9-]+}/new-information', $this->getRouteHandler('routeProcessNewTrackerCreation'));
@@ -1937,11 +1973,11 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         );
     }
 
-    public function collectCLICommands(CLICommandsCollector $commands_collector) : void
+    public function collectCLICommands(CLICommandsCollector $commands_collector): void
     {
         $commands_collector->addCommand(
             TrackerForceNotificationsLevelCommand::NAME,
-            function () : TrackerForceNotificationsLevelCommand {
+            function (): TrackerForceNotificationsLevelCommand {
                 return new TrackerForceNotificationsLevelCommand(
                     $this->getForceUsageUpdater(),
                     ProjectManager::instance(),
@@ -1966,7 +2002,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
                 \TrackerFactory::instance(),
                 new DefaultTemplatesCollectionBuilder(\EventManager::instance())
             ),
-            new TrackerCreationPermissionChecker(new TrackerManager())
+            $this->getTrackerCreationPermissionChecker()
         );
     }
 
@@ -1978,7 +2014,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
             $user_manager,
             \ProjectManager::instance(),
             TrackerCreator::build(),
-            new TrackerCreationPermissionChecker(new TrackerManager()),
+            $this->getTrackerCreationPermissionChecker(),
             new DefaultTemplatesCollectionBuilder(\EventManager::instance())
         );
     }
@@ -2008,7 +2044,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     public function getProjectWithTrackerAdministrationPermission(GetProjectWithTrackerAdministrationPermission $event)
     {
         $user = $event->getUser();
-        $dao  = new \Tuleap\Tracker\dao\ProjectDao(new TrackerManager);
+        $dao  = new \Tuleap\Tracker\dao\ProjectDao(new TrackerManager());
 
         $matching_projects_rows = $dao->searchProjectsForREST($user, $event->getLimit(), $event->getOffset());
         $total_size             = $dao->foundRows();
@@ -2049,7 +2085,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
     /**
      * @see CollectTuleapComputedMetrics
      */
-    public function collectComputedMetrics(CollectTuleapComputedMetrics $collect_tuleap_computed_metrics) : void
+    public function collectComputedMetrics(CollectTuleapComputedMetrics $collect_tuleap_computed_metrics): void
     {
         $prometheus = $collect_tuleap_computed_metrics->getPrometheus();
         $prometheus->gaugeSet(
@@ -2071,7 +2107,7 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
         }
     }
 
-    public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event) : void
+    public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event): void
     {
         $event->addServiceIfPluginIsNotRestricted($this, $this->getServiceShortname());
     }
@@ -2093,5 +2129,15 @@ class trackerPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.
                 OAuth2TrackerReadScope::class
             )
         );
+    }
+
+    private function getTrackerCreationPermissionChecker(): TrackerCreationPermissionChecker
+    {
+        return new TrackerCreationPermissionChecker(new TrackerManager());
+    }
+
+    public function getWhitelistedKeys(GetWhitelistedKeys $event): void
+    {
+        $event->addPluginsKeys(TrackerCreationPresenter::DISPLAY_JIRA_IMPORTER);
     }
 }

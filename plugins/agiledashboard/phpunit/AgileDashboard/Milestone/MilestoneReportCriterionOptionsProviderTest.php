@@ -20,6 +20,7 @@
 final class AgileDashboard_Milestone_MilestoneReportCriterionOptionsProviderTest extends \PHPUnit\Framework\TestCase //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 {
     use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+
     /**
      * @var \Mockery\LegacyMockInterface|\Mockery\MockInterface|Tracker
      */
@@ -179,7 +180,7 @@ final class AgileDashboard_Milestone_MilestoneReportCriterionOptionsProviderTest
 
         $options = $this->provider->getSelectboxOptions($this->task_tracker, '*', $this->user);
 
-        $this->assertNotRegExp('/Sprint 31/', implode('', $options));
+        $this->assertDoesNotMatchRegularExpression('/Sprint 31/', implode('', $options));
     }
 
     private function getDarResults(): DataAccessResult

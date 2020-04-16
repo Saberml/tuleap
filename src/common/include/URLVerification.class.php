@@ -23,9 +23,9 @@ use Tuleap\BurningParrotCompatiblePageDetector;
 use Tuleap\Error\ErrorDependenciesInjector;
 use Tuleap\Error\PermissionDeniedPrivateProjectController;
 use Tuleap\Error\PermissionDeniedRestrictedAccountController;
-use Tuleap\Error\ProjectAccessSuspendedController;
 use Tuleap\Error\PermissionDeniedRestrictedAccountProjectController;
 use Tuleap\Error\PlaceHolderBuilder;
+use Tuleap\Error\ProjectAccessSuspendedController;
 use Tuleap\Instrument\Prometheus\Prometheus;
 use Tuleap\Layout\ErrorRendering;
 use Tuleap\Project\Admin\MembershipDelegationDao;
@@ -40,7 +40,7 @@ use Tuleap\User\Account\UpdatePasswordController;
  * Check the URL validity (protocol, host name, query) regarding server constraints
  * (anonymous, user status, project privacy, ...) and manage redirection when needed
  */
-class URLVerification
+class URLVerification // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
 
     protected $urlChunks = null;
@@ -93,7 +93,7 @@ class URLVerification
         return PermissionsOverrider_PermissionsOverriderManager::instance();
     }
 
-    private function getForgeAccess() : ForgeAccess
+    private function getForgeAccess(): ForgeAccess
     {
         return new ForgeAccess($this->getPermissionsOverriderManager());
     }
@@ -252,7 +252,8 @@ class URLVerification
     {
         $user = $this->getCurrentUser();
 
-        if ($this->getForgeAccess()->doesPlatformRequireLogin() &&
+        if (
+            $this->getForgeAccess()->doesPlatformRequireLogin() &&
             $user->isAnonymous() &&
             ! $this->isScriptAllowedForAnonymous($server)
         ) {
@@ -420,9 +421,13 @@ class URLVerification
                 }
                 $this->displayPrivateProjectError($user, $project);
             } catch (Project_AccessProjectNotFoundException $exception) {
+                $layout = $this->getThemeManager()->getBurningParrot($request->getCurrentUser());
+                if ($layout === null) {
+                    throw new \Exception("Could not load BurningParrot theme");
+                }
                 (new RequestInstrumentation(Prometheus::instance()))->increment(404);
                 (new ErrorRendering())->rendersError(
-                    $this->getThemeManager()->getBurningParrot($request->getCurrentUser()),
+                    $layout,
                     $request,
                     404,
                     _('Not found'),

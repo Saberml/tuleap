@@ -537,7 +537,7 @@ class Tracker_Artifact implements Recent_Element_Interface, Tracker_Dispatchable
     /**
      * Get the artifact title, or null if no title defined in semantics
      *
-     * @return string the title of the artifact, or null if no title defined in semantics
+     * @return string|null the title of the artifact, or null if no title defined in semantics
      */
     public function getTitle()
     {
@@ -1179,7 +1179,11 @@ class Tracker_Artifact implements Recent_Element_Interface, Tracker_Dispatchable
     public function getTracker()
     {
         if (!isset($this->tracker)) {
-            $this->tracker = TrackerFactory::instance()->getTrackerByid($this->tracker_id);
+            $tracker = TrackerFactory::instance()->getTrackerById($this->tracker_id);
+            if ($tracker === null) {
+                throw new RuntimeException('Tracker does not exist');
+            }
+            $this->tracker = $tracker;
         }
         return $this->tracker;
     }
@@ -1505,7 +1509,7 @@ class Tracker_Artifact implements Recent_Element_Interface, Tracker_Dispatchable
      * @param Tracker_Artifact_Changeset $changeset The changeset. if null given take the last changeset of the artifact
      *
      */
-    public function getValue(Tracker_FormElement_Field $field, ?Tracker_Artifact_Changeset $changeset = null) : ?Tracker_Artifact_ChangesetValue
+    public function getValue(Tracker_FormElement_Field $field, ?Tracker_Artifact_Changeset $changeset = null): ?Tracker_Artifact_ChangesetValue
     {
         if (!$changeset) {
             $changeset = $this->getLastChangeset();
@@ -2042,7 +2046,7 @@ class Tracker_Artifact implements Recent_Element_Interface, Tracker_Dispatchable
      */
     private function getUnsubscribersNotificationDao()
     {
-        return new UnsubscribersNotificationDAO;
+        return new UnsubscribersNotificationDAO();
     }
 
     protected function getCrossReferenceFactory()
@@ -2225,7 +2229,7 @@ class Tracker_Artifact implements Recent_Element_Interface, Tracker_Dispatchable
         return new WorkflowUpdateChecker($frozen_field_detector);
     }
 
-    private function getHiddenFieldsetsDetector() : HiddenFieldsetsDetector
+    private function getHiddenFieldsetsDetector(): HiddenFieldsetsDetector
     {
         return new HiddenFieldsetsDetector(
             new TransitionRetriever(

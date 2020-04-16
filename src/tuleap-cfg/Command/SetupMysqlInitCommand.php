@@ -30,6 +30,9 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use TuleapCfg\Command\SetupMysql\ConnectionManager;
+use TuleapCfg\Command\SetupMysql\ConnectionManagerInterface;
+use TuleapCfg\Command\SetupMysql\InvalidSSLConfigurationException;
+use TuleapCfg\Command\SetupMysql\MysqlCommandHelper;
 
 final class SetupMysqlInitCommand extends Command
 {
@@ -43,11 +46,41 @@ final class SetupMysqlInitCommand extends Command
     private const OPT_MEDIAWIKI      = 'mediawiki';
     private const OPT_MEDIAWIKI_VALUE_PER_PROJECT = 'per-project';
     private const OPT_MEDIAWIKI_VALUE_CENTRAL     = 'central';
+    private const OPT_SKIP_DATABASE  = 'skip-database';
 
-    public function getHelp()
+    /**
+     * @var MysqlCommandHelper
+     */
+    private $command_helper;
+    /**
+     * @var ConnectionManagerInterface
+     */
+    private $connection_manager;
+    /**
+     * @var string|null
+     */
+    private $base_directory;
+
+    public function __construct(ConnectionManagerInterface $connection_manager, ?string $base_directory = null)
     {
+        $this->base_directory     = $base_directory ?: '/';
+        $this->command_helper     = new MysqlCommandHelper($this->base_directory);
+        $this->connection_manager = $connection_manager;
+
+        parent::__construct('setup:mysql-init');
+    }
+
+    public function getHelp(): string
+    {
+        $ssl_opt       = MysqlCommandHelper::OPT_SSL;
+        $ssl_disabled  = ConnectionManager::SSL_NO_SSL;
+        $ssl_no_verify = ConnectionManager::SSL_NO_VERIFY;
+        $ssl_verify_ca = ConnectionManager::SSL_VERIFY_CA;
+        $ssl_ca_file   = MysqlCommandHelper::OPT_SSL_CA;
         return <<<EOT
         Initialize the database (MySQL > 5.7 or MariaDB 10.3) for use with Tuleap
+
+        This command is idempotent so it's safe to be used several times (with same parameters...).
 
         By using --app-password option, it will create the tuleap DB (`tuleap` by default or --db-name),
         the database admin user (`tuleapadm` or --admin-user) with the required GRANTS.
@@ -58,15 +91,23 @@ final class SetupMysqlInitCommand extends Command
 
         Both --app-password and --nss-password can be used independently or together.
 
-        This command is idempotent so it's safe to be used several times (with same parameters...).
+        The connection to the database can be encrypted and you can control the way it's done with ${ssl_opt} with:
+        - ${ssl_disabled}: no usage of encryption (default)
+        - ${ssl_no_verify}: connection will be encrypted by host won't be verified
+        - ${ssl_verify_ca}: connection is encrypted and host is verified
+
+        And encrypted connection requires a Certificate Authority (CA) file that must be provide with ${ssl_ca_file}.
+
         EOT;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
-        $this->setName('setup:mysql-init')
+        $this->command_helper->addOptions($this);
+
+        $this
             ->setDescription('Initialize database (users, database, permissions)')
-            ->addOption('host', '', InputOption::VALUE_REQUIRED, 'MySQL server host', 'localhost')
+            ->addOption(self::OPT_SKIP_DATABASE, '', InputOption::VALUE_NONE, 'Will skip database initialization (when you only want to re-write database.inc)')
             ->addOption(self::OPT_ADMIN_USER, '', InputOption::VALUE_REQUIRED, 'MySQL admin user', 'root')
             ->addOption(self::OPT_ADMIN_PASSWORD, '', InputOption::VALUE_REQUIRED, 'MySQL admin password')
             ->addOption(self::OPT_APP_DBNAME, '', InputOption::VALUE_REQUIRED, 'Name of the DB name to host Tuleap tables (`tuleap` by default)', 'tuleap')
@@ -77,53 +118,124 @@ final class SetupMysqlInitCommand extends Command
             ->addOption(self::OPT_MEDIAWIKI, '', InputOption::VALUE_REQUIRED, 'Grant permissions for mediawiki. Possible values: `per-project` or `central`');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        $host = (string) $input->getOption('host');
-        $user = (string) $input->getOption(self::OPT_ADMIN_USER);
+        try {
+            $host        = $this->command_helper->getHost($input);
+            $port        = $this->command_helper->getPort($input);
+            $ssl_mode    = $this->command_helper->getSSLMode($input);
+            $ssl_ca_file = $this->command_helper->getSSLCAFile($input, $ssl_mode);
+        } catch (InvalidSSLConfigurationException $exception) {
+            $io->getErrorStyle()->writeln(sprintf('<error>%s</error>', $exception->getMessage()));
+            return 1;
+        }
+
+        $initialize_db = ! (bool) $input->getOption(self::OPT_SKIP_DATABASE);
+
+        $user = $input->getOption(self::OPT_ADMIN_USER);
+        assert(is_string($user));
+
         $password = $input->getOption(self::OPT_ADMIN_PASSWORD);
         if (! $password) {
             $io->getErrorStyle()->writeln(sprintf('<error>Missing mysql password for admin user `%s`</error>', $user));
             return 1;
         }
+        assert(is_string($password));
 
-        $connexion_manager = new ConnectionManager();
-        $db = $connexion_manager->getDBWithoutDBName($io, $host, $user, $password);
-        if ($db === null) {
-            $io->getErrorStyle()->writeln('<error>Unable to connect to mysql server</error>');
-            return 1;
-        }
-        $io->writeln('<info>Successfully connected to the server !</info>');
-
-        $connexion_manager->checkSQLModes($db);
+        $app_dbname = $input->getOption(self::OPT_APP_DBNAME);
+        assert(is_string($app_dbname));
 
         $app_password = $input->getOption(self::OPT_APP_PASSWORD);
-        if ($app_password) {
-            $this->setUpApplication(
+        if ($app_password && ! is_string($app_password)) {
+            $io->getErrorStyle()->writeln(sprintf('<error>%s must be a string</error>', self::OPT_APP_PASSWORD));
+            return 1;
+        }
+        assert($app_password === null || is_string($app_password));
+        $app_user = $input->getOption(self::OPT_APP_USER);
+        if (! is_string($app_user)) {
+            $io->getErrorStyle()->writeln(sprintf('<error>%s must be a string</error>', self::OPT_APP_USER));
+        }
+        assert(is_string($app_user));
+
+        if ($initialize_db) {
+            $return_value = $this->initializeDatabase(
+                $input,
                 $io,
+                $host,
+                $port,
+                $ssl_mode,
+                $ssl_ca_file,
+                $user,
+                $password,
+                $app_dbname,
+                $app_user,
+                $app_password
+            );
+            if ($return_value !== 0) {
+                return $return_value;
+            }
+        }
+
+        return $this->writeConfigurationFile($host, $port, $ssl_mode, $ssl_ca_file, $app_dbname, $app_user, $app_password);
+    }
+
+    /**
+     * @psalm-param value-of<ConnectionManagerInterface::ALLOWED_SSL_MODES> $ssl_mode
+     */
+    private function initializeDatabase(
+        InputInterface $input,
+        SymfonyStyle $output,
+        string $host,
+        int $port,
+        string $ssl_mode,
+        string $ssl_ca_file,
+        string $user,
+        string $password,
+        string $app_dbname,
+        string $app_user,
+        ?string $app_password
+    ): int {
+        $db = $this->connection_manager->getDBWithoutDBName($output, $host, $port, $ssl_mode, $ssl_ca_file, $user, $password);
+        if ($db === null) {
+            $output->getErrorStyle()->writeln('<error>Unable to connect to mysql server</error>');
+            return 1;
+        }
+        $output->writeln('<info>Successfully connected to the server !</info>');
+
+        $this->connection_manager->checkSQLModes($db);
+
+        if ($app_password && $app_user) {
+            $this->setUpApplication(
+                $output,
                 $db,
-                $input->getOption(self::OPT_APP_DBNAME),
-                $input->getOption(self::OPT_APP_USER),
+                $app_dbname,
+                $app_user,
                 $app_password,
             );
         }
 
         $nss_password = $input->getOption(self::OPT_NSS_PASSWORD);
         if ($nss_password) {
+            assert(is_string($nss_password));
+            $nss_user = $input->getOption(self::OPT_NSS_USER);
+            assert(is_string($nss_user));
             $this->setUpNss(
-                $io,
+                $output,
                 $db,
-                $input->getOption(self::OPT_APP_DBNAME),
-                $input->getOption(self::OPT_NSS_USER),
+                $app_dbname,
+                $nss_user,
                 $nss_password,
             );
         }
 
         $mediawiki = $input->getOption(self::OPT_MEDIAWIKI);
         if ($mediawiki) {
-            $this->setUpMediawiki($io, $db, $mediawiki, $input->getOption(self::OPT_APP_USER));
+            assert(is_string($mediawiki));
+            $app_user = $input->getOption(self::OPT_APP_USER);
+            assert(is_string($app_user));
+            $this->setUpMediawiki($output, $db, $mediawiki, $app_user);
         }
 
         $db->run('FLUSH PRIVILEGES');
@@ -153,7 +265,7 @@ final class SetupMysqlInitCommand extends Command
     /**
      * @see https://bugs.mysql.com/bug.php?id=80379
      */
-    private function setUpNss(SymfonyStyle $io, EasyDB $db, string $target_dbname, string $nss_user, string $nss_password)
+    private function setUpNss(SymfonyStyle $io, EasyDB $db, string $target_dbname, string $nss_user, string $nss_password): void
     {
         $io->writeln(sprintf('<info>Grant privileges to %s</info>', $nss_user));
 
@@ -195,7 +307,7 @@ final class SetupMysqlInitCommand extends Command
         ));
     }
 
-    private function createUser(EasyDB $db, string $user, string $password)
+    private function createUser(EasyDB $db, string $user, string $password): void
     {
         $db->run(sprintf(
             'CREATE USER IF NOT EXISTS %s IDENTIFIED BY \'%s\'',
@@ -252,5 +364,68 @@ final class SetupMysqlInitCommand extends Command
                 )
             );
         }
+    }
+
+    private function writeConfigurationFile(
+        string $host,
+        int $port,
+        string $ssl_mode,
+        string $ssl_ca_file,
+        string $dbname,
+        string $user,
+        ?string $password
+    ): int {
+        if ($password === null) {
+            return 0;
+        }
+        $template = file_get_contents(__DIR__ . '/../../etc/database.inc.dist');
+
+        $user_parts = explode('@', $user);
+
+        $conf_string = str_replace(
+            [
+                'localhost',
+                '%sys_dbname%',
+                '%sys_dbuser%',
+                '%sys_dbpasswd%',
+            ],
+            [
+                $host,
+                $dbname,
+                $user_parts[0],
+                $password,
+            ],
+            $template,
+        );
+
+        if ($ssl_mode !== ConnectionManagerInterface::SSL_NO_SSL) {
+            $verify_cert = $ssl_mode === ConnectionManagerInterface::SSL_VERIFY_CA ? 1 : 0;
+            $conf_string = preg_replace(
+                [
+                    '/\$sys_enablessl.*/',
+                    '/\$sys_db_ssl_ca.*/',
+                    '/\$sys_db_ssl_verify_cert.*/',
+                ],
+                [
+                    '$sys_enablessl = \'1\';',
+                    sprintf('$sys_db_ssl_ca = \'%s\';', $ssl_ca_file),
+                    sprintf('$sys_db_ssl_verify_cert = \'%d\';', $verify_cert),
+                ],
+                $conf_string,
+            );
+        }
+
+        $target_file = $this->base_directory . '/etc/tuleap/conf/database.inc';
+        if (! file_exists($target_file)) {
+            touch($target_file);
+        }
+        chmod($target_file, 0640);
+        chown($target_file, 'root');
+        chgrp($target_file, 'codendiadm');
+
+        if (file_put_contents($target_file, $conf_string) === strlen($conf_string)) {
+            return 0;
+        }
+        return 1;
     }
 }

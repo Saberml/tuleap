@@ -32,7 +32,7 @@ class VersionUploadCancelerTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    public function testVersionBeingUploadedIsCleanedWhenTheUploadIsCancelled() : void
+    public function testVersionBeingUploadedIsCleanedWhenTheUploadIsCancelled(): void
     {
         $path_allocator = new UploadPathAllocator(vfsStream::setup()->url() . '/version');
         $dao            = \Mockery::mock(DocumentOnGoingVersionToUploadDAO::class);
@@ -49,10 +49,10 @@ class VersionUploadCancelerTest extends TestCase
         $dao->shouldReceive('deleteByVersionID')->once();
 
         $canceler->terminateUpload($file_information);
-        $this->assertFileNotExists($item_path);
+        $this->assertFileDoesNotExist($item_path);
     }
 
-    public function testCancellingAnUploadThatHasNotYetStartedDoesNotGiveAWarning() : void
+    public function testCancellingAnUploadThatHasNotYetStartedDoesNotGiveAWarning(): void
     {
         $path_allocator = new UploadPathAllocator(vfsStream::setup()->url() . '/version');
         $dao            = \Mockery::mock(DocumentOnGoingVersionToUploadDAO::class);
@@ -67,6 +67,6 @@ class VersionUploadCancelerTest extends TestCase
         $dao->shouldReceive('deleteByVersionID')->once();
 
         $canceler->terminateUpload($file_information);
-        $this->assertFileNotExists($item_path);
+        $this->assertFileDoesNotExist($item_path);
     }
 }

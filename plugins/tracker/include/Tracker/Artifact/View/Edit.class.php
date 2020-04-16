@@ -117,7 +117,7 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
         $html .= '<div id="tracker_artifact_followup_comments-content">';
         $html .= $this->fetchSettingsButton($invert_order, $display_changes);
         $html .= '<h1 id="tracker_artifact_followups">' . $GLOBALS['Language']->getText('plugin_tracker_include_artifact', 'follow_ups') . '</h1>';
-        $html .= '<ul class="tracker_artifact_followups">';
+        $html .= '<ul class="tracker_artifact_followups" data-test="artifact-followups">';
 
         $comments = $this->artifact->getFollowupsContent();
         if ($invert_order) {
@@ -225,25 +225,27 @@ class Tracker_Artifact_View_Edit extends Tracker_Artifact_View_View
 
         if ($this->artifact->userCanUpdate($this->user)) {
             $rich_textarea_provider = new RichTextareaProvider(
-                Tracker_FormElementFactory::instance(),
                 TemplateRendererFactory::build(),
-                new FrozenFieldDetector(
-                    new TransitionRetriever(
-                        new StateFactory(
-                            new TransitionFactory(
-                                Workflow_Transition_ConditionFactory::build(),
-                                EventManager::instance(),
-                                new DBTransactionExecutorWithConnection(
-                                    DBFactory::getMainTuleapDBConnection()
-                                )
+                new \Tuleap\Tracker\Artifact\UploadDataAttributesForRichTextEditorBuilder(
+                    Tracker_FormElementFactory::instance(),
+                    new FrozenFieldDetector(
+                        new TransitionRetriever(
+                            new StateFactory(
+                                new TransitionFactory(
+                                    Workflow_Transition_ConditionFactory::build(),
+                                    EventManager::instance(),
+                                    new DBTransactionExecutorWithConnection(
+                                        DBFactory::getMainTuleapDBConnection()
+                                    )
+                                ),
+                                new SimpleWorkflowDao()
                             ),
-                            new SimpleWorkflowDao()
+                            new TransitionExtractor()
                         ),
-                        new TransitionExtractor()
-                    ),
-                    new FrozenFieldsRetriever(
-                        new FrozenFieldsDao(),
-                        Tracker_FormElementFactory::instance()
+                        new FrozenFieldsRetriever(
+                            new FrozenFieldsDao(),
+                            Tracker_FormElementFactory::instance()
+                        )
                     )
                 )
             );

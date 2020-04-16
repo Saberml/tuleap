@@ -21,8 +21,8 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../../src/vendor/autoload.php';
-require_once __DIR__ . '/../../src/www/themes/FlamingParrot/vendor/autoload.php';
-require_once __DIR__ . '/../../src/www/themes/BurningParrot/vendor/autoload.php';
+require_once __DIR__ . '/../../src/themes/FlamingParrot/vendor/autoload.php';
+require_once __DIR__ . '/../../src/themes/BurningParrot/vendor/autoload.php';
 
 require_once __DIR__ . '/../../src/vendor/squizlabs/php_codesniffer/autoload.php';
 

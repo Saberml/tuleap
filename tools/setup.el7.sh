@@ -87,6 +87,12 @@ if [ ${tuleap_installed:-false} = "false" ] || \
     _logPassword "MySQL system user password (${sys_db_user}): ${sys_db_password}"
     _logPassword "Site admin password (${project_admin}): ${admin_password}"
 
+    # Only needed for short term tests as futur test containers will have this created out of rpms
+    if [ ! -d ${tuleap_conf} ]; then
+        install -d -m 0750 -o root -g ${tuleap_unix_user} ${tuleap_dir}
+        install -d -m 0750 -o ${tuleap_unix_user} -g ${tuleap_unix_user} ${tuleap_conf}
+    fi
+
     ${tuleapcfg} setup:mysql-init \
         --host="${mysql_server}" \
         --admin-user="${mysql_user}" \
@@ -103,32 +109,24 @@ if [ ${tuleap_installed:-false} = "false" ] || \
         "${admin_password}" \
         "${server_name}"
 
-    for directory in ${tuleap_conf} ${tuleap_plugins} ${pluginsadministration}; do
-        if [ ! -d ${directory} ]; then
-            _setupDirectory "${tuleap_unix_user}" "${tuleap_unix_user}" "0755" \
-                "${directory}"
-        fi
-    done
-
     if [ -f "${tuleap_conf}/${local_inc}" ]; then
         _infoMessage "Saving ${local_inc} file"
         ${mv} "${tuleap_conf}/${local_inc}" \
             "${tuleap_conf}/${local_inc}.$(date +%Y-%m-%d_%H-%M-%S)"
     fi
     _setupLocalInc
-
-    if [ -f "${tuleap_conf}/${database_inc}" ]; then
-        _infoMessage "Saving ${database_inc} file"
-        ${mv} "${tuleap_conf}/${database_inc}" \
-            "${tuleap_conf}/${database_inc}.$(date +%Y-%m-%d_%H-%M-%S)"
-    fi
-    _setupDatabaseInc
+    chown root:codendiadm "${tuleap_conf}/${local_inc}"
+    chmod 00640 "${tuleap_conf}/${local_inc}"
 
     _setupForgeupgrade
     _phpActivePlugin "tracker" "${tuleap_unix_user}"
     _phpForgeupgrade "record-only"
+
     ${tuleapcfg} systemctl enable "${timers[@]}"
     ${tuleapcfg} systemctl start "${timers[@]}"
+
+    ${tuleapcfg} site-deploy
+
     _phpConfigureModule "nginx,fpm"
     ${tuleapcfg} systemctl restart "nginx" "tuleap"
     ${tuleapcfg} systemctl enable "nginx"

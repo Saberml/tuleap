@@ -206,7 +206,7 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 
     /**
      * @param  string Ldap identifier
-     * @return PFUser or null if the user is not found
+     * @return PFUser|null null if the user is not found
      */
     public function getUserByLdapId($ldapId)
     {
@@ -235,7 +235,7 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
      *
      * @param String $ident A user identifier
      *
-     * @return PFUser
+     * @return PFUser|null
      */
     public function findUser($ident)
     {
@@ -361,7 +361,7 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
      *
      * @param string $identifier User identifier
      *
-     * @return PFUser
+     * @return PFUser|null
      */
     public function getUserByIdentifier($identifier)
     {
@@ -825,8 +825,10 @@ class UserManager // phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
             $userRow = $user->toRow();
             if ($user->getPassword() != '') {
                 $password_handler = PasswordHandlerFactory::getPasswordHandler();
-                if (!$password_handler->verifyHashPassword($user->getPassword(), $user->getUserPw()) ||
-                        $password_handler->isPasswordNeedRehash($user->getUserPw())) {
+                if (
+                    !$password_handler->verifyHashPassword($user->getPassword(), $user->getUserPw()) ||
+                        $password_handler->isPasswordNeedRehash($user->getUserPw())
+                ) {
                     // Update password
                     $userRow['clear_password'] = $user->getPassword();
                 }

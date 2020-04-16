@@ -61,7 +61,7 @@ class UserHelper
     {
         if (!isset(self::$_instance)) {
             $c = self::class;
-            self::$_instance = new $c;
+            self::$_instance = new $c();
         }
         return self::$_instance;
     }
@@ -225,7 +225,7 @@ class UserHelper
      *
      * @param int the user_id of the user to display
      * @see getDisplayName
-     * @return string
+     * @return string|null
      */
     public function getDisplayNameFromUserId($user_id)
     {

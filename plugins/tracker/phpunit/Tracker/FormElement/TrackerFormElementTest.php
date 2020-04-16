@@ -36,7 +36,9 @@ use Tuleap\GlobalResponseMock;
 
 class TrackerFormElementTest extends TestCase
 {
-    use MockeryPHPUnitIntegration, GlobalLanguageMock, GlobalResponseMock;
+    use MockeryPHPUnitIntegration;
+    use GlobalLanguageMock;
+    use GlobalResponseMock;
 
     protected function tearDown(): void
     {
@@ -105,8 +107,8 @@ class TrackerFormElementTest extends TestCase
 
         $content = $this->WhenIDisplayAdminFormElement($formElement);
 
-        $this->assertRegExp('%Update%', $content);
-        $this->assertRegExp('%</form>%', $content);
+        $this->assertMatchesRegularExpression('%Update%', $content);
+        $this->assertMatchesRegularExpression('%</form>%', $content);
     }
 
     private function whenIDisplayAdminFormElement($formElement)

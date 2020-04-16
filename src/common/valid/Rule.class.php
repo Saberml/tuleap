@@ -94,7 +94,7 @@ class Rule_Timestamp extends Rule
 
     public function isValid($val)
     {
-        return preg_match(self::TIMESTAMP_REGEX, $val);
+        return preg_match(self::TIMESTAMP_REGEX, $val) === 1;
     }
 }
 
@@ -166,9 +166,11 @@ class Rule_WhiteList extends Rule_Comparator
 {
     public function isValid($val)
     {
-        if (is_array($this->ref)
-           && count($this->ref) > 0
-           && in_array($val, $this->ref)) {
+        if (
+            is_array($this->ref)
+            && count($this->ref) > 0
+            && in_array($val, $this->ref)
+        ) {
             return true;
         }
         return false;
@@ -240,8 +242,10 @@ class Rule_NoCr extends Rule
 {
     public function isValid($val)
     {
-        if (is_string($val) && strpos($val, 0x0A) === false && strpos($val, 0x0D) === false
-           && strpos($val, 0x00) === false) {
+        if (
+            is_string($val) && strpos($val, 0x0A) === false && strpos($val, 0x0D) === false
+            && strpos($val, 0x00) === false
+        ) {
             return true;
         }
         return false;
@@ -314,8 +318,10 @@ class Rule_Email extends Rule
     public function validEmail($email)
     {
         $valid_chars = '-!#$%&\'*+0-9=?A-Z^_`a-z{|}~\.';
-        if (array_key_exists('sys_disable_subdomains', $GLOBALS)
-            && $GLOBALS['sys_disable_subdomains']) {
+        if (
+            array_key_exists('sys_disable_subdomains', $GLOBALS)
+            && $GLOBALS['sys_disable_subdomains']
+        ) {
             $valid_domain = '[' . $valid_chars . ']+';
         } else {
             $valid_domain = '[' . $valid_chars . ']+\.[' . $valid_chars . ']+';
@@ -822,7 +828,7 @@ class Rule_File extends Rule
     /**
      * Check file upload validity
      *
-     * @param  Array   One entry in $_FILES superarray (e.g. $_FILES['test'])
+     * @param  string|array $file  One entry in $_FILES superarray (e.g. $_FILES['test'])
      * @return bool Is file upload valid or not.
      */
     public function isValid($file)

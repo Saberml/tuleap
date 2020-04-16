@@ -221,7 +221,11 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
     {
         $version = $params['version'];
         $class   = "\\Tuleap\\PullRequest\\REST\\$version\\RepositoryResource";
-        $repository_resource = new $class;
+        if (! class_exists($class)) {
+            throw new LogicException("$class does not exist");
+        }
+
+        $repository_resource = new $class();
 
         $params['result'] = $repository_resource->getPaginatedPullRequests(
             $params['repository'],
@@ -258,6 +262,9 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
     {
         if ($event->getRequest()->get('action') === 'pull-requests') {
             $layout          = $this->getThemeManager()->getBurningParrot($event->getRequest()->getCurrentUser());
+            if ($layout === null) {
+                throw new \Exception("Could not load BurningParrot theme");
+            }
             $this->getPullRequestDisplayer()->display($event->getRequest(), $layout);
         }
     }
@@ -527,7 +534,7 @@ class pullrequestPlugin extends Plugin // phpcs:ignore
 
     public function postInitGitRepositoryWithDataEvent(PostInitGitRepositoryWithDataEvent $event)
     {
-        (new GitPullRequestReferenceRemover)->removeAll(GitExec::buildFromRepository($event->getRepository()));
+        (new GitPullRequestReferenceRemover())->removeAll(GitExec::buildFromRepository($event->getRepository()));
     }
 
     public static function getLogger()

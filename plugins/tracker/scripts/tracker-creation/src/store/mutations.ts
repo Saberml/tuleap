@@ -19,16 +19,25 @@
 
 import {
     CreationOptions,
+    Credentials,
+    ProjectList,
     ProjectWithTrackers,
     State,
     Tracker,
+    TrackerList,
     TrackerToBeCreatedMandatoryData,
 } from "./type";
 import { extractNameAndShortnameFromXmlFile } from "../helpers/xml-data-extractor";
 import { getSlugifiedShortname } from "../helpers/shortname-slugifier";
+import { isDefaultTemplateSelected } from "./is-default-template-selected";
 
-export function setActiveOption(state: State, option: CreationOptions): void {
+export function setActiveOption(state: State, option: CreationOptions | string): void {
     state.active_option = option;
+    state.selected_tracker_template = null;
+
+    if (isDefaultTemplateSelected(state)) {
+        setSelectedTrackerTemplate(state, option);
+    }
 }
 
 export function setSelectedTrackerTemplate(state: State, tracker_id: string): void {
@@ -151,4 +160,24 @@ export function setIsXmlAFileSelected(state: State): void {
 
 export function setSlugifyShortnameMode(state: State, is_active: boolean): void {
     state.is_in_slugify_mode = is_active;
+}
+
+export function setJiraCredentials(state: State, credentials: Credentials): void {
+    state.from_jira_data.credentials = credentials;
+}
+
+export function setProjectList(state: State, project_list: ProjectList[]): void {
+    state.from_jira_data.project_list = project_list;
+}
+
+export function setTrackerList(state: State, tracker_list: TrackerList[]): void {
+    state.from_jira_data.tracker_list = tracker_list;
+}
+
+export function setProject(state: State, project: ProjectList): void {
+    state.from_jira_data.project = project;
+}
+
+export function setTracker(state: State, tracker: TrackerList): void {
+    state.from_jira_data.tracker = tracker;
 }

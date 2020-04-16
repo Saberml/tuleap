@@ -34,7 +34,8 @@ final class CoreOAuth2ScopeBuilderFactory
     public static function buildCoreOAuth2ScopeBuilder(): AuthenticationScopeBuilder
     {
         return new AuthenticationScopeBuilderFromClassNames(
-            OAuth2ProjectReadScope::class
+            OAuth2ProjectReadScope::class,
+            OAuth2UserMembershipScope::class,
         );
     }
 }

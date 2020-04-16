@@ -120,7 +120,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
     }
 
     /**
-     * @return Tracker_FormElement_Field_List_Bind_UgroupsValue
+     * @return Tracker_FormElement_Field_List_Bind_UgroupsValue|null
      */
     public function getValue($value_id)
     {
@@ -763,8 +763,7 @@ class Tracker_FormElement_Field_List_Bind_Ugroups extends Tracker_FormElement_Fi
 
     public function getFullRESTValue(Tracker_FormElement_Field_List_Value $value)
     {
-        $class_user_representation = '\\Tuleap\\Project\\REST\\UserGroupRepresentation';
-        $ugroup_representation     = new $class_user_representation;
+        $ugroup_representation = new UserGroupRepresentation();
 
         $ugroup_manager = new UGroupManager();
         $project        = $this->getField()->getTracker()->getProject();

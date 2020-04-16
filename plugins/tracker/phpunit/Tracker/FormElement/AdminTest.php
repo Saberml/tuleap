@@ -20,15 +20,16 @@
 
 final class Tracker_FormElement_View_AdminTest extends \PHPUnit\Framework\TestCase //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace, Squiz.Classes.ValidClassName.NotCamelCaps
 {
-    use \Tuleap\GlobalLanguageMock, \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+    use \Tuleap\GlobalLanguageMock;
+    use \Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 
     public function testForSharedFieldsItDisplaysOriginalTrackerAndProjectName(): void
     {
         $admin = $this->givenAnAdminWithOriginalProjectAndTracker('Tuleap', 'Bugs');
         $result = $admin->fetchCustomHelpForShared();
-        $this->assertRegExp("%Bugs%", $result);
-        $this->assertRegExp("%Tuleap%", $result);
-        $this->assertRegExp('%<a href="' . TRACKER_BASE_URL . '/\?tracker=101&amp;func=admin-formElement-update&amp;formElement=666"%', $result);
+        $this->assertMatchesRegularExpression("%Bugs%", $result);
+        $this->assertMatchesRegularExpression("%Tuleap%", $result);
+        $this->assertMatchesRegularExpression('%<a href="' . TRACKER_BASE_URL . '/\?tracker=101&amp;func=admin-formElement-update&amp;formElement=666"%', $result);
     }
 
     public function givenAnAdminWithOriginalProjectAndTracker(string $projectName, string $trackerName): Tracker_FormElement_View_Admin
@@ -54,8 +55,8 @@ final class Tracker_FormElement_View_AdminTest extends \PHPUnit\Framework\TestCa
         $element = $this->givenAnElementWithManyCopies();
         $admin   = new Tracker_FormElement_View_Admin($element, array());
         $content = $admin->fetchSharedUsage();
-        $this->assertRegExp('/Canard/', $content);
-        $this->assertRegExp('/Saucisse/', $content);
+        $this->assertMatchesRegularExpression('/Canard/', $content);
+        $this->assertMatchesRegularExpression('/Saucisse/', $content);
     }
 
     private function givenAnElementWithManyCopies()

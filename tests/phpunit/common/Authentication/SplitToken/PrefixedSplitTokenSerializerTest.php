@@ -39,7 +39,7 @@ final class PrefixedSplitTokenSerializerTest extends TestCase
 
     public function testBuiltIdentifierIsInTheBase64CharsetSoItCanBeSafelyUsedInHTTPHeadersAndURLs(): void
     {
-        $this->assertRegExp('/(?:[a-zA-Z0-9]|-|\.|\_|\~|\+|\/|=)+/', $this->buildIdentifier()->getString());
+        $this->assertMatchesRegularExpression('/(?:[a-zA-Z0-9]|-|\.|\_|\~|\+|\/|=)+/', $this->buildIdentifier()->getString());
     }
 
     private function buildIdentifier(): ConcealedString
@@ -70,7 +70,7 @@ final class PrefixedSplitTokenSerializerTest extends TestCase
     /**
      * @dataProvider incorrectlyFormattedIdentifierProvider
      */
-    public function testBuildingFromAnIncorrectlyFormattedIdentifierIsRejected(string $incorrectly_formatted_identifier) : void
+    public function testBuildingFromAnIncorrectlyFormattedIdentifierIsRejected(string $incorrectly_formatted_identifier): void
     {
         $access_key_serializer = new PrefixedSplitTokenSerializer($this->getPrefix());
 
@@ -101,7 +101,7 @@ final class PrefixedSplitTokenSerializerTest extends TestCase
                 $this->prefix = $prefix;
             }
 
-            public function getString() : string
+            public function getString(): string
             {
                 return $this->prefix;
             }

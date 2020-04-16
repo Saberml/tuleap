@@ -20,7 +20,7 @@
 <template>
     <div class="tlp-form-element card-content card-tracker-template-selector">
         <label class="tlp-label card-title" for="tracker-creation-template-selector" v-translate>
-            Template
+            Trackers from template projects
         </label>
         <select
             class="tlp-select"
@@ -31,14 +31,6 @@
             v-on:change="setSelectedTrackerTemplate(model)"
         >
             <option value="" disabled v-translate>Choose a tracker...</option>
-            <option
-                v-for="tracker in default_templates"
-                v-bind:value="tracker.id"
-                v-bind:key="tracker.id"
-                v-bind:selected="tracker.id === model"
-            >
-                {{ tracker.name }}
-            </option>
             <optgroup
                 v-for="(project, index) in project_templates"
                 v-bind:label="project.project_name"
@@ -66,9 +58,6 @@ import { ProjectTemplate, Tracker } from "../../../../../store/type";
 export default class TrackerTemplateSelector extends Vue {
     @State
     readonly project_templates!: ProjectTemplate[];
-
-    @State
-    readonly default_templates!: Tracker[];
 
     @State
     readonly selected_tracker_template!: Tracker | null;

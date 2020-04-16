@@ -27,7 +27,9 @@
  */
 class LDAP_UserSync
 {
-
+    /**
+     * @var self
+     */
     private static $instance;
     protected $attributes;
 
@@ -51,13 +53,15 @@ class LDAP_UserSync
             $syncClass = self::class;
             // Allows site defined user update
             include_once($GLOBALS['Language']->getContent('synchronize_user', 'en_US', 'ldap'));
-            self::$instance = new $syncClass;
+            self::$instance = new $syncClass();
         }
         return self::$instance;
     }
 
     /**
      * Return the sync attributes
+     *
+     * @param LDAP $ldap
      *
      * @return array
      */

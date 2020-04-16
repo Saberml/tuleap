@@ -87,19 +87,17 @@ class Tracker_ArtifactCreator //phpcs:ignore
 
     /**
      * Creates the first changeset for a bare artifact.
-     * @return Tracker_Artifact|false false if an error occurred
      */
     public function createFirstChangeset(
-        Tracker $tracker,
         Tracker_Artifact $artifact,
         array $fields_data,
         PFUser $user,
         $submitted_on,
         $send_notification,
         CreatedFileURLMapping $url_mapping
-    ) {
+    ): ?Tracker_Artifact_Changeset {
         if (!$this->fields_validator->validate($artifact, $user, $fields_data)) {
-            return;
+            return null;
         }
 
         return $this->createFirstChangesetNoValidation(
@@ -123,12 +121,12 @@ class Tracker_ArtifactCreator //phpcs:ignore
         $submitted_on,
         $send_notification,
         CreatedFileURLMapping $url_mapping
-    ) {
+    ): ?Tracker_Artifact_Changeset {
         $changeset_id = $this->db_transaction_executor->execute(function () use ($artifact, $fields_data, $user, $submitted_on, $url_mapping) {
             return $this->changeset_creator->create($artifact, $fields_data, $user, (int) $submitted_on, $url_mapping);
         });
         if (! $changeset_id) {
-            return;
+            return null;
         }
 
         $changeset = new Tracker_Artifact_Changeset(
@@ -143,7 +141,7 @@ class Tracker_ArtifactCreator //phpcs:ignore
             $changeset->executePostCreationActions();
         }
 
-        return $artifact;
+        return $changeset;
     }
 
     /**
@@ -172,14 +170,16 @@ class Tracker_ArtifactCreator //phpcs:ignore
         }
 
         $url_mapping = new CreatedFileURLMapping();
-        if (! $this->createFirstChangesetNoValidation(
-            $artifact,
-            $fields_data,
-            $user,
-            $submitted_on,
-            $send_notification,
-            $url_mapping
-        )) {
+        if (
+            ! $this->createFirstChangesetNoValidation(
+                $artifact,
+                $fields_data,
+                $user,
+                $submitted_on,
+                $send_notification,
+                $url_mapping
+            )
+        ) {
             $this->logger->debug(
                 sprintf('Reverting the creation of artifact in tracker #%d failed: changeset creation failed', $tracker->getId())
             );

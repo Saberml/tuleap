@@ -25,6 +25,7 @@ use Tuleap\Tracker\FormElement\Field\ListFields\Bind\BindVisitor;
 use Tuleap\Tracker\Import\Spotter;
 use Tuleap\Tracker\REST\FieldListBindUserValueRepresentation;
 use Tuleap\Tracker\REST\FormElement\UserListValueRepresentation;
+use Tuleap\User\REST\UserRepresentation;
 
 class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Field_List_Bind
 {
@@ -640,12 +641,13 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
         for ($i = 0; $i < $rows; $i++) {
             $ug = db_result($ugroup_res, $i, 'ugroup_id');
             $selected = "";
-            if (($ug == $GLOBALS['UGROUP_NONE']) ||
+            if (
+                ($ug == $GLOBALS['UGROUP_NONE']) ||
                 ($ug == $GLOBALS['UGROUP_ANONYMOUS']) ||
                 ($ug == $GLOBALS['UGROUP_PROJECT_MEMBERS']) ||
                 ($ug == $GLOBALS['UGROUP_PROJECT_ADMIN']) ||
                 ($ug == $GLOBALS['UGROUP_TRACKER_ADMIN'])
-               ) {
+            ) {
                    continue;
             }
 
@@ -950,9 +952,8 @@ class Tracker_FormElement_Field_List_Bind_Users extends Tracker_FormElement_Fiel
 
     public function getFullRESTValue(Tracker_FormElement_Field_List_Value $value)
     {
-        $user_manager = UserManager::instance();
-        $class_user_representation = '\\Tuleap\\User\\REST\\UserRepresentation';
-        $user_representation       = new $class_user_representation;
+        $user_manager        = UserManager::instance();
+        $user_representation = new UserRepresentation();
         $user = $user_manager->getUserByUserName($value->getLabel());
         if (! $user) {
             $user = new PFUser();

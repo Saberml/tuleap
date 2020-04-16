@@ -97,15 +97,15 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
     protected function tearDown(): void
     {
         $db = DBFactory::getMainTuleapDBConnection()->getDB();
-        $db->delete('plugin_oauth2_authorization_code', []);
-        $db->delete('plugin_oauth2_authorization_code_scope', []);
-        $db->delete('plugin_oauth2_access_token', []);
-        $db->delete('plugin_oauth2_access_token_scope', []);
-        $db->delete('plugin_oauth2_refresh_token', []);
-        $db->delete('plugin_oauth2_refresh_token_scope', []);
+        $db->run('DELETE FROM plugin_oauth2_authorization_code');
+        $db->run('DELETE FROM plugin_oauth2_authorization_code_scope');
+        $db->run('DELETE FROM plugin_oauth2_access_token');
+        $db->run('DELETE FROM plugin_oauth2_access_token_scope');
+        $db->run('DELETE FROM plugin_oauth2_refresh_token');
+        $db->run('DELETE FROM plugin_oauth2_refresh_token_scope');
     }
 
-    public static function tearDownAfterClass() : void
+    public static function tearDownAfterClass(): void
     {
         $db = DBFactory::getMainTuleapDBConnection()->getDB();
         $db->delete('groups', ['group_id' => self::$active_project_id]);
@@ -126,6 +126,7 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
             $user_id,
             $verification_string,
             $expiration_timestamp,
+            null,
             null
         );
 
@@ -136,7 +137,8 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
                 'verifier'              => $verification_string,
                 'expiration_date'       => $expiration_timestamp,
                 'has_already_been_used' => 0,
-                'pkce_code_challenge'   => null
+                'pkce_code_challenge'   => null,
+                'oidc_nonce'            => null
             ],
             $authorization_code_row
         );
@@ -148,7 +150,7 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
 
     public function testDeletingAnAuthorizationCodeDeletesTheAssociatedTokens(): void
     {
-        $auth_code_id = $this->dao->create(self::$active_project_app_id, 102, 'hashed_verification_string_auth', 20, null);
+        $auth_code_id = $this->dao->create(self::$active_project_app_id, 102, 'hashed_verification_string_auth', 20, null, null);
 
         $auth_code_scope_dao    = new OAuth2AuthorizationCodeScopeDAO();
         $auth_code_scope_dao->saveScopeKeysByID($auth_code_id, 'scope:A', 'scope:B');
@@ -191,6 +193,7 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
             $user_id,
             $verification_string,
             $expiration_timestamp,
+            null,
             null
         );
 
@@ -199,7 +202,7 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
 
     public function testDeletesExpiredAuthorizationCodeAndTokens(): void
     {
-        $auth_code_id = $this->dao->create(self::$active_project_app_id, 102, 'hashed_verification_string_auth', 30, null);
+        $auth_code_id = $this->dao->create(self::$active_project_app_id, 102, 'hashed_verification_string_auth', 30, null, null);
         $access_token_dao  = new OAuth2AccessTokenDAO();
         $access_token_id   = $access_token_dao->create($auth_code_id, 'hashed_verification_string_access', 30);
         $refresh_token_dao = new OAuth2RefreshTokenDAO();
@@ -214,7 +217,7 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
 
     public function testDoesNotDeletedExpiredAuthorizationCodeWhenThereIsStillAnActiveTokenAssociatedToIt(): void
     {
-        $auth_code_id = $this->dao->create(self::$active_project_app_id, 102, 'hashed_verification_string_auth', 5, null);
+        $auth_code_id = $this->dao->create(self::$active_project_app_id, 102, 'hashed_verification_string_auth', 5, null, null);
         $access_token_dao  = new OAuth2AccessTokenDAO();
         $access_token_id   = $access_token_dao->create($auth_code_id, 'hashed_verification_string_access', 30);
 
@@ -226,7 +229,7 @@ final class OAuth2AuthorizationCodeDAOTest extends TestCase
 
     public function testDeletesAuthorizationCodeOfDeletedProject(): void
     {
-        $auth_code_id = $this->dao->create(self::$deleted_project_app_id, 102, 'hashed_verification_string', 357, null);
+        $auth_code_id = $this->dao->create(self::$deleted_project_app_id, 102, 'hashed_verification_string', 357, null, null);
 
         $this->dao->deleteAuthorizationCodeInNonExistingOrDeletedProject();
 

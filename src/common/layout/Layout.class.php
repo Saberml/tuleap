@@ -33,7 +33,7 @@ use Tuleap\Layout\IncludeAssets;
  * @deprecated
  *
  */
-abstract class Layout extends Tuleap\Layout\BaseLayout
+abstract class Layout extends Tuleap\Layout\BaseLayout //phpcs:ignore PSR1.Classes.ClassDeclaration.MissingNamespace
 {
     /**
      * Html purifier
@@ -133,7 +133,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         return $html;
     }
 
-    protected function selectRank_optgroup($id, $items, $prefix = '', $value_prefix = '')
+    protected function selectRank_optgroup($id, $items, $prefix = '', $value_prefix = '') // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $html      = '';
         $optgroups = '';
@@ -320,7 +320,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
      * @see Widget_Static
      * @deprecated You should consider using Widget_Static instead
      */
-    public function box1_top($title, $echoout = 1, $bgcolor = '', $cols = 2)
+    public function box1_top($title, $echoout = 1, $bgcolor = '', $cols = 2) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
             $return = '<TABLE class="boxtable" cellspacing="1" cellpadding="5" width="100%" border="0">
                         <TR class="boxtitle" align="center">
@@ -341,7 +341,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
      * @see Widget_Static
      * @deprecated You should consider using Widget_Static instead
      */
-    public function box1_middle($title, $bgcolor = '', $cols = 2)
+    public function box1_middle($title, $bgcolor = '', $cols = 2) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
             return '
                                 </TD>
@@ -360,7 +360,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
      * @see Widget_Static
      * @deprecated You should consider using Widget_Static instead
      */
-    public function box1_bottom($echoout = 1)
+    public function box1_bottom($echoout = 1) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
             $return = '
                 </TD>
@@ -377,7 +377,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
     /**
      * This is a generic header method shared by header() and pv_header()
      */
-    private function generic_header($params)
+    private function generic_header($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         if (!$this->is_rendered_through_service && isset($GLOBALS['group_id']) && $GLOBALS['group_id']) {
             if (isset($params['toptab'])) {
@@ -419,11 +419,9 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         } else {
             $this->includeSubsetOfCombined();
         }
-        $assets_path    = ForgeConfig::get('tuleap_dir') . '/src/www/assets';
-        $include_assets = new IncludeAssets($assets_path, '/assets');
 
-        echo $include_assets->getHTMLSnippet("ckeditor.js");
-        echo $include_assets->getHTMLSnippet("rich-text-editor.js");
+        echo $this->include_asset->getHTMLSnippet("ckeditor.js");
+        echo $this->include_asset->getHTMLSnippet("rich-text-editor.js");
 
         //Javascript i18n
         echo '<script type="text/javascript">' . "\n";
@@ -519,6 +517,11 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         return '/themes/' . $GLOBALS['sys_user_theme'] . '/css/' . $css;
     }
 
+    private function getAssets(): IncludeAssets
+    {
+        return new IncludeAssets(__DIR__ . '/../../www/assets/core', '/assets/core');
+    }
+
     /**
      * Display all the stylesheets for the current page
      */
@@ -553,12 +556,12 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
 
     protected function displayCommonStylesheetElements($params)
     {
-        $common_theme_assets = new IncludeAssets(__DIR__ . '/../../www/themes/common/assets', '/themes/common/assets');
+        $core_assets = $this->getAssets();
         echo '<link rel="stylesheet" type="text/css" href="/themes/common/css/bootstrap-tuleap-22d39b3.min.css" />';
         echo '<link rel="stylesheet" type="text/css" href="/themes/common/css/bootstrap-tuleap-responsive-22d39b3.min.css" />';
         echo '<link rel="stylesheet" type="text/css" href="/themes/common/css/animate.min.css" />';
-        echo '<link rel="stylesheet" type="text/css" href="' . $common_theme_assets->getFileURL('style.css') . '" />';
-        echo '<link rel="stylesheet" type="text/css" href="' . $common_theme_assets->getFileURL('print.css') . '" media="print" />';
+        echo '<link rel="stylesheet" type="text/css" href="' . $core_assets->getFileURL('common-theme/style.css') . '" />';
+        echo '<link rel="stylesheet" type="text/css" href="' . $core_assets->getFileURL('common-theme/print.css') . '" media="print" />';
         echo '<link rel="stylesheet" type="text/css" href="' . $this->getStylesheetTheme('style.css') . '" />';
         echo '<link rel="stylesheet" type="text/css" href="' . $this->getStylesheetTheme('print.css') . '" media="print" />';
         echo '<link rel="stylesheet" type="text/css" href="/scripts/bootstrap/bootstrap-select/bootstrap-select.css" />';
@@ -676,7 +679,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         return $html;
     }
 
-    public function warning_for_services_which_configuration_is_not_inherited($group_id, $service_top_tab)
+    public function warning_for_services_which_configuration_is_not_inherited($group_id, $service_top_tab) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $pm = ProjectManager::instance();
         $project = $pm->getProject($group_id);
@@ -699,7 +702,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         }
     }
 
-    public function generic_footer($params)
+    public function generic_footer($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         global $Language;
 
@@ -718,7 +721,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         echo '</html>';
     }
 
-    public function pv_header($params)
+    public function pv_header($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $this->generic_header($params);
         echo '
@@ -737,7 +740,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         }
     }
 
-    public function pv_footer($params)
+    public function pv_footer($params) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         echo $this->displayFooterJavascriptElements();
         echo "\n</body></html>";
@@ -760,7 +763,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
     /**
      * This method generates header for pages embbeded in overlay like LiteWindow
      */
-    public function overlay_header()
+    public function overlay_header() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $this->includeCalendarScripts();
         echo '<!DOCTYPE html>
@@ -790,7 +793,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
     /**
      * This method generates footer for pages embbeded in overlay like LiteWindow
      */
-    public function overlay_footer()
+    public function overlay_footer() // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         echo '         </div>
                      </div>
@@ -824,7 +827,7 @@ abstract class Layout extends Tuleap\Layout\BaseLayout
         $this->generic_footer($params);
     }
 
-    public function menu_entry($link, $title)
+    public function menu_entry($link, $title) // phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
             print "\t" . '<A class="menus" href="' . $link . '">' . $title . '</A> &nbsp;<img src="' . util_get_image_theme("point1.png") . '" alt=" " width="7" height="7"><br>';
     }

@@ -35,6 +35,7 @@ CREATE TABLE plugin_oauth2_authorization_code(
     expiration_date INT(11) UNSIGNED NOT NULL,
     has_already_been_used BOOLEAN NOT NULL,
     pkce_code_challenge BINARY(32),
+    oidc_nonce TEXT,
     INDEX idx_expiration_date (expiration_date),
     INDEX idx_app_id (app_id),
     INDEX idx_user_app_id (user_id, app_id)
@@ -89,4 +90,10 @@ CREATE TABLE plugin_oauth2_refresh_token_scope (
     refresh_token_id INT(11) NOT NULL,
     scope_key VARCHAR(255) NOT NULL,
     PRIMARY KEY (refresh_token_id, scope_key)
+) ENGINE=InnoDB;
+
+CREATE TABLE plugin_oauth2_oidc_signing_key (
+    enforce_one_row_table ENUM('SHOULD_HAVE_AT_MOST_ONE_ROW') NOT NULL PRIMARY KEY DEFAULT 'SHOULD_HAVE_AT_MOST_ONE_ROW',
+    public_key TEXT NOT NULL,
+    private_key BLOB NOT NULL
 ) ENGINE=InnoDB;

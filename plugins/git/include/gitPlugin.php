@@ -417,8 +417,10 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
     {
         // Only show the stylesheet if we're actually in the Git pages.
         // This stops styles inadvertently clashing with the main site.
-        if (strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0 ||
-            strpos($_SERVER['REQUEST_URI'], '/widgets/') === 0) {
+        if (
+            strpos($_SERVER['REQUEST_URI'], $this->getPluginPath()) === 0 ||
+            strpos($_SERVER['REQUEST_URI'], '/widgets/') === 0
+        ) {
             echo '<link rel="stylesheet" type="text/css" href="' . $this->getIncludeAssets()->getFileURL('default.css') . '" />';
         }
     }
@@ -1131,7 +1133,7 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
             $this->getGitSystemEventManager(),
             $this->getGitRepositoryUrlManager(),
             $this->getGitDao(),
-            new Git_Mirror_MirrorDao,
+            new Git_Mirror_MirrorDao(),
             $this,
             null,
             null,
@@ -2092,6 +2094,9 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
     public function getRESTRepositoryRepresentationBuilder($version)
     {
         $class  = "Tuleap\\Git\\REST\\" . $version . "\\RepositoryRepresentationBuilder";
+        if (! class_exists($class)) {
+            throw new LogicException("$class cannot be found");
+        }
         return new $class(
             $this->getGitPermissionsManager(),
             $this->getGerritServerFactory(),
@@ -2104,6 +2109,9 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
     public function rest_project_get_git($params)//phpcs:ignore PSR1.Methods.CamelCapsMethodName.NotCamelCaps
     {
         $class            = "Tuleap\\Git\\REST\\" . $params['version'] . "\\ProjectResource";
+        if (! class_exists($class)) {
+            throw new LogicException("$class cannot be found");
+        }
         $project          = $params['project'];
         $project_resource = new $class(
             $this->getRepositoryFactory(),
@@ -2581,7 +2589,8 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
             new ListPresenterBuilder(
                 $this->getGitPermissionsManager(),
                 $this->getGitDao(),
-                UserManager::instance()
+                UserManager::instance(),
+                EventManager::instance()
             ),
             $this->getIncludeAssets(),
             EventManager::instance()
@@ -2781,11 +2790,11 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
         );
     }
 
-    public function collectCLICommands(CLICommandsCollector $commands_collector) : void
+    public function collectCLICommands(CLICommandsCollector $commands_collector): void
     {
         $commands_collector->addCommand(
             RegenerateConfigurationCommand::NAME,
-            function () : RegenerateConfigurationCommand {
+            function (): RegenerateConfigurationCommand {
                 return new RegenerateConfigurationCommand(
                     ProjectManager::instance(),
                     $this->getGitSystemEventManager()
@@ -2794,7 +2803,7 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
         );
         $commands_collector->addCommand(
             RepositoriesWithObjectsOverTheLimitCommand::NAME,
-            function () : RepositoriesWithObjectsOverTheLimitCommand {
+            function (): RepositoriesWithObjectsOverTheLimitCommand {
                 return new RepositoriesWithObjectsOverTheLimitCommand(
                     $this->getRepositoryFactory(),
                     new GitRepositoryObjectsSizeRetriever()
@@ -2815,7 +2824,7 @@ class GitPlugin extends Plugin //phpcs:ignore PSR1.Classes.ClassDeclaration.Miss
         );
     }
 
-    public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event) : void
+    public function serviceEnableForXmlImportRetriever(ServiceEnableForXmlImportRetriever $event): void
     {
         $event->addServiceIfPluginIsNotRestricted($this, $this->getServiceShortname());
     }

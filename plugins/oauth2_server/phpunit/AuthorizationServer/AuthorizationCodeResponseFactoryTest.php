@@ -56,7 +56,8 @@ final class AuthorizationCodeResponseFactoryTest extends TestCase
             HTTPFactoryBuilder::responseFactory(),
             $this->authorization_code_creator,
             new RedirectURIBuilder(HTTPFactoryBuilder::URIFactory()),
-            $this->url_redirect
+            $this->url_redirect,
+            HTTPFactoryBuilder::URIFactory()
         );
     }
 
@@ -72,6 +73,7 @@ final class AuthorizationCodeResponseFactoryTest extends TestCase
             [M::mock(AuthenticationScope::class)],
             UserTestBuilder::aUser()->withId(102)->build(),
             'https://example.com',
+            null,
             null,
             null
         );
@@ -94,7 +96,8 @@ final class AuthorizationCodeResponseFactoryTest extends TestCase
             UserTestBuilder::aUser()->withId(102)->build(),
             'https://example.com',
             '6k9Sfw',
-            'pkce_code_challenge'
+            'pkce_code_challenge',
+            'oidc_nonce'
         );
         $this->assertSame(302, $response->getStatusCode());
         $location = $response->getHeaderLine('Location');
@@ -106,7 +109,7 @@ final class AuthorizationCodeResponseFactoryTest extends TestCase
     public function testCreateErrorResponseRedirectsWithErrorCode(): void
     {
         $response = $this->authorization_code_response_factory->createErrorResponse(
-            AuthorizationEndpointGetController::ERROR_CODE_INVALID_REQUEST,
+            AuthorizationEndpointController::ERROR_CODE_INVALID_REQUEST,
             'https://example.com',
             null
         );
@@ -119,7 +122,7 @@ final class AuthorizationCodeResponseFactoryTest extends TestCase
     public function testCreateErrorResponseRedirectsWithStateWhenNotNull(): void
     {
         $response = $this->authorization_code_response_factory->createErrorResponse(
-            AuthorizationEndpointGetController::ERROR_CODE_INVALID_REQUEST,
+            AuthorizationEndpointController::ERROR_CODE_INVALID_REQUEST,
             'https://example.com',
             '9EEbiaQfNRQXusHSe'
         );
@@ -132,11 +135,24 @@ final class AuthorizationCodeResponseFactoryTest extends TestCase
 
     public function testCreateRedirectToLoginResponse(): void
     {
-        $this->url_redirect->shouldReceive('buildReturnToLogin')->andReturn('/login');
+        $this->url_redirect->shouldReceive('buildReturnToLogin')
+            ->with(['REQUEST_URI' => '/oauth2/authorize?client_id=1'])->once()->andReturn('/login');
         $request  = new NullServerRequest();
-        $response = $this->authorization_code_response_factory->createRedirectToLoginResponse($request);
+        $request  = $request->withUri($request->getUri()->withHost('example.com')->withPath('/oauth2/authorize'));
+        $response = $this->authorization_code_response_factory->createRedirectToLoginResponse($request, ['client_id' => '1']);
         $this->assertSame(302, $response->getStatusCode());
-        $this->assertEquals('/login', $response->getHeaderLine('Location'));
+        $this->assertEquals('/login?&prompt=login', $response->getHeaderLine('Location'));
+    }
+
+    public function testCreateRedirectToLoginResponseAndLoginValueFromPromptToAvoidAnInfiniteRedirectionLoop(): void
+    {
+        $this->url_redirect->shouldReceive('buildReturnToLogin')
+            ->with(['REQUEST_URI' => '/oauth2/authorize?client_id=1&prompt=consent'])->once()->andReturn('/login');
+        $request  = new NullServerRequest();
+        $request  = $request->withUri($request->getUri()->withHost('example.com')->withPath('/oauth2/authorize'));
+        $response = $this->authorization_code_response_factory->createRedirectToLoginResponse($request, ['client_id' => '1', 'prompt' => 'login consent']);
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertEquals('/login?&prompt=login', $response->getHeaderLine('Location'));
     }
 
     private function buildOAuth2App(): OAuth2App

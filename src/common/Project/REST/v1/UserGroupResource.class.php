@@ -95,6 +95,7 @@ class UserGroupResource extends AuthenticatedResource
      *
      * @url GET {id}
      * @access hybrid
+     * @oauth2-scope read:user_membership
      *
      * @param string $id Id of the ugroup This should be one of two formats<br>
      * - format: projectId_ugroupId for dynamic project user groups (project members...)<br>
@@ -320,9 +321,11 @@ class UserGroupResource extends AuthenticatedResource
 
     private function checkUgroupValidity(ProjectUGroup $user_group)
     {
-        if (! $user_group->isStatic() &&
+        if (
+            ! $user_group->isStatic() &&
             (int) $user_group->getId() !== ProjectUGroup::PROJECT_MEMBERS &&
-            (int) $user_group->getId() !== ProjectUGroup::PROJECT_ADMIN) {
+            (int) $user_group->getId() !== ProjectUGroup::PROJECT_ADMIN
+        ) {
             throw new RestException(
                 400,
                 'Only project members or administrators can be taken into account for the dynamic user groups'
